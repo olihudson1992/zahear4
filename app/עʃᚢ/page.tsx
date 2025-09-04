@@ -311,7 +311,7 @@ export default function MailingListPage() {
 
       <div className="mt-auto mb-8 relative">
         <Image
-          src="/images/song-inside-logo.png"
+          src="public/images/song-inside-logo.png"
           alt="The Song Inside Logo"
           width={120}
           height={120}
