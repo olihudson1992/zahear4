@@ -3,6 +3,8 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
+import Head from "next/head"
+
 
 export default function MailingListPage() {
   const [email, setEmail] = useState("")
@@ -136,6 +138,7 @@ export default function MailingListPage() {
     return () => clearTimeout(timer)
   }, [])
 
+
   const handleBirdClick = () => {
     setShowWizard(true)
     setBgColor(bgColor === "white" ? "gradient" : "white")
@@ -249,6 +252,11 @@ export default function MailingListPage() {
   const birdColor = getBirdColor(birdColorSlider)
 
   return (
+    <>
+    <Head>
+      <title>♒︎</title>
+    </Head>
+      
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative" style={backgroundStyle}>
       {showWizardControls && (
         <div className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm rounded-lg p-3">
