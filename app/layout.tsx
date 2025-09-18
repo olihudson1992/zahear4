@@ -6,8 +6,8 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Zahear - Elemental Scene",
-  description: "Interactive 3D elemental physics experience",
+  title: "♒",
+  description: "WYRD",
   generator: "v0.dev",
   icons: {
     icon: "/favicon.ico", // default favicon for all pages
