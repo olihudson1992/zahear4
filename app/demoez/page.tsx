@@ -1,56 +1,50 @@
+"use client";
+
+import { useState, useRef } from "react";
+import Image from "next/image";
 
 export const metadata = {
   title: "♒︎",
-}
-"use client"
-
-import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import Image from "next/image"
+};
 
 export default function MailingListPage() {
-  const [email, setEmail] = useState("")
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [bgHue] = useState(183)
-  const [bgSaturation] = useState(100)
-  const [bgLightness, setBgLightness] = useState(68)
-  const [animatedLightness, setAnimatedLightness] = useState(68)
-  const [showWizard, setShowWizard] = useState(false)
-  const [showWizardControls, setShowWizardControls] = useState(false)
-  const [showWizardText, setShowWizardText] = useState(false)
-  const [wizardClickCount, setWizardClickCount] = useState(0)
-  const [speechText, setSpeechText] = useState("")
-  const [birdColorSlider, setBirdColorSlider] = useState(0)
-  const [birdPosition, setBirdPosition] = useState({ x: 50, y: 50 })
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [isFleeingFromMouse, setIsFleeingFromMouse] = useState(false)
-  const [bgColor, setBgColor] = useState("gradient")
-  const birdRef = useRef<HTMLDivElement>(null)
+  const [email, setEmail] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [bgHue] = useState(183);
+  const [bgSaturation] = useState(100);
+  const [bgLightness, setBgLightness] = useState(68);
+  const [animatedLightness, setAnimatedLightness] = useState(68);
+  const [showWizard, setShowWizard] = useState(false);
+  const [showWizardControls, setShowWizardControls] = useState(false);
+  const [showWizardText, setShowWizardText] = useState(false);
+  const [wizardClickCount, setWizardClickCount] = useState(0);
+  const [speechText, setSpeechText] = useState("");
+  const [birdColorSlider, setBirdColorSlider] = useState(0);
+  const [birdPosition, setBirdPosition] = useState({ x: 50, y: 50 });
+  const [bgColor, setBgColor] = useState("gradient");
+  const birdRef = useRef<HTMLDivElement>(null);
 
   const backgroundStyle =
     bgColor === "white"
       ? { background: "white" }
-      : { background: `linear-gradient(to bottom, white, hsl(${bgHue}, ${bgSaturation}%, ${animatedLightness}%))` }
+      : { background: `linear-gradient(to bottom, white, hsl(${bgHue}, ${bgSaturation}%, ${animatedLightness}%))` };
 
   const getBirdColor = (sliderValue: number) => {
     if (sliderValue <= 50) {
-      const progress = sliderValue / 50
-      return {
-        hue: 210,
-        saturation: progress * 100,
-        lightness: 100 - progress * 30,
-      }
+      const progress = sliderValue / 50;
+      return { hue: 210, saturation: progress * 100, lightness: 100 - progress * 30 };
     } else {
-      const progress = (sliderValue - 50) / 50
-      return {
-        hue: 210 - progress * 180,
-        saturation: 100,
-        lightness: 70 - progress * 20,
-      }
+      const progress = (sliderValue - 50) / 50;
+      return { hue: 210 - progress * 180, saturation: 100, lightness: 70 - progress * 20 };
     }
-  }
+  };
 
-  const birdColor = getBirdColor(birdColorSlider)
+  const birdColor = getBirdColor(birdColorSlider);
+
+  // ✅ Dummy handlers so the page builds
+  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); setIsSubmitted(true); };
+  const handleBirdClick = () => {};
+  const handleWizardClick = () => {};
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative" style={backgroundStyle}>
@@ -81,7 +75,6 @@ export default function MailingListPage() {
         🕊️
       </div>
 
-      {/* ✅ Responsive circle for mobile */}
       <div className="bg-white rounded-full w-96 h-96 max-w-[90vw] max-h-[90vw] flex flex-col items-center justify-center neon-circle mb-8">
         {!isSubmitted ? (
           <>
@@ -115,7 +108,7 @@ export default function MailingListPage() {
 
       <div className="mt-auto mb-8 relative">
         <Image
-          src="public/images/song-inside-logo.png"
+          src="/images/song-inside-logo.png"
           alt="The Song Inside Logo"
           width={120}
           height={120}
@@ -151,5 +144,5 @@ export default function MailingListPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
