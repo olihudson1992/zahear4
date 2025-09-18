@@ -1,4 +1,4 @@
-export default function HomePage() {
+
   return (
     <main style={{ padding: "2rem", lineHeight: 1.6 }}>
       <h1>Origin and history of weird</h1>
@@ -49,3 +49,4 @@ export default function HomePage() {
     </main>
   );
 }
+
