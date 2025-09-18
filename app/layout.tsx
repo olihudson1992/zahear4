@@ -8,7 +8,10 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Zahear - Elemental Scene",
   description: "Interactive 3D elemental physics experience",
-    generator: 'v0.dev'
+  generator: "v0.dev",
+  icons: {
+    icon: "/favicon.ico", // default favicon for all pages
+  },
 }
 
 export default function RootLayout({
