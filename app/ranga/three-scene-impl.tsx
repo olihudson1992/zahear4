@@ -817,7 +817,7 @@ function OrbitingLight({
 
   return (
     <>
-      <pointLight ref={lightRef} color={color} intensity={baseIntensity} distance={8} decay={2} />
+      <pointLight ref={lightRef} color={color} intensity={baseIntensity} distance={12} decay={1.5} />
       <mesh ref={sphereRef}>
         <sphereGeometry args={[0.15]} />
         <meshBasicMaterial color={color} />
@@ -932,7 +932,7 @@ export default function Page() {
   const [lockedPosition, setLockedPosition] = useState<THREE.Vector3 | null>(null)
   const [isPositionLocked, setIsPositionLocked] = useState(false)
 
-  const [shuKnob, setShuKnob] = useState(0.0)
+  const [shuKnob, setShuKnob] = useState(0.2)
   const [phiKnob, setPhiKnob] = useState(0.0)
   const [thetaKnob, setThetaKnob] = useState(0.0)
   const [showHelp, setShowHelp] = useState(false)
@@ -998,7 +998,7 @@ export default function Page() {
   }, [])
 
   const rangaLightEmission = (shuKnob / 4) * 2
-  const baseIntensity = (shuKnob / 4) * 3.5 + 0.5
+  const baseIntensity = (shuKnob / 4) * 3.5 + 1.2
   const audioMultiplier = (shuKnob / 4) * 1.5 + 0.5
   const noiseDistortion = phiKnob * 2.5 * noiseIntensity
   const waveDistortion = phiKnob * 2.5 * waveFrequency
@@ -1238,10 +1238,6 @@ export default function Page() {
                   <span className="text-orange-500">:</span> Controls morphing effects
                 </p>
                 <p>
-                  <span className="text-orange-500 font-bold">iΘ þн</span>
-                  <span className="text-orange-500">:</span> Enable microphone for audio-reactive effects
-                </p>
-                <p>
                   <span className="text-orange-500 font-bold">Click anywhere</span>
                   <span className="text-orange-500">:</span> Move lights to that position
                 </p>
@@ -1339,15 +1335,13 @@ export default function Page() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-white text-xs luminari">Help</span>
                     <div className="flex gap-2">
-                      {showInstructionsButton && (
-                        <Button
-                          onClick={() => setShowInstructions(true)}
-                          size="sm"
-                          className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs px-3 py-1 luminari ui-button"
-                        >
-                          Instructions
-                        </Button>
-                      )}
+                      <Button
+                        onClick={() => setShowInstructions(true)}
+                        size="sm"
+                        className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-sm px-4 py-1.5 luminari ui-button"
+                      >
+                        Instructions
+                      </Button>
                       <Button
                         onClick={() => setShowHelp(true)}
                         size="sm"
@@ -1512,7 +1506,13 @@ export default function Page() {
         gl={{ antialias: !isMobile, powerPreference: "high-performance" }}
         className="w-full h-full"
       >
-        <ambientLight intensity={0.2} />
+        <ambientLight intensity={0.15} />
+        {/* Subtle directional light to make the Ranga model visible */}
+        <directionalLight
+          position={[statueX + 4, statueY + 6, statueZ + 3]}
+          intensity={0.25}
+          color="#f5f5dc"
+        />
         <OrbitControls
           enablePan={true}
           enableZoom={true}

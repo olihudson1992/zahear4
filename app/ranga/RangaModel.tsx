@@ -104,14 +104,14 @@ function RangaModelInner(props: RangaModelProps) {
           const material = texture
             ? new THREE.MeshStandardMaterial({
                 map: texture,
-                roughness: 0.8,
-                metalness: 0.2,
+                roughness: 0.6,
+                metalness: 0.1,
                 color: "#ffffff",
               })
             : new THREE.MeshStandardMaterial({
-                color: "#8B7355",
-                roughness: 0.9,
-                metalness: 0.1,
+                color: "#a89b7a",
+                roughness: 0.7,
+                metalness: 0.05,
               })
 
           mesh.material = material
@@ -120,6 +120,7 @@ function RangaModelInner(props: RangaModelProps) {
 
           if (mesh.geometry && mesh.geometry.attributes.position) {
             originalPositionsRef.current = new Float32Array(mesh.geometry.attributes.position.array)
+            mesh.geometry.computeVertexNormals()
           }
         }
       })
@@ -147,6 +148,7 @@ function RangaModelInner(props: RangaModelProps) {
         positions[i] = originalPositions[i]
       }
       mesh.geometry.attributes.position.needsUpdate = true
+      mesh.geometry.computeVertexNormals()
       return
     }
 
@@ -154,10 +156,15 @@ function RangaModelInner(props: RangaModelProps) {
     const originalPositions = originalPositionsRef.current
     const vertexCount = positions.length / 3
 
-    // Audio reactivity
-    const bassReactive = audioData.bassLevel || 0
-    const midReactive = audioData.midLevel || 0
-    const trebleReactive = audioData.trebleLevel || 0
+    // Model space scale factor for coordinate system conversion
+    const modelSpaceScale = 0.014
+
+    // Audio reactivity adjusted for model space calculations
+    const mobileMultiplier = isMobile ? 0.5 : 1
+    const bassReactive = Math.max(0, (audioData.bassLevel || 0) * 25 * mobileMultiplier)
+    const midReactive = Math.max(0, (audioData.midLevel || 0) * 25 * mobileMultiplier)
+    const trebleReactive = Math.max(0, (audioData.trebleLevel || 0) * 25 * mobileMultiplier)
+    const volumeReactive = Math.max(0, (audioData.volume || 0) * 50 * mobileMultiplier)
 
     // Cache time-based calculations that are used repeatedly
     const time2 = time * 2
@@ -177,25 +184,56 @@ function RangaModelInner(props: RangaModelProps) {
 
       // Morphing effect based on shuKnob - skip if effect is too small
       if (morphingEffect > 0.01) {
-        const morphAmount = morphingEffect * 0.5
-        const morphFreq = time2 + vertexIndex * 0.1  // Use cached time2
-        displacement.x += Math.sin(morphFreq) * morphAmount * bassReactive
-        displacement.y += Math.cos(morphFreq * 1.3) * morphAmount * midReactive
-        displacement.z += Math.sin(morphFreq * 0.7) * morphAmount * trebleReactive
+        const timeBasedMovement = Math.sin(time3) * 0.05
+
+        // Complex phase calculation scaled for model space (0.014 scale factor)
+        const morphPhase = Math.sin(time * 0.5 + (vertex.x + vertex.y + vertex.z) * modelSpaceScale * 2)
+
+        // Multi-directional morphing vectors scaled for model space
+        const morphDirectionX = Math.sin(time * 0.3 + vertex.y * modelSpaceScale * 5)
+        const morphDirectionY = Math.cos(time * 0.4 + vertex.x * modelSpaceScale * 5)
+        const morphDirectionZ = Math.sin(time * 0.2 + vertex.z * modelSpaceScale * 5)
+
+        // Normalize the direction vector
+        const morphLength = Math.sqrt(morphDirectionX * morphDirectionX +
+                                     morphDirectionY * morphDirectionY +
+                                     morphDirectionZ * morphDirectionZ)
+        const normalizedX = morphDirectionX / (morphLength || 1)
+        const normalizedY = morphDirectionY / (morphLength || 1)
+        const normalizedZ = morphDirectionZ / (morphLength || 1)
+
+        // Audio-reactive morphing intensity matching old implementation
+        const morphIntensity = (bassReactive + midReactive + trebleReactive + timeBasedMovement + 1) *
+                              morphingEffect * morphPhase * 0.5
+
+        // Apply normalized directional morphing
+        displacement.x += normalizedX * morphIntensity
+        displacement.y += normalizedY * morphIntensity
+        displacement.z += normalizedZ * morphIntensity
       }
 
       // Bulge effect (Theta knob) - skip if effect is too small
       if (bulgeEffect > 0.01) {
-        const distance = vertex.length()
-        const bulgeAmount = Math.sin(distance * 0.5 - time2) * bulgeEffect * 2  // Use cached time2
-        // Reuse normal vector instead of cloning
-        reusableNormal.current.copy(vertex).normalize()
+        const timeBasedMovement = Math.sin(time * 0.5) * 0.1 * mobileMultiplier
+        // Calculate distance from model center in model space (equivalent to statue center in world space)
+        const modelSpaceCenter = { x: 0, y: -71.4, z: 0 } // (statueY - 1) / 0.014 ≈ -71.4
+        const distanceFromCenter = Math.sqrt(
+          Math.pow(vertex.x - modelSpaceCenter.x, 2) +
+          Math.pow(vertex.y - modelSpaceCenter.y, 2) +
+          Math.pow(vertex.z - modelSpaceCenter.z, 2)
+        )
+        // Scale distance calculation for model space
+        const scaledDistance = distanceFromCenter * modelSpaceScale
+        const bulgeAmount = Math.exp(-scaledDistance * 2.0) * bulgeEffect * (volumeReactive + timeBasedMovement + 1) * 1.0
+        // Use original vertex position for direction (like old implementation)
+        reusableNormal.current.set(originalPositions[i], originalPositions[i + 1], originalPositions[i + 2]).normalize()
         const normal = reusableNormal.current
-        displacement.add(normal.multiplyScalar(bulgeAmount * (bassReactive + 0.2)))
+        displacement.add(normal.multiplyScalar(bulgeAmount))
       }
 
       // Noise distortion based on light positions - skip if effect is too small
       if (noiseDistortion > 0.01 && lightPositions.length > 0) {
+        const timeBasedMovement = Math.sin(time3) * 0.05
         // Use for loop instead of forEach for better performance
         for (let j = 0; j < lightPositions.length; j++) {
           const distToLight = vertex.distanceTo(lightPositions[j])
@@ -203,12 +241,12 @@ function RangaModelInner(props: RangaModelProps) {
 
           // Skip if influence is negligible
           if (influence > 0.01) {
-            const noiseAmount = influence * noiseDistortion * 10
-            // Use single random value for all axes (more coherent noise)
-            const randomValue = (Math.random() - 0.5) * noiseAmount
-            displacement.x += randomValue
-            displacement.y += randomValue * 0.8  // Slightly different for variation
-            displacement.z += randomValue * 1.2  // Slightly different for variation
+            const randomNoise = (Math.random() - 0.5) * 0.3
+            const structuredNoise = Math.sin(vertex.x * modelSpaceScale * 10 + time * 2) * Math.cos(vertex.y * modelSpaceScale * 8 + time * 1.5) * 0.4
+            const combinedNoise = (randomNoise + structuredNoise) * noiseDistortion * (midReactive + timeBasedMovement + 1) * 0.8 * influence
+            displacement.x += combinedNoise
+            displacement.y += combinedNoise * 0.7
+            displacement.z += combinedNoise * 0.9
           }
         }
       }
@@ -216,12 +254,12 @@ function RangaModelInner(props: RangaModelProps) {
       // Wave distortion - skip if effect is too small
       if (waveDistortion > 0.01) {
         const timeBasedMovement = sinTime3 * 0.05  // Use cached sinTime3
-        const wave =
-          Math.sin(vertex.y * 0.1 + time2) *  // Use cached time2
-          Math.cos(vertex.x * 0.1 + time) *
-          waveDistortion *
-          (trebleReactive + timeBasedMovement + 1) *
-          1.0
+        // Convert statue position to model space equivalent for wave calculation
+        const statueXInModelSpace = 0  // Since model is centered and positioned via group transform
+        const wave = Math.sin((vertex.x - statueXInModelSpace) * modelSpaceScale * 5 + time * 3) *
+                    waveDistortion *
+                    (trebleReactive + timeBasedMovement + 1) *
+                    1.0
         displacement.y += wave
       }
 
