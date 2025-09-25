@@ -206,7 +206,7 @@ export default function WelcomeScreen({ onEnterCave, onMusicOnly, skipAnimation 
 
             {/* Footer */}
             <div className="text-sm text-gray-600 space-y-2 text-center">
-              <p>Created by Oli Ranga</p>
+              <p>Created by Oli Ranga with <a href="https://anthonite.ltd" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-600 underline">Anthonite</a></p>
               <p>
                 <a
                   href="https://linktr.ee/olranga"
