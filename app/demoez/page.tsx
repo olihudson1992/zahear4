@@ -3,9 +3,7 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 
-export const metadata = {
-  title: "♒︎",
-};
+
 
 export default function MailingListPage() {
   const [email, setEmail] = useState("");
@@ -75,11 +73,11 @@ export default function MailingListPage() {
         🕊️
       </div>
 
-      <div className="bg-white rounded-full w-96 h-96 max-w-[90vw] max-h-[90vw] flex flex-col items-center justify-center neon-circle mb-8">
+      <div className="bg-white rounded-full w-[min(24rem,80vw)] h-[min(24rem,80vw)] flex flex-col items-center justify-center neon-circle mb-8">
         {!isSubmitted ? (
           <>
-            <h1 className="luminari-font text-3xl text-gray-800 mb-6 text-center">join us</h1>
-            <form onSubmit={handleSubmit} className="w-64 space-y-6">
+            <h1 className="luminari-font text-2xl sm:text-3xl text-gray-800 mb-4 sm:mb-6 text-center">join us</h1>
+            <form onSubmit={handleSubmit} className="w-full max-w-[16rem] px-6 space-y-4 sm:space-y-6">
               <div className="relative">
                 <input
                   type="email"
@@ -87,21 +85,21 @@ export default function MailingListPage() {
                   placeholder="email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 text-center bg-white border border-gray-300 rounded-md focus:border-blue-400 focus:outline-none text-gray-800"
+                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base text-center bg-white border border-gray-300 rounded-md focus:border-blue-400 focus:outline-none text-gray-800"
                   required
                 />
               </div>
               <div className="flex justify-center">
-                <button type="submit" className="text-4xl text-blue-600 hover:text-blue-800 transition-colors">
+                <button type="submit" className="text-3xl sm:text-4xl text-blue-600 hover:text-blue-800 transition-colors">
                   ♒
                 </button>
               </div>
             </form>
           </>
         ) : (
-          <div className="text-center">
-            <div className="text-6xl mb-4">😊</div>
-            <p className="text-gray-800 luminari-font">Thank you for joining us!</p>
+          <div className="text-center px-6">
+            <div className="text-5xl sm:text-6xl mb-4">😊</div>
+            <p className="text-gray-800 luminari-font text-sm sm:text-base">Thank you for joining us!</p>
           </div>
         )}
       </div>
@@ -112,7 +110,7 @@ export default function MailingListPage() {
           alt="The Song Inside Logo"
           width={120}
           height={120}
-          className="opacity-70"
+          className="opacity-70 w-20 h-20 sm:w-[120px] sm:h-[120px]"
           style={{ mixBlendMode: "multiply" }}
         />
 
@@ -131,12 +129,12 @@ export default function MailingListPage() {
       {showWizard && showWizardText && (
         <div className="fixed bottom-32 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
           {speechText === "Welcome!" ? (
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 px-8 py-4 pointer-events-auto">
-              <div className="luminari-font text-gray-800 text-center text-2xl">{speechText}</div>
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 px-4 sm:px-8 py-3 sm:py-4 pointer-events-auto">
+              <div className="luminari-font text-gray-800 text-center text-xl sm:text-2xl">{speechText}</div>
             </div>
           ) : (
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 p-8 w-[90vw] max-w-6xl pointer-events-auto">
-              <div className="luminari-font text-gray-800 text-center text-xl leading-relaxed whitespace-pre-line">
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 p-4 sm:p-8 w-[90vw] max-w-6xl pointer-events-auto">
+              <div className="luminari-font text-gray-800 text-center text-base sm:text-xl leading-relaxed whitespace-pre-line">
                 {speechText}
               </div>
             </div>
