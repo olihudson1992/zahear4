@@ -997,6 +997,20 @@ export default function Page() {
     return () => clearTimeout(timer)
   }, [])
 
+  // Auto-collapse controls after 1.5 seconds (only once on load)
+  useEffect(() => {
+    const hasAutoCollapsed = sessionStorage.getItem('controlsAutoCollapsed')
+
+    if (!hasAutoCollapsed && showMainControls) {
+      const autoCollapseTimer = setTimeout(() => {
+        setShowMainControls(false)
+        sessionStorage.setItem('controlsAutoCollapsed', 'true')
+      }, 1500) // 1.5 seconds
+
+      return () => clearTimeout(autoCollapseTimer)
+    }
+  }, []) // Empty dependency array ensures this only runs once on mount
+
   const rangaLightEmission = (shuKnob / 4) * 2
   const baseIntensity = (shuKnob / 4) * 3.5 + 1.2
   const audioMultiplier = (shuKnob / 4) * 1.5 + 0.5
