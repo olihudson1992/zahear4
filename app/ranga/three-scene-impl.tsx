@@ -937,7 +937,8 @@ export default function Page() {
   const [thetaKnob, setThetaKnob] = useState(0.0)
   const [showHelp, setShowHelp] = useState(false)
   const [isControlsMinimized, setIsControlsMinimized] = useState(false)
-  const [showInstructions, setShowInstructions] = useState(false)
+  const [showSpeechBubble, setShowSpeechBubble] = useState(false)
+  const [activeTab, setActiveTab] = useState<'welcome' | 'tutorial' | 'controls'>('tutorial')
 
   // Easter egg wizard mode
   const [wizardMode, setWizardMode] = useState(false)
@@ -1001,7 +1002,7 @@ export default function Page() {
   useEffect(() => {
     const hasAutoCollapsed = sessionStorage.getItem('controlsAutoCollapsed')
 
-    if (!hasAutoCollapsed && showMainControls) {
+    if (!hasAutoCollapsed) {
       const autoCollapseTimer = setTimeout(() => {
         setShowMainControls(false)
         sessionStorage.setItem('controlsAutoCollapsed', 'true')
@@ -1010,6 +1011,30 @@ export default function Page() {
       return () => clearTimeout(autoCollapseTimer)
     }
   }, []) // Empty dependency array ensures this only runs once on mount
+
+  // Periodic speech bubble animation
+  useEffect(() => {
+    // Show speech bubble periodically
+    const showBubble = () => {
+      setShowSpeechBubble(true)
+      // Hide after 3 seconds
+      setTimeout(() => {
+        setShowSpeechBubble(false)
+      }, 3000)
+    }
+
+    // Initial delay of 5 seconds, then show every 20 seconds
+    const initialTimer = setTimeout(() => {
+      showBubble()
+      // Set up recurring interval
+      const interval = setInterval(showBubble, 20000)
+
+      // Store interval ID for cleanup
+      return () => clearInterval(interval)
+    }, 5000)
+
+    return () => clearTimeout(initialTimer)
+  }, [])
 
   const rangaLightEmission = (shuKnob / 4) * 2
   const baseIntensity = (shuKnob / 4) * 3.5 + 1.2
@@ -1217,74 +1242,6 @@ export default function Page() {
       </div>
     )
 
-  const InstructionsModal = () =>
-    showInstructions && (
-      <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <Card className="bg-black/95 text-white border-gray-600 max-w-2xl max-h-[80vh] overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold luminari">Instructions</h2>
-              <Button
-                onClick={() => setShowInstructions(false)}
-                variant="ghost"
-                size="sm"
-                className="text-white hover:bg-gray-800"
-              >
-                ✕
-              </Button>
-            </div>
-            <div className="overflow-y-auto max-h-[60vh] pr-2 text-sm leading-relaxed space-y-4">
-              <h4 className="text-xl font-bold text-white luminari">
-                How to Use<span className="text-orange-500">:</span>
-              </h4>
-
-              <div className="space-y-3 text-white">
-                <p>
-                  <span className="text-orange-500 font-bold">术</span> <span className="font-bold">(Shu)</span>
-                  <span className="text-orange-500">:</span> Controls light intensity and statue glow
-                </p>
-                <p>
-                  <span className="text-orange-500 font-bold">ф</span> <span className="font-bold">(Phi)</span>
-                  <span className="text-orange-500">:</span> Adds noise and wave distortions
-                </p>
-                <p>
-                  <span className="text-orange-500 font-bold">Θ</span> <span className="font-bold">(Theta)</span>
-                  <span className="text-orange-500">:</span> Controls morphing effects
-                </p>
-                <p>
-                  <span className="text-orange-500 font-bold">Click anywhere</span>
-                  <span className="text-orange-500">:</span> Move lights to that position
-                </p>
-                <p>
-                  <span className="text-orange-500 font-bold">Click track name</span>
-                  <span className="text-orange-500">:</span> Download the current song
-                </p>
-              </div>
-
-              <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded">
-                <p className="text-sm text-black">
-                  <span className="text-orange-500 font-bold">Browser Compatibility</span>
-                  <span className="text-orange-500">:</span> This experience works best on desktop computers using
-                  Chrome, Firefox, or Safari. If you experience issues, try refreshing the page, enabling hardware
-                  acceleration in your browser settings, or switching to a different browser. The artist suggests using
-                  a computer for the optimal experience.
-                </p>
-              </div>
-
-              <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded">
-                <p className="text-sm text-black">
-                  <span className="text-orange-500 font-bold">Note</span>
-                  <span className="text-orange-500">:</span> Music plays continuously and randomly
-                  <span className="text-orange-500">.</span>
-                  For best experience<span className="text-orange-500">,</span> use headphones and allow audio
-                  permissions<span className="text-orange-500">.</span>
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
 
   const [currentMode, setCurrentMode] = useState<"welcome" | "cave" | "music-only">("welcome")
   const [hasReturnedFromMode, setHasReturnedFromMode] = useState(false)
@@ -1329,48 +1286,305 @@ export default function Page() {
       </Button>
 
 
-      {/* Main Controls Panel - Fixed positioning */}
+      {/* Wizard Toggle Button with Speech Bubble - Center bottom of screen */}
       {isLoadingComplete && modelLoaded && (
-        <div className="absolute top-4 right-4 z-10">
-          {/* Hamburger Menu Button - stays in same position */}
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+          {/* Speech Bubble */}
+          <div
+            className={`absolute -top-20 left-1/2 transform -translate-x-1/2 transition-all duration-500 ${
+              showSpeechBubble
+                ? 'opacity-100 translate-y-0 scale-100'
+                : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
+            }`}
+          >
+            <div className="relative bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
+              <p className="text-black font-medium text-sm whitespace-nowrap">I can help!</p>
+              {/* Speech bubble tail */}
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0
+                border-l-[8px] border-l-transparent
+                border-t-[8px] border-t-white/90
+                border-r-[8px] border-r-transparent">
+              </div>
+            </div>
+          </div>
+
+          {/* Wizard Button */}
           <Button
             onClick={() => setShowMainControls(!showMainControls)}
-            className="bg-black/80 border-gray-600 text-white hover:bg-gray-800 ui-button"
+            className={`${
+              showMainControls
+                ? 'bg-purple-900/70 border-purple-400 shadow-lg shadow-purple-500/50 animate-pulse'
+                : 'bg-black/60 border-purple-500/50'
+            } text-4xl hover:bg-black/80 hover:border-purple-400 transition-all duration-300 rounded-full w-16 h-16 flex items-center justify-center ui-button transform hover:scale-110`}
+            title="Toggle Controls"
           >
-            ☰
+            <span className={`transition-transform duration-300 ${showMainControls ? 'rotate-12' : ''}`}>
+              🧙
+            </span>
           </Button>
+        </div>
+      )}
 
-          {/* Collapsible Controls - positioned relative to hamburger button */}
-          {showMainControls && (
-            <div className="space-y-2 mt-2 w-80">
-              {/* Help & Instructions Section */}
-              <Card className="bg-black/80 border-gray-600 ui-card animate-pulse">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-white text-xs luminari">Help</span>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => setShowInstructions(true)}
-                        size="sm"
-                        className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-sm px-4 py-1.5 luminari ui-button"
+      {/* Main Controls Panel - Responsive Tabbed Window with animation */}
+      {isLoadingComplete && modelLoaded && (
+        <div
+          className={`fixed top-4 right-4 z-10 transition-all duration-500 transform max-w-[calc(100vw-2rem)] ${
+            showMainControls
+              ? 'translate-x-0 opacity-100 scale-100'
+              : 'translate-x-full opacity-0 scale-95 pointer-events-none'
+          } ${isMobile ? 'w-full max-w-sm' : 'w-96'}`}
+        >
+          <Card className="bg-black/95 border-gray-500/70 shadow-2xl backdrop-blur-sm ui-card overflow-hidden rounded-xl">
+            {/* Tab Header */}
+            <div className="bg-gradient-to-r from-black/90 to-gray-900/90 border-b border-gray-500/50">
+              <div className="flex overflow-x-auto scrollbar-hide">
+                {/* Tab Buttons */}
+                <button
+                  onClick={() => setActiveTab('welcome')}
+                  className={`${
+                    activeTab === 'welcome'
+                      ? 'bg-black/95 text-white border-t-2 border-l border-r border-purple-400 border-b-black/95 shadow-lg'
+                      : 'bg-gray-800/70 text-gray-300 hover:bg-gray-700/80 border-b border-gray-500/50 hover:text-white'
+                  } ${isMobile ? 'px-4 py-2.5 text-xs' : 'px-6 py-3 text-sm'} luminari transition-all relative -mb-px z-10 whitespace-nowrap font-medium`}
+                >
+                  Welcome
+                </button>
+                <button
+                  onClick={() => setActiveTab('tutorial')}
+                  className={`${
+                    activeTab === 'tutorial'
+                      ? 'bg-black/95 text-white border-t-2 border-l border-r border-purple-400 border-b-black/95 shadow-lg'
+                      : 'bg-gray-800/70 text-gray-300 hover:bg-gray-700/80 border-b border-gray-500/50 hover:text-white'
+                  } ${isMobile ? 'px-4 py-2.5 text-xs' : 'px-6 py-3 text-sm'} luminari transition-all relative -mb-px z-10 whitespace-nowrap font-medium`}
+                >
+                  Tutorial
+                </button>
+                <button
+                  onClick={() => setActiveTab('controls')}
+                  className={`${
+                    activeTab === 'controls'
+                      ? 'bg-black/95 text-white border-t-2 border-l border-r border-purple-400 border-b-black/95 shadow-lg'
+                      : 'bg-gray-800/70 text-gray-300 hover:bg-gray-700/80 border-b border-gray-500/50 hover:text-white'
+                  } ${isMobile ? 'px-4 py-2.5 text-xs' : 'px-6 py-3 text-sm'} luminari transition-all relative -mb-px z-10 whitespace-nowrap font-medium`}
+                >
+                  Controls
+                </button>
+                {/* Fill remaining space */}
+                <div className="flex-1 border-b border-gray-500/50"></div>
+              </div>
+            </div>
+
+            {/* Tab Content */}
+            <CardContent className={`${isMobile ? 'p-3' : 'p-4'} bg-black/90`}>
+              {activeTab === 'welcome' ? (
+                /* Welcome Tab Content */
+                <div className={`overflow-y-auto ${isMobile ? 'max-h-[50vh]' : 'max-h-[60vh]'} pr-2`}>
+                  <div className={`space-y-4 text-white leading-relaxed ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    <h2 className={`font-bold luminari text-gradient bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
+                      Yo<span className="text-orange-500">!</span>
+                    </h2>
+
+                    <p>
+                      Thanks for being here in <span className="luminari text-orange-500">Ranga's</span> cave. You might have
+                      one of these statues, but do you know the whole story?
+                    </p>
+
+                    <p>
+                      Long ago, in the cave inside the earth, <span className="luminari text-orange-500">Ranga</span> banged
+                      and banged and banged. He loved to drum, and drummed on everything around everyone. He travelled around
+                      the kingdom he called{" "}
+                      <span className="luminari" style={{ color: "#00BFFF" }}>
+                        Argara
+                      </span>
+                      , until he found{" "}
+                      <span className="luminari" style={{ color: "#8B4513" }}>
+                        Shuk
+                      </span>
+                      , a mountain that rose high up towards the central floating core in the inside of the earth. Inside{" "}
+                      <span className="luminari" style={{ color: "#8B4513" }}>
+                        Shuk
+                      </span>{" "}
+                      is a magical infinite cave, the cave is known for having the most interesting echo effect.
+                    </p>
+
+                    <p>
+                      The echoes would become alive and dance in the cave, they would take forms and find rocks to bang, the
+                      echoes created shadows who grew winds and sparks that created harps, gongs, fubarbettes and any
+                      instrument he could imagine. <span className="luminari text-orange-500">Ranga</span> loved this cave,
+                      and he spent many years alone here banging and banging and banging with his own echoes, the music you
+                      can hear here.
+                    </p>
+
+                    <p>
+                      As this went on{" "}
+                      <span className="luminari" style={{ color: "#8B4513" }}>
+                        Shuk
+                      </span>
+                      , the mountain <span className="luminari text-orange-500">Ranga</span> lived inside began to dance.{" "}
+                      <span className="luminari" style={{ color: "#8B4513" }}>
+                        Shuk
+                      </span>{" "}
+                      is one of the biggest mountains of{" "}
+                      <span className="luminari" style={{ color: "#00BFFF" }}>
+                        Argara
+                      </span>
+                      , and their dancing caused so much fuss. All kinds of muck, dust and smoke covered stone city, and the
+                      dust was laying thick on crystal city; so{" "}
+                      <span className="luminari" style={{ color: "#00BFFF" }}>
+                        Argara
+                      </span>{" "}
+                      decided to do something about it.
+                    </p>
+
+                    <p>
+                      <span className="luminari" style={{ color: "#00BFFF" }}>
+                        Argara
+                      </span>{" "}
+                      sent out an ask for help, they asked for someone to stop{" "}
+                      <span className="luminari text-orange-500">Ranga</span>. So came the witch and sage,{" "}
+                      <span className="luminari" style={{ color: "#00FF00" }}>
+                        Nana
+                      </span>{" "}
+                      &{" "}
+                      <span className="luminari" style={{ color: "#8A2BE2" }}>
+                        Azar
+                      </span>
+                      . They travelled together, and entered <span className="luminari text-orange-500">Ranga's</span> cave.
+                    </p>
+
+                    <p>
+                      <span className="luminari" style={{ color: "#8A2BE2" }}>
+                        Azar
+                      </span>{" "}
+                      went first, but as soon as he heard the music he couldn't help but to dance and play. He drummed as well
+                      and piped upon his flute, he grew into a cluster of red balloons on the roof and flew away each time he
+                      came close to <span className="luminari text-orange-500">Ranga's</span> way.
+                    </p>
+
+                    <p>
+                      So{" "}
+                      <span className="luminari" style={{ color: "#00FF00" }}>
+                        Nana
+                      </span>{" "}
+                      kept it simple, and in a poof of smoke, arrived behind{" "}
+                      <span className="luminari text-orange-500">Ranga</span> singing her own song. She clicked her fingers
+                      and in an instant, <span className="luminari text-orange-500">Ranga</span> was turned to stone.
+                    </p>
+
+                    <p>
+                      "Slippy slop this smock, he can for now live as a rock"{" "}
+                      <span className="luminari" style={{ color: "#00FF00" }}>
+                        Nana
+                      </span>{" "}
+                      cackled.
+                    </p>
+
+                    <p>
+                      to which{" "}
+                      <span className="luminari" style={{ color: "#8A2BE2" }}>
+                        Azar
+                      </span>{" "}
+                      added a twist to the spell.
+                    </p>
+
+                    <p>"Until we need the music for the change of days"</p>
+
+                    <p>--</p>
+
+                    <p>
+                      So here, for you is <span className="luminari text-orange-500">Ranga</span>, You can play with the
+                      sliders, the buttons and listen through 24 hours of his earliest music.{" "}
+                      <span className="luminari text-orange-500">Ranga</span> is ultimately{" "}
+                      <span className="luminari text-orange-500">Oli</span>, if you would like to check out{" "}
+                      <span className="luminari text-orange-500">Ranga's</span> music and see what he's up to these days you
+                      can follow this linktree :)
+                    </p>
+
+                    <p>
+                      <a
+                        href="https://linktr.ee/olranga"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 underline"
                       >
-                        Instructions
-                      </Button>
-                      <Button
-                        onClick={() => setShowHelp(true)}
-                        size="sm"
-                        className="bg-orange-500 hover:bg-orange-600 text-white border-orange-400 w-8 h-8 rounded-full text-sm p-0 luminari ui-button"
-                      >
-                        ?
-                      </Button>
+                        https://linktr.ee/olranga
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              ) : activeTab === 'tutorial' ? (
+                /* Tutorial Tab Content */
+                <div className={`overflow-y-auto ${isMobile ? 'max-h-[50vh]' : 'max-h-[60vh]'} pr-2`}>
+                  <div className={`space-y-4 text-white ${isMobile ? 'space-y-3' : 'space-y-4'}`}>
+                    <h3 className={`font-bold luminari text-purple-400 ${isMobile ? 'text-base' : 'text-lg'}`}>Welcome to Ranga's Realm</h3>
+
+                    <div className={`space-y-3 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                      <h4 className={`font-bold text-orange-500 ${isMobile ? 'text-sm' : 'text-md'}`}>How to Use:</h4>
+
+                      <p>
+                        <span className="text-orange-500 font-bold">🧙 Wizard Button</span>
+                        <span className="text-orange-500">:</span> Toggle this menu panel
+                      </p>
+
+                      <p>
+                        <span className="text-orange-500 font-bold">术</span> <span className="font-bold">(Shu)</span>
+                        <span className="text-orange-500">:</span> Controls light intensity and statue glow
+                      </p>
+                      <p>
+                        <span className="text-orange-500 font-bold">ф</span> <span className="font-bold">(Phi)</span>
+                        <span className="text-orange-500">:</span> Adds noise and wave distortions
+                      </p>
+                      <p>
+                        <span className="text-orange-500 font-bold">Θ</span> <span className="font-bold">(Theta)</span>
+                        <span className="text-orange-500">:</span> Controls morphing and bulge effects
+                      </p>
+                      <p>
+                        <span className="text-orange-500 font-bold">iΘ þн Button</span>
+                        <span className="text-orange-500">:</span> Toggle audio reactivity
+                      </p>
+                      <p>
+                        <span className="text-orange-500 font-bold">Logo Button</span>
+                        <span className="text-orange-500">:</span> Toggle colored background effects
+                      </p>
+                      <p>
+                        <span className="text-orange-500 font-bold">Click anywhere</span>
+                        <span className="text-orange-500">:</span> Move lights to that position
+                      </p>
+                      <p>
+                        <span className="text-orange-500 font-bold">Click track name</span>
+                        <span className="text-orange-500">:</span> Download the current song
+                      </p>
+                    </div>
+
+                    <div className={`mt-3 ${isMobile ? 'p-2' : 'p-3'} bg-gradient-to-r from-orange-900/40 to-orange-800/30 border border-orange-600/40 rounded-lg shadow-inner`}>
+                      <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} leading-relaxed`}>
+                        <span className="text-orange-400 font-bold">🖥️ Browser Compatibility:</span> This experience works best on desktop computers using
+                        Chrome, Firefox, or Safari. If you experience issues, try refreshing the page, enabling hardware
+                        acceleration in your browser settings, or switching to a different browser.
+                      </p>
+                    </div>
+
+                    <div className={`mt-3 ${isMobile ? 'p-2' : 'p-3'} bg-gradient-to-r from-purple-900/40 to-purple-800/30 border border-purple-600/40 rounded-lg shadow-inner`}>
+                      <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} leading-relaxed`}>
+                        <span className="text-purple-400 font-bold">🎧 Note:</span> Music plays continuously and randomly.
+                        For best experience, use headphones and allow audio permissions.
+                      </p>
+                    </div>
+
+                    <div className={`mt-3 ${isMobile ? 'p-1.5' : 'p-2'} text-center bg-gray-900/40 rounded-lg border border-gray-600/30`}>
+                      <p className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-gray-300 italic font-medium`}>
+                        ✨ Pro tip: Combine sliders with music for amazing audio-reactive effects!
+                      </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              ) : (
+                /* Controls Tab Content */
+                <div className={`${isMobile ? 'space-y-2' : 'space-y-3'} overflow-y-auto ${isMobile ? 'max-h-[50vh]' : 'max-h-[60vh]'}`}>
 
               {/* Music Controls */}
-              <Card className="bg-black/80 border-gray-600 ui-card">
-                <CardContent className="p-4 space-y-3">
+              <Card className="bg-gradient-to-br from-black/90 to-gray-900/80 border-gray-500/50 ui-card shadow-lg">
+                <CardContent className={`${isMobile ? 'p-3' : 'p-4'} space-y-3`}>
                   <div className="text-white text-sm luminari">
                     <div className="flex items-center gap-2 mb-2">
                       <Button
@@ -1425,8 +1639,8 @@ export default function Page() {
               </Card>
 
               {/* Effect Controls */}
-              <Card className="bg-black/80 border-gray-600 ui-card">
-                <CardContent className="p-4 space-y-4">
+              <Card className="bg-gradient-to-br from-black/90 to-gray-900/80 border-gray-500/50 ui-card shadow-lg">
+                <CardContent className={`${isMobile ? 'p-3' : 'p-4'} space-y-4`}>
                   <div className="space-y-3">
                     <div>
                       <label
@@ -1509,8 +1723,10 @@ export default function Page() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -1617,7 +1833,6 @@ export default function Page() {
         )}
       </Canvas>
       {HelpModal()}
-      {InstructionsModal()}
     </div>
   )
 }
