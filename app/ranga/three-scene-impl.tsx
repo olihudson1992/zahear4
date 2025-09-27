@@ -1012,8 +1012,14 @@ export default function Page() {
     }
   }, []) // Empty dependency array ensures this only runs once on mount
 
-  // Periodic speech bubble animation
+  // Periodic speech bubble animation - only if menu hasn't been toggled
   useEffect(() => {
+    const hasToggledMenu = sessionStorage.getItem('menuToggled')
+
+    if (hasToggledMenu) {
+      return // Don't show speech bubbles if menu was toggled at least once
+    }
+
     // Show speech bubble periodically
     const showBubble = () => {
       setShowSpeechBubble(true)
@@ -1310,11 +1316,20 @@ export default function Page() {
 
           {/* Wizard Button */}
           <Button
-            onClick={() => setShowMainControls(!showMainControls)}
+            onClick={() => {
+              setShowMainControls(!showMainControls)
+              // Mark that the menu has been toggled at least once
+              sessionStorage.setItem('menuToggled', 'true')
+            }}
             className={`${
               showMainControls
-                ? 'bg-purple-900/70 border-purple-400 shadow-lg shadow-purple-500/50 animate-pulse'
-                : 'bg-black/60 border-purple-500/50'
+                ? 'bg-purple-900/70 border-purple-400 shadow-lg shadow-purple-500/50'
+                : (() => {
+                    const hasToggledMenu = sessionStorage.getItem('menuToggled')
+                    return hasToggledMenu
+                      ? 'bg-black/60 border-purple-500/50'
+                      : 'bg-black/60 border-purple-500/50 slow-pulse'
+                  })()
             } text-4xl hover:bg-black/80 hover:border-purple-400 transition-all duration-300 rounded-full w-16 h-16 flex items-center justify-center ui-button transform hover:scale-110`}
             title="Toggle Controls"
           >
