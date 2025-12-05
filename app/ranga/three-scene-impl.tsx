@@ -468,11 +468,7 @@ function useAudioAnalysis(audioElement: HTMLAudioElement | null) {
     }
   }
 // Start audio-reactive analysis as soon as audio is available
-useEffect(() => {
-  if (audioPlayer.audioElement && isListening) {
-    startListening()
-  }
-}, [audioPlayer.audioElement, isListening])
+
 
   const stopListening = () => {
     setIsListening(false)
