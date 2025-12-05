@@ -430,7 +430,7 @@ function useAudioPlayer() {
 function useAudioAnalysis(audioElement: HTMLAudioElement | null) {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null)
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null)
-  const [isListening, setIsListening] = useState(false)
+  const [isListening, setIsListening] = useState(true)
   const [audioData, setAudioData] = useState({ volume: 0, bassLevel: 0, midLevel: 0, trebleLevel: 0 })
   const sourceRef = useRef<MediaElementSourceNode | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -467,6 +467,12 @@ function useAudioAnalysis(audioElement: HTMLAudioElement | null) {
       console.error("Error accessing audio:", error)
     }
   }
+// Start audio-reactive analysis as soon as audio is available
+useEffect(() => {
+  if (audioPlayer.audioElement && isListening) {
+    startListening()
+  }
+}, [audioPlayer.audioElement, isListening])
 
   const stopListening = () => {
     setIsListening(false)
@@ -910,6 +916,18 @@ export default function Page() {
   const audioPlayer = useAudioPlayer()
   const { audioData, isListening, startListening, stopListening, isLowPerformanceMode, setIsLowPerformanceMode } =
     useAudioAnalysis(audioPlayer.audioElement)
+// Auto-start playback on first user interaction
+useEffect(() => {
+  if (!audioPlayer.audioElement) return
+
+  const autoStart = () => {
+    audioPlayer.togglePlayPause()
+    document.removeEventListener("click", autoStart)
+  }
+
+  // Autoplay only allowed after gesture → first click anywhere in cave
+  document.addEventListener("click", autoStart, { once: true })
+}, [audioPlayer.audioElement])
 
   // Updated Ranga's position with your values
   const [statueX] = useState(-6.5)
@@ -932,9 +950,9 @@ export default function Page() {
   const [lockedPosition, setLockedPosition] = useState<THREE.Vector3 | null>(null)
   const [isPositionLocked, setIsPositionLocked] = useState(false)
 
-  const [shuKnob, setShuKnob] = useState(0.2)
-  const [phiKnob, setPhiKnob] = useState(0.0)
-  const [thetaKnob, setThetaKnob] = useState(0.0)
+  const [shuKnob, setShuKnob] = useState(3.4)
+  const [phiKnob, setPhiKnob] = useState(1.6)
+  const [thetaKnob, setThetaKnob] = useState(4)
   const [showHelp, setShowHelp] = useState(false)
   const [isControlsMinimized, setIsControlsMinimized] = useState(false)
   const [showSpeechBubble, setShowSpeechBubble] = useState(false)
@@ -1304,7 +1322,7 @@ export default function Page() {
             }`}
           >
             <div className="relative bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
-              <p className="text-black font-medium text-sm whitespace-nowrap">I can help!</p>
+              <p className="text-black font-medium text-sm whitespace-nowrap">Azar!</p>
               {/* Speech bubble tail */}
               <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0
                 border-l-[8px] border-l-transparent
