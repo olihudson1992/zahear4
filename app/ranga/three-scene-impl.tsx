@@ -430,7 +430,7 @@ function useAudioPlayer() {
 function useAudioAnalysis(audioElement: HTMLAudioElement | null) {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null)
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null)
-  const [isListening, setIsListening] = useState(false)
+  const [isListening, setIsListening] = useState(true)
   const [audioData, setAudioData] = useState({ volume: 0, bassLevel: 0, midLevel: 0, trebleLevel: 0 })
   const sourceRef = useRef<MediaElementSourceNode | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -932,9 +932,9 @@ export default function Page() {
   const [lockedPosition, setLockedPosition] = useState<THREE.Vector3 | null>(null)
   const [isPositionLocked, setIsPositionLocked] = useState(false)
 
-  const [shuKnob, setShuKnob] = useState(3)
-  const [phiKnob, setPhiKnob] = useState(2)
-  const [thetaKnob, setThetaKnob] = useState(2)
+  const [shuKnob, setShuKnob] = useState(4.0)
+  const [phiKnob, setPhiKnob] = useState(2.0)
+  const [thetaKnob, setThetaKnob] = useState(5.0)
   const [showHelp, setShowHelp] = useState(false)
   const [isControlsMinimized, setIsControlsMinimized] = useState(false)
   const [showSpeechBubble, setShowSpeechBubble] = useState(false)
@@ -958,8 +958,8 @@ export default function Page() {
   const [currentTrackName, setCurrentTrackName] = useState("")
 
   // Add these state variables after the existing ones
-  const [showMainControls, setShowMainControls] = useState(true)
-  const [coloredBackground, setColoredBackground] = useState(false)
+  const [showMainControls, setShowMainControls] = useState(false)
+  const [coloredBackground, setColoredBackground] = useState(true)
 
   // Timer for instructions button (30 seconds)
   const [showInstructionsButton, setShowInstructionsButton] = useState(false)
@@ -1237,8 +1237,7 @@ export default function Page() {
               {isMobile && (
                 <div className="mt-4 p-3 bg-yellow-900/30 rounded border border-yellow-600">
                   <p className="text-yellow-200 text-xs">
-                    <strong>Mobile Tip:</strong> For the best audio experience, try using headphones and ensure your
-                    device has good performance. Some effects are reduced on mobile for better performance.
+                    <strong>Mobile Tip:</strong> Some effects are reduced on mobile for better performance.
                   </p>
                 </div>
               )}
@@ -1317,7 +1316,7 @@ export default function Page() {
           {/* Wizard Button */}
           <Button
             onClick={() => {
-              setShowMainControls(!showMainControls)
+              // Menu is always minimized by default - wizard button no longer toggles it
               // Mark that the menu has been toggled at least once
               sessionStorage.setItem('menuToggled', 'true')
             }}
@@ -1337,6 +1336,50 @@ export default function Page() {
               🧙
             </span>
           </Button>
+        </div>
+      )}
+
+      {/* Music Controls - Always visible below wizard */}
+      {isLoadingComplete && modelLoaded && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-20">
+          <Card className="bg-black/90 border-gray-500/70 shadow-xl backdrop-blur-sm ui-card rounded-lg">
+            <CardContent className="p-3">
+              <div className="text-white text-sm luminari flex items-center gap-3">
+                <Button
+                  onClick={audioPlayer.togglePlayPause}
+                  size="sm"
+                  className="bg-orange-500 hover:bg-orange-600 text-white ui-button w-10 h-10 flex justify-center items-center"
+                >
+                  {audioPlayer.isPlaying ? "⏸" : "▶"}
+                </Button>
+                <Button
+                  onClick={audioPlayer.skipToNext}
+                  size="sm"
+                  className="bg-gray-700 hover:bg-gray-600 text-white ui-button w-10 h-10 flex justify-center items-center"
+                >
+                  ⏭
+                </Button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={audioPlayer.volume}
+                  onChange={(e) => audioPlayer.setVolume(Number.parseFloat(e.target.value))}
+                  className="w-20 ui-slider"
+                />
+                {currentTrackName && (
+                  <button
+                    onClick={audioPlayer.downloadCurrentTrack}
+                    className="text-orange-400 hover:text-orange-300 text-xs underline cursor-pointer truncate max-w-[150px]"
+                    title="Click to download"
+                  >
+                    {currentTrackName}
+                  </button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -1597,62 +1640,6 @@ export default function Page() {
                 /* Controls Tab Content */
                 <div className={`${isMobile ? 'space-y-2' : 'space-y-3'} overflow-y-auto ${isMobile ? 'max-h-[50vh]' : 'max-h-[60vh]'}`}>
 
-              {/* Music Controls */}
-              <Card className="bg-gradient-to-br from-black/90 to-gray-900/80 border-gray-500/50 ui-card shadow-lg">
-                <CardContent className={`${isMobile ? 'p-3' : 'p-4'} space-y-3`}>
-                  <div className="text-white text-sm luminari">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Button
-                        onClick={audioPlayer.togglePlayPause}
-                        size="sm"
-                        className="bg-orange-500 hover:bg-orange-600 text-white ui-button"
-                      >
-                        {audioPlayer.isPlaying ? "⏸" : "▶"}
-                      </Button>
-                      <Button
-                        onClick={audioPlayer.skipToNext}
-                        size="sm"
-                        className="bg-gray-700 hover:bg-gray-600 text-white ui-button"
-                      >
-                        ⏭
-                      </Button>
-                      <span
-                        className={`text-sm luminari transition-colors duration-300 ml-2 ${
-                          isPositionLocked ? "text-yellow-400" : "text-white"
-                        }`}
-                      >
-                        sor {isPositionLocked && "🔒"}
-                      </span>
-                    </div>
-
-                    <div className="mb-2">
-                      <label className="text-white text-xs luminari block mb-1 flex items-center gap-1">
-                        <Volume2 className="w-3 h-3" />
-                      </label>
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={audioPlayer.volume}
-                        onChange={(e) => audioPlayer.setVolume(Number.parseFloat(e.target.value))}
-                        className="w-full ui-slider"
-                      />
-                    </div>
-
-                    {currentTrackName && (
-                      <button
-                        onClick={audioPlayer.downloadCurrentTrack}
-                        className="text-orange-400 hover:text-orange-300 text-xs underline cursor-pointer block max-w-[200px] truncate"
-                        title="Click to download"
-                      >
-                        {currentTrackName}
-                      </button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Effect Controls */}
               <Card className="bg-gradient-to-br from-black/90 to-gray-900/80 border-gray-500/50 ui-card shadow-lg">
                 <CardContent className={`${isMobile ? 'p-3' : 'p-4'} space-y-4`}>
@@ -1848,6 +1835,7 @@ export default function Page() {
         )}
       </Canvas>
       {HelpModal()}
+
     </div>
   )
 }
