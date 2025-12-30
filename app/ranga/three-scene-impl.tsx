@@ -1292,14 +1292,10 @@ export default function Page() {
 
       {/* Wizard Toggle Button with Speech Bubble - Center bottom of screen */}
       {isLoadingComplete && modelLoaded && (
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-70">
+        <div className="fixed bottom-4 z-70" style={{ left: '50%', transform: 'translateX(-50%)' }}>
           {/* Speech Bubble */}
           <div
-            className={`absolute -top-20 left-1/2 transform -translate-x-1/2 transition-all duration-500 pointer-events-none ${
-              showSpeechBubble
-                ? 'opacity-100 translate-y-0 scale-100'
-                : 'opacity-0 translate-y-2 scale-95'
-            }`}
+            className={`absolute pointer-events-none transition-all duration-500`} style={{ top: '-80px', left: '50%', transform: 'translateX(-50%)' }`${showSpeechBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'}`}
           >
             <div className="relative bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
               <p className="text-black font-medium text-sm whitespace-nowrap">I can help!</p>
@@ -1318,16 +1314,7 @@ export default function Page() {
               setShowMainControls(!showMainControls)
               sessionStorage.setItem('toggle', 'true')
             }}
-            className={`${
-              showMainControls
-                ? 'bg-purple-900/70 border-purple-400 shadow-lg shadow-purple-500/50'
-                : (() => {
-                    const hasToggledMenu = sessionStorage.getItem('menuToggled')
-                    return hasToggledMenu
-                      ? 'bg-black/60 border-purple-500/50'
-                      : 'bg-black/60 border-purple-500/50 slow-pulse'
-                  })()
-            } text-4xl hover:bg-black/80 hover:border-purple-400 transition-all duration-300 rounded-full w-16 h-16 flex items-center justify-center ui-button transform hover:scale-110`}
+            className="bg-purple-600 border-purple-500 text-4xl hover:bg-purple-700 transition-all duration-300 rounded-full w-16 h-16 flex items-center justify-center ui-button transform hover:scale-110"
             title="Toggle Controls"
           >
             <span className={`transition-transform duration-300 ${showMainControls ? 'rotate-12' : ''}`}>
