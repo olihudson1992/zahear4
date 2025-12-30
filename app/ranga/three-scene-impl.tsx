@@ -1292,13 +1292,13 @@ export default function Page() {
 
       {/* Wizard Toggle Button with Speech Bubble - Center bottom of screen */}
       {isLoadingComplete && modelLoaded && (
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-60">
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-70">
           {/* Speech Bubble */}
           <div
-            className={`absolute -top-20 left-1/2 transform -translate-x-1/2 transition-all duration-500 ${
+            className={`absolute -top-20 left-1/2 transform -translate-x-1/2 transition-all duration-500 pointer-events-none ${
               showSpeechBubble
                 ? 'opacity-100 translate-y-0 scale-100'
-                : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
+                : 'opacity-0 translate-y-2 scale-95'
             }`}
           >
             <div className="relative bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
@@ -1339,7 +1339,7 @@ export default function Page() {
 
       {/* Music Controls - Always visible below wizard */}
       {isLoadingComplete && modelLoaded && (
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed bottom-4 left-4 z-50">
           <Card className="bg-black/90 border-gray-500/70 shadow-xl backdrop-blur-sm ui-card rounded-lg">
             <CardContent className="p-3">
               <div className="text-white text-sm luminari flex items-center gap-3">
