@@ -924,7 +924,7 @@ export default function Page() {
   const [targetY, setTargetY] = useState(-1.8)
   const [targetZ, setTargetZ] = useState(-0.7)
 
-  const [isLoadingComplete, setIsLoadingComplete] = useState(false)
+  const [isLoadingComplete, setIsLoadingComplete] = useState(true)
   const [modelLoaded, setModelLoaded] = useState(false)
 
   const [mousePosition, setMousePosition] = useState(new THREE.Vector3(statueX, statueY, statueZ))
@@ -1315,12 +1315,10 @@ export default function Page() {
               setShowMainControls(!showMainControls)
               sessionStorage.setItem('toggle', 'true')
             }}
-            className="bg-red-600 border-red-500 text-4xl hover:bg-red-700 transition-all duration-300 rounded-full w-16 h-16 flex items-center justify-center ui-button transform hover:scale-110"
+            className="bg-yellow-400 border-black border-4 text-black text-lg font-bold hover:bg-yellow-500 transition-all duration-300 rounded-full w-20 h-20 flex items-center justify-center ui-button transform hover:scale-110"
             title="Toggle Controls"
           >
-            <span className={`transition-transform duration-300 ${showMainControls ? 'rotate-12' : ''}`}>
-              🧙
-            </span>
+            <span>WIZARD</span>
           </Button>
         </div>
       )}

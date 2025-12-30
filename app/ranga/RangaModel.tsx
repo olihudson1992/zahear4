@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from "react"
 import { useFrame } from "@react-three/fiber"
-import { useGLTF } from "@react-three/drei"
+import { useGLTF } from "@react-three/drei/core/Gltf.js"
 import * as THREE from "three"
 
 interface RangaModelProps {
@@ -283,7 +283,7 @@ function RangaModelInner(props: RangaModelProps) {
     return (
       <group position={[statueX, statueY, statueZ]} rotation={[0, (304 * Math.PI) / 180, 0]}>
         <mesh>
-          <boxGeometry args={[2, 3, 2]} />
+          <boxGeometry args={[10, 15, 10]} />
           <meshStandardMaterial color="#8B7355" />
         </mesh>
         <pointLight
