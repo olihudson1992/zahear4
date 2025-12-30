@@ -1292,10 +1292,10 @@ export default function Page() {
 
       {/* Wizard Toggle Button with Speech Bubble - Center bottom of screen */}
       {isLoadingComplete && modelLoaded && (
-        <div className="fixed bottom-4 left-4 z-60">
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-60">
           {/* Speech Bubble */}
           <div
-            className={`absolute -top-20 left-0 transition-all duration-500 ${
+            className={`absolute -top-20 left-1/2 transform -translate-x-1/2 transition-all duration-500 ${
               showSpeechBubble
                 ? 'opacity-100 translate-y-0 scale-100'
                 : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
