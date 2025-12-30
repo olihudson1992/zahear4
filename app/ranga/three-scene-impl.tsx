@@ -1295,7 +1295,8 @@ export default function Page() {
         <div className="fixed bottom-4 z-70" style={{ left: '50%', transform: 'translateX(-50%)' }}>
           {/* Speech Bubble */}
           <div
-            className={`absolute pointer-events-none transition-all duration-500`} style={{ top: '-80px', left: '50%', transform: 'translateX(-50%)' }`${showSpeechBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'}`}
+            className={`absolute pointer-events-none transition-all duration-500 ${showSpeechBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'}`}
+            style={{ top: '-80px', left: '50%', transform: 'translateX(-50%)' }}
           >
             <div className="relative bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
               <p className="text-black font-medium text-sm whitespace-nowrap">I can help!</p>
