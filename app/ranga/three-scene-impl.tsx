@@ -1,13 +1,12 @@
 "use client"
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
-import { OrbitControls } from "@react-three/drei"
+import { OrbitControls } from "@react-three/drei/core/OrbitControls.js"
 import { useRef, useEffect, useState, useCallback, Suspense } from "react"
 import * as THREE from "three"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowLeft, Volume2 } from "lucide-react"
-import type { MediaElementSourceNode } from "three"
 import WelcomeScreen from "./components/welcome-screen"
 import MusicOnlyMode from "./components/music-only-mode"
 import RangaModel from "./RangaModel"
@@ -1293,10 +1292,10 @@ export default function Page() {
 
       {/* Wizard Toggle Button with Speech Bubble - Center bottom of screen */}
       {isLoadingComplete && modelLoaded && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="fixed bottom-4 left-4 z-60">
           {/* Speech Bubble */}
           <div
-            className={`absolute -top-20 left-1/2 transform -translate-x-1/2 transition-all duration-500 ${
+            className={`absolute -top-20 left-0 transition-all duration-500 ${
               showSpeechBubble
                 ? 'opacity-100 translate-y-0 scale-100'
                 : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
@@ -1305,7 +1304,7 @@ export default function Page() {
             <div className="relative bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg">
               <p className="text-black font-medium text-sm whitespace-nowrap">I can help!</p>
               {/* Speech bubble tail */}
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0
+              <div className="absolute -bottom-2 left-0 w-0 h-0
                 border-l-[8px] border-l-transparent
                 border-t-[8px] border-t-white/90
                 border-r-[8px] border-r-transparent">
@@ -1316,9 +1315,8 @@ export default function Page() {
           {/* Wizard Button */}
           <Button
             onClick={() => {
-              // Menu is always minimized by default - wizard button no longer toggles it
-              // Mark that the menu has been toggled at least once
-              sessionStorage.setItem('menuToggled', 'true')
+              setShowMainControls(!showMainControls)
+              sessionStorage.setItem('toggle', 'true')
             }}
             className={`${
               showMainControls
@@ -1341,7 +1339,7 @@ export default function Page() {
 
       {/* Music Controls - Always visible below wizard */}
       {isLoadingComplete && modelLoaded && (
-        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="fixed bottom-4 right-4 z-50">
           <Card className="bg-black/90 border-gray-500/70 shadow-xl backdrop-blur-sm ui-card rounded-lg">
             <CardContent className="p-3">
               <div className="text-white text-sm luminari flex items-center gap-3">
