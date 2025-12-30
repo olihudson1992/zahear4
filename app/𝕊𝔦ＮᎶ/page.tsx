@@ -170,12 +170,19 @@ export default function AudioVisualizer() {
         }, 20000)
       }, 60000)
     } else {
-      const link = document.createElement("a")
-      link.href = AUDIO_URL
-      link.download = "first.mp3"
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      fetch(AUDIO_URL)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const url = window.URL.createObjectURL(blob)
+          const link = document.createElement("a")
+          link.href = url
+          link.download = "first.mp3"
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+        })
+        .catch((error) => console.error("[v0] Download failed:", error))
     }
   }
 
