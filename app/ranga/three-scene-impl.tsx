@@ -1291,8 +1291,8 @@ export default function Page() {
 
 
       {/* Wizard Toggle Button with Speech Bubble - Center bottom of screen */}
-      {isLoadingComplete && modelLoaded && (
-        <div className="fixed bottom-4 z-70" style={{ left: '50%', transform: 'translateX(-50%)' }}>
+      {isLoadingComplete && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-70">
           {/* Speech Bubble */}
           <div
             className={`absolute pointer-events-none transition-all duration-500 ${showSpeechBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-2 scale-95'}`}
@@ -1315,7 +1315,7 @@ export default function Page() {
               setShowMainControls(!showMainControls)
               sessionStorage.setItem('toggle', 'true')
             }}
-            className="bg-purple-600 border-purple-500 text-4xl hover:bg-purple-700 transition-all duration-300 rounded-full w-16 h-16 flex items-center justify-center ui-button transform hover:scale-110"
+            className="bg-red-600 border-red-500 text-4xl hover:bg-red-700 transition-all duration-300 rounded-full w-16 h-16 flex items-center justify-center ui-button transform hover:scale-110"
             title="Toggle Controls"
           >
             <span className={`transition-transform duration-300 ${showMainControls ? 'rotate-12' : ''}`}>
@@ -1326,7 +1326,7 @@ export default function Page() {
       )}
 
       {/* Music Controls - Always visible below wizard */}
-      {isLoadingComplete && modelLoaded && (
+      {isLoadingComplete && (
         <div className="fixed bottom-4 left-4 z-50">
           <Card className="bg-black/90 border-gray-500/70 shadow-xl backdrop-blur-sm ui-card rounded-lg">
             <CardContent className="p-3">
@@ -1370,7 +1370,7 @@ export default function Page() {
       )}
 
       {/* Main Controls Panel - Responsive Tabbed Window with animation */}
-      {isLoadingComplete && modelLoaded && (
+      {isLoadingComplete && (
         <div
           className={`fixed top-4 right-4 z-10 transition-all duration-500 transform max-w-[calc(100vw-2rem)] ${
             showMainControls
