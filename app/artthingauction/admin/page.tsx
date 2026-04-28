@@ -30,7 +30,6 @@ export default function AdminExportPage() {
   const [passwordError, setPasswordError] = useState(false)
 
   const supabase = createClient()
-
   const correctPassword = "onlythewayitgoes"
 
   const handleLogin = (e: React.FormEvent) => {
@@ -44,9 +43,10 @@ export default function AdminExportPage() {
   }
 
   const fetchData = useCallback(async () => {
+
     const { data: paintingsData } = await supabase
       .from("paintings")
-      .select("id, title, artist, current_bid")
+      .select("id, title, artist")
       .order("id")
 
     const { data: bidsData } = await supabase
@@ -54,22 +54,38 @@ export default function AdminExportPage() {
       .select("*")
       .order("created_at", { ascending: false })
 
-    if (paintingsData) setPaintings(paintingsData)
-
-    if (bidsData && paintingsData) {
-      const enriched = bidsData.map(bid => {
-        const painting = paintingsData.find(p => p.id === bid.painting_id)
-
-        return {
-          ...bid,
-          painting_title: painting?.title || "Unknown",
-          painting_artist: painting?.artist || "Unknown"
-        }
-      })
-
-      setBids(enriched)
+    if (!paintingsData || !bidsData) {
+      setLoading(false)
+      return
     }
 
+    // 🧠 FIX: compute real highest bid from bids table
+    const enrichedPaintings = paintingsData.map(p => {
+      const relatedBids = bidsData.filter(b => b.painting_id === p.id)
+
+      const highest = relatedBids.reduce(
+        (max, b) => (b.amount > (max?.amount || 0) ? b : max),
+        null as Bid | null
+      )
+
+      return {
+        ...p,
+        current_bid: highest?.amount || 1
+      }
+    })
+
+    const enrichedBids = bidsData.map(bid => {
+      const painting = paintingsData.find(p => p.id === bid.painting_id)
+
+      return {
+        ...bid,
+        painting_title: painting?.title || "Unknown",
+        painting_artist: painting?.artist || "Unknown"
+      }
+    })
+
+    setPaintings(enrichedPaintings)
+    setBids(enrichedBids)
     setLoading(false)
   }, [supabase])
 
@@ -78,37 +94,12 @@ export default function AdminExportPage() {
 
     fetchData()
 
-    // 🔥 live refresh every 2s
-    const interval = setInterval(fetchData, 2000)
+    const interval = setInterval(() => {
+      fetchData()
+    }, 2000)
+
     return () => clearInterval(interval)
-
   }, [isAuthenticated, fetchData])
-
-  function exportToCSV() {
-    const headers = ["Painting", "Artist", "Bidder", "Email", "Amount", "Date"]
-
-    const rows = bids.map(b => [
-      b.painting_title,
-      b.painting_artist,
-      b.bidder_name,
-      b.bidder_email,
-      b.amount.toString(),
-      new Date(b.created_at).toLocaleString()
-    ])
-
-    const csv = [
-      headers.join(","),
-      ...rows.map(r => r.map(c => `"${c}"`).join(","))
-    ].join("\n")
-
-    const blob = new Blob([csv], { type: "text/csv" })
-    const url = URL.createObjectURL(blob)
-
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "bids.csv"
-    a.click()
-  }
 
   if (!isAuthenticated) {
     return (
@@ -118,12 +109,9 @@ export default function AdminExportPage() {
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="Password"
             className="border p-2"
           />
-
           {passwordError && <p className="text-red-500">Wrong password</p>}
-
           <button className="bg-sky-300 p-2">Login</button>
         </form>
       </div>
@@ -136,13 +124,9 @@ export default function AdminExportPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Admin</h1>
 
-      <button onClick={exportToCSV} className="bg-sky-300 px-4 py-2 mb-6">
-        Export CSV
-      </button>
+      <h2 className="font-bold mb-2">Highest Bids</h2>
 
-      <h2 className="font-bold mb-2">Current Bids</h2>
-
-      <table className="w-full border mb-6">
+      <table className="w-full border">
         <thead>
           <tr>
             <th>Painting</th>
@@ -161,7 +145,7 @@ export default function AdminExportPage() {
         </tbody>
       </table>
 
-      <h2 className="font-bold mb-2">All Bids</h2>
+      <h2 className="font-bold mt-6 mb-2">All Bids</h2>
 
       <table className="w-full border text-sm">
         <tbody>
@@ -169,7 +153,7 @@ export default function AdminExportPage() {
             <tr key={b.id}>
               <td>{b.painting_title}</td>
               <td>{b.bidder_name}</td>
-              <td>£{b.amount.toFixed(2)}</td>
+              <td>£{b.amount}</td>
             </tr>
           ))}
         </tbody>
