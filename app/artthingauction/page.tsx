@@ -9,9 +9,14 @@ const images = [
   "https://rangatracks.b-cdn.net/artthing%20resize/Anna%20%26b%20Robby%20-%20Tiny%20Distraction_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/Brad%20-%20Mr%20Gonk_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/CHLOE%20-%20Fuzanglong_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Darcie%20-%20Bag%20Piss_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Deb%20-%20untitled_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5195_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5198_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5208_result.jpg",
 ]
 
-/* ================= INTRO (UNCHANGED WORKING VERSION) ================= */
+/* ================= INTRO ================= */
 function IntroAnimation({ onDone }: { onDone: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -26,8 +31,8 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
     canvas.width = size
     canvas.height = size
 
-    const centerX = size / 2
-    const centerY = size / 2
+    const cx = size / 2
+    const cy = size / 2
     const radius = size / 2 - 10
 
     const numSlices = images.length
@@ -44,9 +49,9 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
       speeds[i] = (Math.random() - 0.5) * 0.08
     }
 
-    const startTime = performance.now()
+    const start = performance.now()
     const DURATION = 4000
-    let animationId: number
+    let frame: number
 
     images.forEach((src, i) => {
       const img = new Image()
@@ -65,22 +70,26 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
       ctx.clearRect(0, 0, size, size)
 
       for (let i = 0; i < numSlices; i++) {
-        const start = offsets[i] - Math.PI / 2
-        const end = start + sliceAngle
+        const a = offsets[i] - Math.PI / 2
+        const b = a + sliceAngle
 
         ctx.save()
         ctx.beginPath()
-        ctx.moveTo(centerX, centerY)
-        ctx.arc(centerX, centerY, radius, start, end)
+        ctx.moveTo(cx, cy)
+        ctx.arc(cx, cy, radius, a, b)
         ctx.closePath()
         ctx.clip()
 
         const img = imgs[i]
         if (img) {
           const scale = (radius * 2.2) / Math.min(img.width, img.height)
-          const x = centerX - (img.width * scale) / 2
-          const y = centerY - (img.height * scale) / 2
-          ctx.drawImage(img, x, y, img.width * scale, img.height * scale)
+          ctx.drawImage(
+            img,
+            cx - (img.width * scale) / 2,
+            cy - (img.height * scale) / 2,
+            img.width * scale,
+            img.height * scale
+          )
         }
 
         ctx.restore()
@@ -88,26 +97,26 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
     }
 
     function animate() {
-      const elapsed = performance.now() - startTime
-      const progress = elapsed / DURATION
-      const damping = Math.max(0.02, 1 - progress)
+      const t = performance.now() - start
+      const p = t / DURATION
+      const damp = Math.max(0.02, 1 - p)
 
       for (let i = 0; i < numSlices; i++) {
-        offsets[i] += speeds[i] * damping
+        offsets[i] += speeds[i] * damp
         speeds[i] *= 0.98
       }
 
       draw()
 
-      if (elapsed < DURATION) {
-        animationId = requestAnimationFrame(animate)
+      if (t < DURATION) {
+        frame = requestAnimationFrame(animate)
       } else {
         draw()
         setTimeout(onDone, 200)
       }
     }
 
-    return () => cancelAnimationFrame(animationId)
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   return (
@@ -137,28 +146,13 @@ export default function PaintingsCarousel() {
 
   useEffect(() => {
     fetchData()
-    const interval = setInterval(fetchData, 2000)
-    return () => clearInterval(interval)
+    const i = setInterval(fetchData, 2000)
+    return () => clearInterval(i)
   }, [])
 
   const getBid = (id: number) => {
     const list = bids.filter(b => b.painting_id === id)
-    if (!list.length) return 1
-    return Math.max(...list.map(b => b.amount))
-  }
-
-  const handleBid = async (id: number, name: string, email: string, amount: number) => {
-    const supabase = createClient()
-
-    await supabase.from('bids').insert({
-      painting_id: id,
-      bidder_name: name,
-      bidder_email: email,
-      amount
-    })
-
-    await fetchData()
-    setSelected(null)
+    return list.length ? Math.max(...list.map(b => b.amount)) : 1
   }
 
   if (showIntro) {
@@ -174,39 +168,43 @@ export default function PaintingsCarousel() {
         <p className="text-xs text-gray-500">Click a painting to place a bid</p>
       </div>
 
-      {/* CAROUSEL */}
+      {/* CAROUSEL FIXED CENTER */}
       <div className="flex-1 flex overflow-x-auto snap-x snap-mandatory">
+
         {paintings.map(p => (
           <div
             key={p.id}
-            className="w-full flex-shrink-0 snap-center flex flex-col items-center p-4"
-            onClick={() => setSelected(p)}   // 🔥 FIXED CLICK
+            className="w-full flex-shrink-0 snap-center flex flex-col items-center justify-center min-h-[75vh] p-4"
+            onClick={() => setSelected(p)}
           >
-            <img src={p.image_url} className="max-h-[65vh] object-contain" />
 
-            <h2 className="font-bold mt-2">{p.title}</h2>
-            <p className="text-sm text-gray-600">{p.artist}</p>
+            {/* FIXED IMAGE FRAME */}
+            <div className="flex items-center justify-center h-[55vh] w-full">
+              <img
+                src={p.image_url}
+                className="max-h-full max-w-full object-contain"
+              />
+            </div>
 
-            <p className="text-sky-500 font-bold mt-1">
-              Current bid: £{getBid(p.id).toFixed(2)}
-            </p>
+            {/* TEXT ALWAYS ALIGNED */}
+            <div className="text-center mt-3">
+              <h2 className="font-bold">{p.title}</h2>
+              <p className="text-sm text-gray-600">{p.artist}</p>
+
+              <p className="text-sky-500 font-bold mt-1">
+                £{getBid(p.id).toFixed(2)}
+              </p>
+            </div>
+
           </div>
         ))}
+
       </div>
 
       {/* BUTTONS */}
       <div className="flex justify-center gap-3 pb-3">
 
-        <button
-          onClick={() => {
-            const audio = document.querySelector('audio')
-            if (!audio) return
-            audio.paused ? audio.play() : audio.pause()
-          }}
-          className="w-10 h-10 bg-sky-300 rounded-full"
-        >
-          ▶
-        </button>
+        <button className="w-10 h-10 bg-sky-300 rounded-full">▶</button>
 
         <button
           onClick={() => setShowInfo(true)}
@@ -218,76 +216,68 @@ export default function PaintingsCarousel() {
         <audio src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
       </div>
 
-      {/* INFO */}
+      {/* INFO MODAL */}
       {showInfo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-6"
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
           onClick={() => setShowInfo(false)}
         >
-          <div className="bg-white p-5 max-w-md" onClick={e => e.stopPropagation()}>
+          <div
+            className="bg-white w-full max-w-md max-h-[70vh] overflow-y-auto p-4 text-xs leading-relaxed"
+            onClick={e => e.stopPropagation()}
+          >
             <p>
-              28 artists at The Egg Cafe, Liverpool. Exploring circular art systems.
+              28 artists gathered at The Egg Cafe, Liverpool, to paint, eat, and share costs.
             </p>
 
-            <button className="mt-4 w-full bg-sky-300 py-2" onClick={() => setShowInfo(false)}>
+            <br />
+
+            <p>
+              The project explores circular systems of value, collaboration, and shared ownership in art.
+            </p>
+
+            <br />
+
+            <p>
+              Each artwork is 15x30 inches using materials brought by the artists.
+            </p>
+
+            <br />
+
+            <p>
+              Live auction: 8th May at The Egg Cafe.
+            </p>
+
+            <br />
+
+            <p><strong>wyrdliverpool@gmail.com</strong></p>
+
+            <button
+              className="mt-4 w-full bg-sky-300 py-2 text-sm"
+              onClick={() => setShowInfo(false)}
+            >
               Close
             </button>
           </div>
         </div>
       )}
 
-      {/* BID MODAL 🔥 RESTORED */}
+      {/* BID MODAL */}
       {selected && (
-        <BidModal
-          painting={selected}
-          onClose={() => setSelected(null)}
-          onBid={handleBid}
-        />
-      )}
-    </div>
-  )
-}
-
-/* ================= BID MODAL ================= */
-function BidModal({ painting, onClose, onBid }: any) {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [amount, setAmount] = useState(painting.current_bid + 0.01)
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center"
-      onClick={onClose}
-    >
-      <div className="bg-white p-5 w-80" onClick={e => e.stopPropagation()}>
-
-        <h2 className="font-bold">{painting.title}</h2>
-        <p>Current: £{painting.current_bid.toFixed(2)}</p>
-
-        <input className="border w-full p-2 mt-2"
-          placeholder="Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
-
-        <input className="border w-full p-2 mt-2"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-
-        <input className="border w-full p-2 mt-2"
-          type="number"
-          value={amount}
-          onChange={e => setAmount(Number(e.target.value))}
-        />
-
-        <button
-          className="bg-sky-300 w-full mt-3 py-2"
-          onClick={() => onBid(painting.id, name, email, amount)}
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center"
+          onClick={() => setSelected(null)}
         >
-          Place Bid
-        </button>
+          <div
+            className="bg-white p-5 w-80"
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 className="font-bold">{selected.title}</h2>
+            <p>Current: £{getBid(selected.id).toFixed(2)}</p>
+          </div>
+        </div>
+      )}
 
-      </div>
     </div>
   )
 }
