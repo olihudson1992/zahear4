@@ -258,7 +258,18 @@ export default function PaintingsCarousel() {
           <div className="bg-white w-full max-w-md max-h-[70vh] overflow-y-auto p-4 text-xs"
             onClick={e => e.stopPropagation()}
           >
-            <p>28 artists made work at The Egg Cafe in Liverpool...</p>
+            <p className="text-xs leading-relaxed">
+  28 artists got together in The Egg Cafe in Liverpool, painted, ate and split the costs. <br /><br />
+
+  These paintings are now on auction for an experiment. The artists will choose whether to reinvest the money into the group for the next adventure, or take their share. <br /><br />
+
+  The organiser wanted to explore circular systems, sharing and art. The artworks are all 15x30 inch canvases made with whatever paints and materials the artists brought with them. <br /><br />
+
+  The auction will end on the 8th of May at The Egg Cafe with a live auction. <br /><br />
+
+  Thanks for your time. If you need to get in touch, speak to Oli at{" "}
+  <span className="font-medium">wyrdliverpool@gmail.com</span>
+</p>
             <button className="mt-4 w-full bg-sky-300 py-2" onClick={() => setShowInfo(false)}>
               Close
             </button>
