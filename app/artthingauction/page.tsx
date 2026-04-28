@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Painting {
-  id: string
+  id: number
   title: string
   artist: string
   image_url: string
@@ -16,7 +16,6 @@ function PaintingsCarousel() {
   const [selectedPainting, setSelectedPainting] = useState<Painting | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [initialScrollDone, setInitialScrollDone] = useState(false)
-  const [showIntro, setShowIntro] = useState(true)
 
   const carouselRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -36,12 +35,12 @@ function PaintingsCarousel() {
     }
   }, [supabase])
 
+  // ---------------- INITIAL LOAD + REALTIME ----------------
   useEffect(() => {
     fetchPaintings()
 
-    // 🔥 REALTIME FIX (important)
     const channel = supabase
-      .channel('paintings-live')
+      .channel('paintings-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'paintings' },
@@ -49,7 +48,9 @@ function PaintingsCarousel() {
           const updated = payload.new as Painting
 
           setPaintings(prev =>
-            prev.map(p => (p.id === updated.id ? updated : p))
+            prev.map(p =>
+              p.id === updated.id ? updated : p
+            )
           )
         }
       )
@@ -60,7 +61,7 @@ function PaintingsCarousel() {
     }
   }, [fetchPaintings])
 
-  // ---------------- INTRO SCROLL ----------------
+  // ---------------- INITIAL SCROLL ----------------
   useEffect(() => {
     if (paintings.length > 0 && carouselRef.current && !initialScrollDone) {
       const randomIndex = Math.floor(Math.random() * paintings.length)
@@ -77,6 +78,7 @@ function PaintingsCarousel() {
     if (!carouselRef.current) return
 
     const itemWidth = carouselRef.current.scrollWidth / paintings.length
+
     carouselRef.current.scrollTo({
       left: itemWidth * index,
       behavior: 'smooth'
@@ -97,8 +99,8 @@ function PaintingsCarousel() {
     setIsPlaying(!isPlaying)
   }
 
-  // ---------------- BID UPDATE FIX ----------------
-  const handleBidPlaced = async (id: string, amount: number) => {
+  // ---------------- BID UPDATE ----------------
+  const handleBidPlaced = async (id: number, amount: number) => {
     setPaintings(prev =>
       prev.map(p =>
         p.id === id ? { ...p, current_bid: amount } : p
@@ -106,22 +108,15 @@ function PaintingsCarousel() {
     )
 
     setSelectedPainting(prev =>
-      prev?.id === id ? { ...prev, current_bid: amount } : prev
+      prev?.id === id
+        ? { ...prev, current_bid: amount }
+        : prev
     )
 
     await supabase
       .from('paintings')
       .update({ current_bid: amount })
       .eq('id', id)
-  }
-
-  // ---------------- INTRO ----------------
-  if (showIntro) {
-    return (
-      <IntroAnimation
-        onComplete={() => setShowIntro(false)}
-      />
-    )
   }
 
   if (paintings.length === 0) {
@@ -136,41 +131,41 @@ function PaintingsCarousel() {
     <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: 'Arial, sans-serif' }}>
       <audio ref={audioRef} src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
 
-      {/* Header */}
+      {/* HEADER */}
       <div className="text-center py-2">
         <h1 className="text-xl font-bold">THE EGG ART THING</h1>
         <p className="text-xs text-gray-500">Click a painting to place a bid</p>
       </div>
 
-      {/* Carousel */}
+      {/* CAROUSEL */}
       <div
         ref={carouselRef}
         className="flex-1 flex overflow-x-auto snap-x snap-mandatory scroll-smooth"
       >
-        {paintings.map(painting => (
+        {paintings.map(p => (
           <div
-            key={painting.id}
+            key={p.id}
             className="w-full flex-shrink-0 snap-center flex flex-col items-center px-4 py-2"
-            onClick={() => setSelectedPainting(painting)}
+            onClick={() => setSelectedPainting(p)}
           >
             <div className="flex-1 flex items-center justify-center w-full">
               <img
-                src={painting.image_url}
+                src={p.image_url}
                 className="max-h-[65vh] object-contain"
               />
             </div>
 
-            <h2 className="font-bold mt-2">{painting.title}</h2>
-            <p className="text-sm text-gray-600">{painting.artist}</p>
+            <h2 className="font-bold mt-2">{p.title}</h2>
+            <p className="text-sm text-gray-600">{p.artist}</p>
 
             <p className="text-sky-500 font-bold mt-1">
-              Current bid: £{painting.current_bid.toFixed(2)}
+              Current bid: £{p.current_bid.toFixed(2)}
             </p>
           </div>
         ))}
       </div>
 
-      {/* dots */}
+      {/* DOTS */}
       <div className="flex justify-center gap-1 py-2">
         {paintings.map((_, i) => (
           <button
@@ -181,7 +176,7 @@ function PaintingsCarousel() {
         ))}
       </div>
 
-      {/* play */}
+      {/* PLAY BUTTON */}
       <div className="flex justify-center pb-3">
         <button
           onClick={togglePlay}
@@ -191,7 +186,7 @@ function PaintingsCarousel() {
         </button>
       </div>
 
-      {/* modal */}
+      {/* BID MODAL */}
       {selectedPainting && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center"
@@ -216,7 +211,7 @@ function BidForm({
 }: {
   painting: Painting
   onClose: () => void
-  onBidPlaced: (id: string, amount: number) => void
+  onBidPlaced: (id: number, amount: number) => void
 }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -285,20 +280,6 @@ function BidForm({
           Cancel
         </button>
       </form>
-    </div>
-  )
-}
-
-// ---------------- INTRO ANIMATION ----------------
-function IntroAnimation({ onComplete }: { onComplete: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onComplete, 4000)
-    return () => clearTimeout(t)
-  }, [onComplete])
-
-  return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-sky-400" />
     </div>
   )
 }
