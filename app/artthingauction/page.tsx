@@ -34,130 +34,18 @@ const images = [
   "https://rangatracks.b-cdn.net/artthing%20resize/Tom%20-%20Scratch_result.jpg",
 ]
 
-/* ================= INTRO ANIMATION ================= */
-function IntroAnimation({ onDone }: { onDone: () => void }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    const size = Math.min(window.innerWidth - 32, window.innerHeight - 160) * 0.82
-    canvas.width = size
-    canvas.height = size
-
-    const cx = size / 2
-    const cy = size / 2
-    const radius = size / 2 - 10
-
-    const numSlices = images.length
-    const sliceAngle = (2 * Math.PI) / numSlices
-
-    const imgs: HTMLImageElement[] = []
-    let loaded = 0
-
-    const offsets: number[] = []
-    const speeds: number[] = []
-
-    for (let i = 0; i < numSlices; i++) {
-      offsets[i] = i * sliceAngle
-      speeds[i] = (Math.random() - 0.5) * 0.08
-    }
-
-    const start = performance.now()
-    const DURATION = 4000
-    let frame: number
-
-    images.forEach((src, i) => {
-      const img = new Image()
-      img.crossOrigin = "anonymous"
-      img.onload = () => {
-        imgs[i] = img
-        loaded++
-        if (loaded === images.length) animate()
-      }
-      img.src = src
-    })
-
-    function draw() {
-      ctx.clearRect(0, 0, size, size)
-
-      for (let i = 0; i < numSlices; i++) {
-        const a = offsets[i] - Math.PI / 2
-        const b = a + sliceAngle
-
-        ctx.save()
-        ctx.beginPath()
-        ctx.moveTo(cx, cy)
-        ctx.arc(cx, cy, radius, a, b)
-        ctx.closePath()
-        ctx.clip()
-
-        const img = imgs[i]
-        if (img) {
-          const scale = (radius * 2.2) / Math.min(img.width, img.height)
-          ctx.drawImage(
-            img,
-            cx - (img.width * scale) / 2,
-            cy - (img.height * scale) / 2,
-            img.width * scale,
-            img.height * scale
-          )
-        }
-
-        ctx.restore()
-      }
-    }
-
-    function animate() {
-      const t = performance.now() - start
-      const p = t / DURATION
-      const damp = Math.max(0.02, 1 - p)
-
-      for (let i = 0; i < numSlices; i++) {
-        offsets[i] += speeds[i] * damp
-        speeds[i] *= 0.98
-      }
-
-      draw()
-
-      if (t < DURATION) {
-        frame = requestAnimationFrame(animate)
-      } else {
-        draw()
-        setTimeout(onDone, 200)
-      }
-    }
-
-    return () => cancelAnimationFrame(frame)
-  }, [])
-
-  return (
-    <div className="h-screen flex items-center justify-center bg-white">
-      <canvas ref={canvasRef} />
-    </div>
-  )
-}
-
-/* ================= MAIN ================= */
 export default function PaintingsCarousel() {
   const [paintings, setPaintings] = useState<any[]>([])
   const [bids, setBids] = useState<any[]>([])
-  const [showIntro, setShowIntro] = useState(true)
   const [selected, setSelected] = useState<any>(null)
-  const [showInfo, setShowInfo] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(false)
 
-  const audioRef = useRef<HTMLAudioElement>(null)
   const supabase = createClient()
 
   useEffect(() => {
     const fetchData = async () => {
       const { data: p } = await supabase.from('paintings').select('*')
       const { data: b } = await supabase.from('bids').select('*')
+
       if (p) setPaintings(p)
       if (b) setBids(b)
     }
@@ -172,19 +60,9 @@ export default function PaintingsCarousel() {
     return list.length ? Math.max(...list.map(b => b.amount)) : 1
   }
 
-  const togglePlay = async () => {
-    if (!audioRef.current) return
-    if (audioRef.current.paused) {
-      await audioRef.current.play()
-      setIsPlaying(true)
-    } else {
-      audioRef.current.pause()
-      setIsPlaying(false)
-    }
-  }
-
   const handleBid = async (e: any) => {
     e.preventDefault()
+
     const form = new FormData(e.target)
 
     await supabase.from('bids').insert({
@@ -197,26 +75,12 @@ export default function PaintingsCarousel() {
     setSelected(null)
   }
 
-  if (showIntro) return <IntroAnimation onDone={() => setShowIntro(false)} />
-
   return (
-    <div className="min-h-screen bg-white flex flex-col overflow-hidden">
-
-      <style jsx global>{`
-        ::-webkit-scrollbar { display: none; }
-        html, body { scrollbar-width: none; }
-      `}</style>
-
-      <audio
-        ref={audioRef}
-        src="https://rangatracks.b-cdn.net/ENCHELADER.mp3"
-        loop
-      />
+    <div className="min-h-screen bg-white flex flex-col">
 
       {/* HEADER */}
       <div className="text-center py-2">
         <h1 className="text-xl font-bold">THE EGG ART THING</h1>
-        <p className="text-xs text-gray-500">Click a painting to place a bid</p>
       </div>
 
       {/* CAROUSEL */}
@@ -232,15 +96,15 @@ export default function PaintingsCarousel() {
             <div className="flex items-center justify-center h-[55vh] w-full">
               <img
                 src={p.image_url}
-                className={`max-h-full max-w-full object-contain
-                  ${
-                    p.title === "DSCF5198"
-                      ? "rotate-90"
-                      : p.title === "DSCF5208"
-                      ? "-rotate-90"
-                      : ""
-                  }
-                `}
+                className={`max-h-full max-w-full object-contain ${
+                  p.title === "DSCF5198"
+                    ? "rotate-90"
+                    : p.title === "DSCF5208"
+                    ? "-rotate-90"
+                    : p.title === "Tom - Scratch"
+                    ? "rotate-180"
+                    : ""
+                }`}
               />
             </div>
 
@@ -261,28 +125,10 @@ export default function PaintingsCarousel() {
 
       </div>
 
-      {/* BUTTONS */}
-      <div className="flex justify-center gap-3 pb-3">
-
-        <button
-          onClick={togglePlay}
-          className="w-10 h-10 bg-sky-300 rounded-full flex items-center justify-center"
-        >
-          {isPlaying ? "❚❚" : "▶"}
-        </button>
-
-        <button
-          onClick={() => setShowInfo(true)}
-          className="w-10 h-10 bg-gray-200 rounded-full font-bold"
-        >
-          i
-        </button>
-
-      </div>
-
       {/* BID MODAL */}
       {selected && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center"
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center"
           onClick={() => setSelected(null)}
         >
           <form
@@ -292,27 +138,14 @@ export default function PaintingsCarousel() {
           >
             <h2 className="font-bold mb-2">{selected.title}</h2>
 
-            <input name="name" placeholder="Name" className="border w-full p-2 mb-2" />
-            <input name="email" placeholder="Email" className="border w-full p-2 mb-2" />
-            <input name="amount" type="number" className="border w-full p-2 mb-2" />
+            <input name="name" placeholder="Name" className="border w-full p-2 mb-2" required />
+            <input name="email" placeholder="Email" className="border w-full p-2 mb-2" required />
+            <input name="amount" type="number" className="border w-full p-2 mb-2" required />
 
             <button className="bg-sky-300 w-full py-2">
               Place Bid
             </button>
           </form>
-        </div>
-      )}
-
-      {/* INFO */}
-      {showInfo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setShowInfo(false)}
-        >
-          <div className="bg-white max-w-md p-4 text-xs">
-            <p>
-              28 artists got together in The Egg Cafe in Liverpool...
-            </p>
-          </div>
         </div>
       )}
 
