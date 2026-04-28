@@ -35,17 +35,18 @@ function PaintingsCarousel() {
 
     if (!paintingsData || !bidsData) return
 
-    const highestMap: Record<string, number> = {}
+    // 🔥 TRUE SOURCE OF TRUTH: recompute from bids
+    const highest: Record<string, number> = {}
 
     bidsData.forEach(b => {
-      if (!highestMap[b.painting_id] || b.amount > highestMap[b.painting_id]) {
-        highestMap[b.painting_id] = b.amount
+      if (!highest[b.painting_id] || b.amount > highest[b.painting_id]) {
+        highest[b.painting_id] = b.amount
       }
     })
 
     const merged = paintingsData.map(p => ({
       ...p,
-      current_bid: highestMap[p.id] || 1
+      current_bid: highest[p.id] ?? 1
     }))
 
     setPaintings(merged)
@@ -69,7 +70,7 @@ function PaintingsCarousel() {
   }, [fetchPaintings, supabase])
 
   useEffect(() => {
-    if (paintings.length > 0 && carouselRef.current && !initialScrollDone) {
+    if (paintings.length && carouselRef.current && !initialScrollDone) {
       const randomIndex = Math.floor(Math.random() * paintings.length)
       setCurrentIndex(randomIndex)
 
@@ -102,14 +103,12 @@ function PaintingsCarousel() {
   }
 
   const handleBidPlaced = async (id: string, amount: number) => {
-    // ONLY insert bid — do NOT trust painting table anymore
-    const supabase = createClient()
-
     await supabase.from('bids').insert({
       painting_id: id,
       amount
     })
 
+    // instant UI update
     setPaintings(prev =>
       prev.map(p =>
         p.id === id ? { ...p, current_bid: amount } : p
@@ -117,10 +116,10 @@ function PaintingsCarousel() {
     )
   }
 
-  if (paintings.length === 0) {
+  if (!paintings.length) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        Loading paintings...
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
       </div>
     )
   }
@@ -200,8 +199,6 @@ function BidForm({
   onClose: () => void
   onBidPlaced: (id: string, amount: number) => void
 }) {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
   const [amount, setAmount] = useState(painting.current_bid + 0.01)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -209,6 +206,7 @@ function BidForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
     if (amount < minBid) return
 
     setIsSubmitting(true)
@@ -226,20 +224,6 @@ function BidForm({
       <p className="mb-2">Current: £{painting.current_bid.toFixed(2)}</p>
 
       <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          className="border w-full p-2 mb-2"
-        />
-
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          className="border w-full p-2 mb-2"
-        />
-
         <input
           type="number"
           value={amount}
