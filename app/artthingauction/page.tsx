@@ -180,10 +180,19 @@ export default function PaintingsCarousel() {
     setSelected(null)
   }
 
-  // ✅ FIXED POSITION (IMPORTANT)
+  // ✅ FIX: rename
   const getTitle = (title: string) => {
     if (title === "Tom FM") return "Tom"
     return title
+  }
+
+  // ✅ FIX: correct rotations
+  const getRotation = (url: string) => {
+    if (!url) return ""
+    if (url.includes("DSCF5198")) return "rotate-90"
+    if (url.includes("DSCF5208")) return "-rotate-90"
+    if (url.includes("Revolving%20faces")) return "rotate-180"
+    return ""
   }
 
   if (showIntro) return <IntroAnimation onDone={() => setShowIntro(false)} />
@@ -215,15 +224,7 @@ export default function PaintingsCarousel() {
             <div className="flex items-center justify-center h-[55vh] w-full">
               <img
                 src={p.image_url}
-                className={`max-h-full max-w-full object-contain ${
-                  p.image_url.includes("DSCF5198")
-                    ? "rotate-90"
-                    : p.image_url.includes("DSCF5208")
-                    ? "-rotate-90"
-                    : p.image_url.includes("Tom%20-%20Scratch")
-                    ? "rotate-180"
-                    : ""
-                }`}
+                className={`max-h-full max-w-full object-contain ${getRotation(p.image_url)}`}
               />
             </div>
 
@@ -244,7 +245,7 @@ export default function PaintingsCarousel() {
 
         <button
           onClick={togglePlay}
-          className="w-10 h-10 bg-sky-300 rounded-full flex items-center justify-center"
+          className="w-10 h-10 bg-sky-300 rounded-full flex items-center justify-center text-white"
         >
           {isPlaying ? "❚❚" : "▶"}
         </button>
@@ -267,7 +268,7 @@ export default function PaintingsCarousel() {
             onClick={e => e.stopPropagation()}
           >
             <p className="text-xs leading-relaxed">
-              28 artists got together in The Egg Cafe in Liverpool, painted, ate and split the costs...
+              28 artists got together in The Egg Cafe in Liverpool...
             </p>
             <button className="mt-4 w-full bg-sky-300 py-2" onClick={() => setShowInfo(false)}>
               Close
@@ -293,14 +294,7 @@ export default function PaintingsCarousel() {
 
             <input name="name" placeholder="Name" className="border w-full p-2 mb-2" required />
             <input name="email" placeholder="Email" className="border w-full p-2 mb-2" required />
-            <input
-              name="amount"
-              type="number"
-              step="0.01"
-              min={getBid(selected.id) + 0.01}
-              className="border w-full p-2 mb-2"
-              required
-            />
+            <input name="amount" type="number" step="0.01" className="border w-full p-2 mb-2" required />
 
             <button className="bg-sky-300 w-full py-2">
               Place Bid
