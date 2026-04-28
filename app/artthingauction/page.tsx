@@ -56,13 +56,11 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
     images.forEach((src, i) => {
       const img = new Image()
       img.crossOrigin = "anonymous"
-
       img.onload = () => {
         imgs[i] = img
         loaded++
         if (loaded === images.length) animate()
       }
-
       img.src = src
     })
 
@@ -139,15 +137,14 @@ export default function PaintingsCarousel() {
   const audioRef = useRef<HTMLAudioElement>(null)
   const supabase = createClient()
 
-  const fetchData = async () => {
-    const { data: p } = await supabase.from('paintings').select('*')
-    const { data: b } = await supabase.from('bids').select('*')
-
-    if (p) setPaintings(p)
-    if (b) setBids(b)
-  }
-
   useEffect(() => {
+    const fetchData = async () => {
+      const { data: p } = await supabase.from('paintings').select('*')
+      const { data: b } = await supabase.from('bids').select('*')
+      if (p) setPaintings(p)
+      if (b) setBids(b)
+    }
+
     fetchData()
     const i = setInterval(fetchData, 2000)
     return () => clearInterval(i)
@@ -160,7 +157,6 @@ export default function PaintingsCarousel() {
 
   const togglePlay = async () => {
     if (!audioRef.current) return
-
     if (audioRef.current.paused) {
       await audioRef.current.play()
       setIsPlaying(true)
@@ -170,32 +166,44 @@ export default function PaintingsCarousel() {
     }
   }
 
-  if (showIntro) {
-    return <IntroAnimation onDone={() => setShowIntro(false)} />
+  const handleBid = async (e: any) => {
+    e.preventDefault()
+
+    const form = new FormData(e.target)
+    const name = form.get("name")
+    const email = form.get("email")
+    const amount = Number(form.get("amount"))
+
+    await supabase.from("bids").insert({
+      painting_id: selected.id,
+      bidder_name: name,
+      bidder_email: email,
+      amount
+    })
+
+    setSelected(null)
   }
+
+  if (showIntro) return <IntroAnimation onDone={() => setShowIntro(false)} />
 
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-hidden">
 
       <style jsx global>{`
         ::-webkit-scrollbar { display: none; }
-        html, body {
-          scrollbar-width: none;
-          -ms-overflow-style: none;
-        }
+        html, body { scrollbar-width: none; }
       `}</style>
 
       <audio
         ref={audioRef}
         src="https://rangatracks.b-cdn.net/ENCHELADER.mp3"
         loop
-        preload="auto"
       />
 
       {/* HEADER */}
       <div className="text-center py-2">
         <h1 className="text-xl font-bold">THE EGG ART THING</h1>
-        <p className="text-xs text-gray-500">Click a painting to place a bid</p>
+        <p className="text-xs text-gray-500">Click a painting to bid</p>
       </div>
 
       {/* CAROUSEL */}
@@ -208,16 +216,12 @@ export default function PaintingsCarousel() {
             onClick={() => setSelected(p)}
           >
             <div className="flex items-center justify-center h-[55vh] w-full">
-              <img
-                src={p.image_url}
-                className="max-h-full max-w-full object-contain"
-              />
+              <img src={p.image_url} className="max-h-full max-w-full object-contain" />
             </div>
 
             <div className="text-center mt-3">
               <h2 className="font-bold">{p.title}</h2>
               <p className="text-sm text-gray-600">{p.artist}</p>
-
               <p className="text-sky-500 font-bold mt-1">
                 £{getBid(p.id).toFixed(2)}
               </p>
@@ -248,39 +252,51 @@ export default function PaintingsCarousel() {
 
       {/* INFO */}
       {showInfo && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
           onClick={() => setShowInfo(false)}
         >
-          <div
-            className="bg-white w-full max-w-md max-h-[70vh] overflow-y-auto p-4 text-xs"
+          <div className="bg-white w-full max-w-md max-h-[70vh] overflow-y-auto p-4 text-xs"
             onClick={e => e.stopPropagation()}
           >
-            <p>28 artists created works in The Egg Cafe, Liverpool...</p>
-
-            <button
-              className="mt-4 w-full bg-sky-300 py-2 text-sm"
-              onClick={() => setShowInfo(false)}
-            >
+            <p>28 artists made work at The Egg Cafe in Liverpool...</p>
+            <button className="mt-4 w-full bg-sky-300 py-2" onClick={() => setShowInfo(false)}>
               Close
             </button>
           </div>
         </div>
       )}
 
-      {/* BID MODAL */}
+      {/* BID MODAL (RESTORED FULL FORM) */}
       {selected && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center"
           onClick={() => setSelected(null)}
         >
-          <div
+          <form
+            onSubmit={handleBid}
             className="bg-white p-5 w-80"
             onClick={e => e.stopPropagation()}
           >
-            <h2 className="font-bold">{selected.title}</h2>
-            <p>Current: £{getBid(selected.id).toFixed(2)}</p>
-          </div>
+
+            <h2 className="font-bold mb-2">{selected.title}</h2>
+            <p className="mb-2">Current: £{getBid(selected.id).toFixed(2)}</p>
+
+            <input name="name" placeholder="Name" className="border w-full p-2 mb-2" required />
+            <input name="email" placeholder="Email" className="border w-full p-2 mb-2" required />
+            <input
+              name="amount"
+              type="number"
+              step="0.01"
+              min={getBid(selected.id) + 0.01}
+              className="border w-full p-2 mb-2"
+              required
+            />
+
+            <button className="bg-sky-300 w-full py-2">
+              Place Bid
+            </button>
+
+          </form>
         </div>
       )}
 
