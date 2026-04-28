@@ -37,7 +37,6 @@ function PaintingsCarousel() {
   useEffect(() => {
     fetchPaintings()
 
-    // REAL FIX: keep bids synced properly
     const interval = setInterval(() => {
       fetchPaintings()
     }, 3000)
@@ -81,7 +80,6 @@ function PaintingsCarousel() {
     setIsPlaying(!isPlaying)
   }
 
-  // FIXED BID UPDATE (NO DESYNC)
   const handleBidPlaced = async (id: string, amount: number) => {
     await supabase
       .from('paintings')
@@ -91,48 +89,49 @@ function PaintingsCarousel() {
     await fetchPaintings()
   }
 
-  // ================================
-  // TITLE + ARTIST FIXES
-  // ================================
+  // =========================
+  // FIXED TITLES + ARTISTS
+  // =========================
   const fixMeta = (p: Painting) => {
     const map: Record<string, { title?: string; artist?: string }> = {
       'DSCF5214': { title: 'Big Al' },
-      'Untitled-DSCF5198': { title: 'Who needs skin?', artist: 'Bethan' },
+      'DSCF5198': { title: 'Who needs skin?', artist: 'Bethan' },
       'Green Blue Abstract': { artist: 'Tom FM' },
       'Cats': { artist: 'Tom' },
-      'Elleyna': { artist: 'Elenyar' },
+      'Elleyna': { artist: 'Elenyar' }
     }
 
     return {
       title: map[p.title]?.title || p.title,
-      artist: map[p.title]?.artist || p.artist,
+      artist: map[p.title]?.artist || p.artist
     }
   }
 
-  // ================================
-  // ROTATION FIXES
-  // ================================
-  const getRotation = (p: Painting) => {
+  // =========================
+  // ROTATION RULES
+  // =========================
+  const getRotation = (title: string) => {
     const rotate90 = ['Elleyna', 'Joanne Untitled', 'Tilda']
     const rotateMinus90 = ['Lynn']
     const rotate180 = ['Big Al', 'Anna and Robby', 'Eliza', 'Green Blue Abstract']
 
-    if (rotate90.includes(p.title)) return 'rotate(90deg)'
-    if (rotateMinus90.includes(p.title)) return 'rotate(-90deg)'
-    if (rotate180.includes(p.title)) return 'rotate(180deg)'
+    if (rotate90.includes(title)) return 'rotate(90deg)'
+    if (rotateMinus90.includes(title)) return 'rotate(-90deg)'
+    if (rotate180.includes(title)) return 'rotate(180deg)'
     return 'none'
   }
 
   if (paintings.length === 0) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         Loading paintings...
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: 'Arial, sans-serif' }}>
+    <div className="min-h-screen flex flex-col bg-white" style={{ fontFamily: 'Arial' }}>
+      
       <audio ref={audioRef} src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
 
       {/* HEADER */}
@@ -146,22 +145,22 @@ function PaintingsCarousel() {
         ref={carouselRef}
         className="flex-1 flex overflow-x-auto snap-x snap-mandatory scroll-smooth"
       >
-        {paintings.map((painting) => {
-          const fixed = fixMeta(painting)
+        {paintings.map((p) => {
+          const fixed = fixMeta(p)
 
           return (
             <div
-              key={painting.id}
+              key={p.id}
               className="w-full flex-shrink-0 snap-center flex flex-col items-center justify-center px-4 py-2"
-              onClick={() => setSelectedPainting(painting)}
+              onClick={() => setSelectedPainting(p)}
             >
-              {/* IMAGE WRAPPER FIXED CENTER */}
+              {/* CENTERING FIX */}
               <div className="flex items-center justify-center w-full h-[65vh]">
                 <img
-                  src={painting.image_url}
+                  src={p.image_url}
                   className="max-h-full max-w-full object-contain"
                   style={{
-                    transform: getRotation(painting),
+                    transform: getRotation(p.title),
                     transition: 'transform 0.3s ease'
                   }}
                 />
@@ -171,7 +170,7 @@ function PaintingsCarousel() {
               <p className="text-sm text-gray-600">{fixed.artist}</p>
 
               <p className="text-sky-500 font-bold mt-1">
-                Current bid: £{painting.current_bid.toFixed(2)}
+                Current bid: £{p.current_bid.toFixed(2)}
               </p>
             </div>
           )
@@ -189,7 +188,7 @@ function PaintingsCarousel() {
         ))}
       </div>
 
-      {/* PLAY */}
+      {/* PLAY BUTTON */}
       <div className="flex justify-center pb-3">
         <button
           onClick={togglePlay}
@@ -234,6 +233,7 @@ function BidForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
     if (amount < minBid) return
 
     setIsSubmitting(true)
