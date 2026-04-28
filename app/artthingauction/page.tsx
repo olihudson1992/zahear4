@@ -11,40 +11,145 @@ interface Painting {
   current_bid: number
 }
 
-export default function PaintingsCarousel() {
+// 🎡 INTRO IMAGES
+const images = [
+  "https://rangatracks.b-cdn.net/artthing%20resize/AJ%20-%20Krakatoaz%20CC_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/alex_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Anna%20%26b%20Robby%20-%20Tiny%20Distraction_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Brad%20-%20Mr%20Gonk_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/CHLOE%20-%20Fuzanglong_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Darcie%20-%20Bag%20Piss_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Deb%20-%20untitled_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5195_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5198_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5208_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Eliza%20-%20Issac_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Elleyna%20-%20Trukish%20Cafe_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Eva%20-%20_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Evelyn%20-%20I%20dont%20know%20(wink%20wink)_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Harry%20-%20Where's%20the%20Whale_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Hattie%20-%20unknown_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Isaac%20-%20Animal%20Instinct_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Joanne%20-%20table%20top%20view_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Joanne%20-%20untitled_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Lynn%20-%20The%20Sigh_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Marths%20maybe%20-%20I%20can't%203_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Meta%20-%20Metamorphosis_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/OLI%20-%20PANTOMINE_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Rose%20-%20Running%20to%20the%20chapel%20and%20talking%20to%20the%20aliens_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Taco%20-%20Unknown_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Tilda%20-%20Unknown_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Tom%20-%20Revolving%20faces_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Tom%20-%20Scratch_result.jpg",
+]
+
+// 🎡 INTRO COMPONENT
+function Intro({ onDone }: { onDone: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const size = Math.min(window.innerWidth, window.innerHeight) * 0.8
+    canvas.width = size
+    canvas.height = size
+
+    const center = size / 2
+    const radius = center - 10
+    const slice = (2 * Math.PI) / images.length
+
+    let angle = 0
+    let loaded = 0
+    const imgs: HTMLImageElement[] = []
+
+    images.forEach((src, i) => {
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      img.onload = () => {
+        imgs[i] = img
+        loaded++
+        if (loaded === images.length) draw()
+      }
+      img.src = src
+    })
+
+    function draw() {
+      ctx.clearRect(0, 0, size, size)
+
+      for (let i = 0; i < images.length; i++) {
+        const start = angle + i * slice
+        const end = start + slice
+
+        ctx.save()
+        ctx.beginPath()
+        ctx.moveTo(center, center)
+        ctx.arc(center, center, radius, start, end)
+        ctx.closePath()
+        ctx.clip()
+
+        const img = imgs[i]
+        if (img) {
+          ctx.drawImage(img, 0, 0, size, size)
+        }
+
+        ctx.restore()
+      }
+    }
+
+    let start = Date.now()
+
+    function animate() {
+      const t = Date.now() - start
+
+      if (t < 2500) {
+        angle += 0.03
+        draw()
+        requestAnimationFrame(animate)
+      } else {
+        onDone()
+      }
+    }
+
+    animate()
+  }, [])
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <canvas ref={canvasRef} />
+    </div>
+  )
+}
+
+// 🎯 MAIN APP
+export default function Page() {
+  const [showIntro, setShowIntro] = useState(true)
+
+  return showIntro
+    ? <Intro onDone={() => setShowIntro(false)} />
+    : <Carousel />
+}
+
+// 🎯 CAROUSEL (your working one)
+function Carousel() {
   const [paintings, setPaintings] = useState<Painting[]>([])
   const [selectedPainting, setSelectedPainting] = useState<Painting | null>(null)
-  const [currentIndex, setCurrentIndex] = useState(0)
-
-  const carouselRef = useRef<HTMLDivElement>(null)
-  const audioRef = useRef<HTMLAudioElement>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
 
   const supabase = createClient()
 
   const fetchPaintings = async () => {
-    const { data: paintingsData } = await supabase
-      .from('paintings')
-      .select('*')
-      .order('id')
-
-    const { data: bidsData } = await supabase
-      .from('bids')
-      .select('*')
+    const { data: paintingsData } = await supabase.from('paintings').select('*')
+    const { data: bidsData } = await supabase.from('bids').select('*')
 
     if (!paintingsData) return
 
     const updated = paintingsData.map(p => {
-      const bidsForPainting = bidsData?.filter(b => b.painting_id === p.id) || []
+      const bids = bidsData?.filter(b => b.painting_id === p.id) || []
+      const highest = bids.length ? Math.max(...bids.map(b => b.amount)) : 1
 
-      const highestBid = bidsForPainting.length
-        ? Math.max(...bidsForPainting.map(b => b.amount))
-        : 1
-
-      return {
-        ...p,
-        current_bid: highestBid
-      }
+      return { ...p, current_bid: highest }
     })
 
     setPaintings(updated)
@@ -54,150 +159,51 @@ export default function PaintingsCarousel() {
     fetchPaintings()
 
     const channel = supabase
-      .channel('bids-live')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'bids'
-        },
-        () => {
-          fetchPaintings()
-        }
-      )
+      .channel('live')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bids' }, fetchPaintings)
       .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    return () => supabase.removeChannel(channel)
   }, [])
 
-  const togglePlay = () => {
-    if (!audioRef.current) return
-
-    if (isPlaying) {
-      audioRef.current.pause()
-    } else {
-      audioRef.current.play()
-    }
-
-    setIsPlaying(!isPlaying)
-  }
-
-  const scrollToIndex = (index: number) => {
-    if (!carouselRef.current) return
-
-    const itemWidth = carouselRef.current.scrollWidth / paintings.length
-
-    carouselRef.current.scrollTo({
-      left: itemWidth * index,
-      behavior: 'smooth'
-    })
-
-    setCurrentIndex(index)
-  }
-
-  if (paintings.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <audio ref={audioRef} src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
-
+    <div className="min-h-screen flex flex-col bg-white">
       <div className="text-center py-2">
         <h1 className="text-xl font-bold">THE EGG ART THING</h1>
-        <p className="text-xs text-gray-500">Tap a painting to bid</p>
       </div>
 
-      <div
-        ref={carouselRef}
-        className="flex-1 flex overflow-x-auto snap-x snap-mandatory scroll-smooth"
-      >
-        {paintings.map((p) => (
-          <div
-            key={p.id}
-            className="w-full flex-shrink-0 snap-center flex flex-col items-center justify-center px-4"
+      <div className="flex-1 overflow-x-auto flex">
+        {paintings.map(p => (
+          <div key={p.id} className="w-full flex-shrink-0 flex flex-col items-center justify-center"
             onClick={() => setSelectedPainting(p)}
           >
-            <div className="flex items-center justify-center h-[60vh] w-full">
-              <img
-                src={p.image_url}
-                className="max-h-full max-w-full object-contain"
-              />
-            </div>
-
-            <h2 className="font-bold mt-2">{p.title}</h2>
-            <p className="text-sm text-gray-600">{p.artist}</p>
-
-            <p className="text-sky-500 font-bold mt-1">
-              Current bid: £{p.current_bid.toFixed(2)}
-            </p>
+            <img src={p.image_url} className="max-h-[60vh] object-contain" />
+            <h2>{p.title}</h2>
+            <p>{p.artist}</p>
+            <p>£{p.current_bid.toFixed(2)}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex justify-center gap-1 py-2">
-        {paintings.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => scrollToIndex(i)}
-            className={`w-2 h-2 rounded-full ${
-              i === currentIndex ? 'bg-sky-400' : 'bg-gray-300'
-            }`}
-          />
-        ))}
-      </div>
-
-      <div className="flex justify-center pb-3">
-        <button
-          onClick={togglePlay}
-          className="w-10 h-10 bg-sky-300 rounded-full flex items-center justify-center"
-        >
-          {isPlaying ? '⏸' : '▶'}
-        </button>
-      </div>
-
       {selectedPainting && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center"
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center"
           onClick={() => setSelectedPainting(null)}
         >
-          <BidForm
-            painting={selectedPainting}
-            onClose={() => setSelectedPainting(null)}
-            refresh={fetchPaintings}
-          />
+          <BidForm painting={selectedPainting} onClose={() => setSelectedPainting(null)} refresh={fetchPaintings}/>
         </div>
       )}
     </div>
   )
 }
 
-function BidForm({
-  painting,
-  onClose,
-  refresh
-}: {
-  painting: Painting
-  onClose: () => void
-  refresh: () => void
-}) {
+function BidForm({ painting, onClose, refresh }: any) {
+  const [amount, setAmount] = useState(painting.current_bid + 0.01)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
-  const [amount, setAmount] = useState(painting.current_bid + 0.01)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [success, setSuccess] = useState(false)
+  const [done, setDone] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e:any) => {
     e.preventDefault()
-
-    setIsSubmitting(true)
 
     const supabase = createClient()
 
@@ -208,69 +214,30 @@ function BidForm({
       amount
     })
 
-    setIsSubmitting(false)
-    setSuccess(true)
-
+    setDone(true)
     refresh()
 
-    setTimeout(() => {
-      onClose()
-    }, 2000)
+    setTimeout(onClose, 2000)
   }
 
   return (
-    <div className="bg-white p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
-      {success ? (
-        <div className="text-center">
-          <p className="text-lg font-bold text-sky-500">Thanks!</p>
-          <p className="text-sm">We’ll contact you if you win</p>
-        </div>
+    <div className="bg-white p-6" onClick={e=>e.stopPropagation()}>
+      {done ? (
+        <p>Thanks! We’ll contact you if you win</p>
       ) : (
-        <>
-          <h2 className="font-bold mb-2">{painting.title}</h2>
+        <form onSubmit={submit}>
+          <p>£{painting.current_bid.toFixed(2)}</p>
 
-          <p className="mb-2">Current: £{painting.current_bid.toFixed(2)}</p>
-
-          {/* 🔥 UPDATED TEXT ONLY */}
-          <p className="text-sm text-gray-500 mb-3 italic">
+          <p className="text-sm text-gray-500 italic mb-2">
             The artists decide what they do with the money, and 20% goes to The Egg
           </p>
 
-          <form onSubmit={handleSubmit}>
-            <input
-              placeholder="Name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="border w-full p-2 mb-2"
-              required
-            />
+          <input placeholder="name" onChange={e=>setName(e.target.value)} />
+          <input placeholder="email" onChange={e=>setEmail(e.target.value)} />
+          <input type="number" value={amount} onChange={e=>setAmount(Number(e.target.value))} />
 
-            <input
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="border w-full p-2 mb-2"
-              required
-            />
-
-            <input
-              type="number"
-              value={amount}
-              step={0.01}
-              onChange={e => setAmount(Number(e.target.value))}
-              className="border w-full p-2 mb-2"
-              required
-            />
-
-            <button className="bg-sky-300 w-full py-2">
-              {isSubmitting ? '...' : 'Place Bid'}
-            </button>
-
-            <button type="button" onClick={onClose} className="w-full mt-2">
-              Cancel
-            </button>
-          </form>
-        </>
+          <button>bid</button>
+        </form>
       )}
     </div>
   )
