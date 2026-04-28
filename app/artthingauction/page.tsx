@@ -24,42 +24,29 @@ function PaintingsCarousel() {
   const supabase = createClient()
 
   const fetchPaintings = useCallback(async () => {
-    const { data: paintingsData } = await supabase
+    const { data, error } = await supabase
       .from('paintings')
-      .select('*')
+      .select('id, title, artist, image_url, current_bid')
       .order('id')
 
-    const { data: bidsData } = await supabase
-      .from('bids')
-      .select('painting_id, amount')
+    if (error || !data) return
 
-    if (!paintingsData || !bidsData) return
-
-    // 🔥 TRUE SOURCE OF TRUTH: recompute from bids
-    const highest: Record<string, number> = {}
-
-    bidsData.forEach(b => {
-      if (!highest[b.painting_id] || b.amount > highest[b.painting_id]) {
-        highest[b.painting_id] = b.amount
-      }
-    })
-
-    const merged = paintingsData.map(p => ({
+    setPaintings(data.map(p => ({
       ...p,
-      current_bid: highest[p.id] ?? 1
-    }))
-
-    setPaintings(merged)
+      current_bid: p.current_bid ?? 1
+    })))
   }, [supabase])
 
   useEffect(() => {
     fetchPaintings()
+  }, [fetchPaintings])
 
+  useEffect(() => {
     const channel = supabase
-      .channel('bids-live')
+      .channel('realtime-paintings')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'bids' },
+        { event: '*', schema: 'public', table: 'paintings' },
         () => fetchPaintings()
       )
       .subscribe()
@@ -70,7 +57,7 @@ function PaintingsCarousel() {
   }, [fetchPaintings, supabase])
 
   useEffect(() => {
-    if (paintings.length && carouselRef.current && !initialScrollDone) {
+    if (paintings.length > 0 && carouselRef.current && !initialScrollDone) {
       const randomIndex = Math.floor(Math.random() * paintings.length)
       setCurrentIndex(randomIndex)
 
@@ -102,24 +89,58 @@ function PaintingsCarousel() {
     setIsPlaying(!isPlaying)
   }
 
-  const handleBidPlaced = async (id: string, amount: number) => {
-    await supabase.from('bids').insert({
-      painting_id: id,
-      amount
-    })
+  // -----------------------------
+  // TITLE + ARTIST FIXES
+  // -----------------------------
+  const fixData = (painting: Painting) => {
+    const fixes: Record<string, { title?: string; artist?: string }> = {
+      "Untitled": { title: "Big Al" },
+      "DSCF5214": { title: "Big Al" },
 
-    // instant UI update
-    setPaintings(prev =>
-      prev.map(p =>
-        p.id === id ? { ...p, current_bid: amount } : p
-      )
-    )
+      "Untitled DSCF5198": { title: "Who needs skin?", artist: "Bethan" },
+      "DSCF5198": { title: "Who needs skin?", artist: "Bethan" },
+
+      "Green Blue Abstract": { artist: "Tom FM" },
+      "Cats": { artist: "Tom" },
+
+      "Elleyna": { artist: "Elenyar" },
+      "Joanne Untitled": { artist: "Joanne" },
+      "Tilda": { artist: "Tilda" },
+      "Lynn": { artist: "Lynn" }
+    }
+
+    const key = painting.title
+
+    if (fixes[key]) {
+      return {
+        ...painting,
+        title: fixes[key].title ?? painting.title,
+        artist: fixes[key].artist ?? painting.artist
+      }
+    }
+
+    return painting
   }
 
-  if (!paintings.length) {
+  // -----------------------------
+  // ROTATIONS
+  // -----------------------------
+  const rotationMap: Record<string, number> = {
+    "Elenyar": 90,
+    "Joanne Untitled": 90,
+    "Tilda": 90,
+    "Lynn": -90,
+    "Big Al": 180,
+    "Big Alex": 180,
+    "Anna & Robby": 180,
+    "Eliza": 180,
+    "Green Blue Abstract": 180
+  }
+
+  if (paintings.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        Loading paintings...
       </div>
     )
   }
@@ -128,33 +149,49 @@ function PaintingsCarousel() {
     <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: 'Arial, sans-serif' }}>
       <audio ref={audioRef} src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
 
+      {/* Header */}
       <div className="text-center py-2">
         <h1 className="text-xl font-bold">THE EGG ART THING</h1>
         <p className="text-xs text-gray-500">Tap a painting to bid</p>
       </div>
 
+      {/* Carousel */}
       <div
         ref={carouselRef}
         className="flex-1 flex overflow-x-auto snap-x snap-mandatory scroll-smooth"
       >
-        {paintings.map(painting => (
-          <div
-            key={painting.id}
-            className="w-full flex-shrink-0 snap-center flex flex-col items-center px-4 py-2"
-            onClick={() => setSelectedPainting(painting)}
-          >
-            <img src={painting.image_url} className="max-h-[60vh] object-contain" />
+        {paintings.map(raw => {
+          const painting = fixData(raw)
 
-            <h2 className="font-bold mt-2">{painting.title}</h2>
-            <p className="text-sm text-gray-600">{painting.artist}</p>
+          return (
+            <div
+              key={painting.id}
+              className="w-full flex-shrink-0 snap-center flex flex-col items-center px-4 py-2"
+              onClick={() => setSelectedPainting(painting)}
+            >
+              {/* CENTRED IMAGE FIX */}
+              <div className="flex-1 flex items-center justify-center w-full">
+                <img
+                  src={painting.image_url}
+                  className="max-h-[65vh] w-auto object-contain mx-auto"
+                  style={{
+                    transform: `rotate(${rotationMap[painting.title] || 0}deg)`
+                  }}
+                />
+              </div>
 
-            <p className="text-sky-500 font-bold mt-1">
-              Current bid: £{painting.current_bid.toFixed(2)}
-            </p>
-          </div>
-        ))}
+              <h2 className="font-bold mt-2">{painting.title}</h2>
+              <p className="text-sm text-gray-600">{painting.artist}</p>
+
+              <p className="text-sky-500 font-bold mt-1">
+                Current bid: £{painting.current_bid.toFixed(2)}
+              </p>
+            </div>
+          )
+        })}
       </div>
 
+      {/* dots */}
       <div className="flex justify-center gap-1 py-2">
         {paintings.map((_, i) => (
           <button
@@ -165,6 +202,7 @@ function PaintingsCarousel() {
         ))}
       </div>
 
+      {/* play */}
       <div className="flex justify-center pb-3">
         <button
           onClick={togglePlay}
@@ -174,6 +212,7 @@ function PaintingsCarousel() {
         </button>
       </div>
 
+      {/* modal */}
       {selectedPainting && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center"
@@ -182,7 +221,7 @@ function PaintingsCarousel() {
           <BidForm
             painting={selectedPainting}
             onClose={() => setSelectedPainting(null)}
-            onBidPlaced={handleBidPlaced}
+            onBidPlaced={fetchPaintings}
           />
         </div>
       )}
@@ -197,8 +236,10 @@ function BidForm({
 }: {
   painting: Painting
   onClose: () => void
-  onBidPlaced: (id: string, amount: number) => void
+  onBidPlaced: () => void
 }) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
   const [amount, setAmount] = useState(painting.current_bid + 0.01)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -211,7 +252,21 @@ function BidForm({
 
     setIsSubmitting(true)
 
-    await onBidPlaced(painting.id, amount)
+    const supabase = createClient()
+
+    await supabase.from('bids').insert({
+      painting_id: painting.id,
+      bidder_name: name,
+      bidder_email: email,
+      amount
+    })
+
+    await supabase
+      .from('paintings')
+      .update({ current_bid: amount })
+      .eq('id', painting.id)
+
+    await onBidPlaced()
 
     setIsSubmitting(false)
     onClose()
@@ -224,6 +279,20 @@ function BidForm({
       <p className="mb-2">Current: £{painting.current_bid.toFixed(2)}</p>
 
       <form onSubmit={handleSubmit}>
+        <input
+          placeholder="Name"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          className="border w-full p-2 mb-2"
+        />
+
+        <input
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          className="border w-full p-2 mb-2"
+        />
+
         <input
           type="number"
           value={amount}
