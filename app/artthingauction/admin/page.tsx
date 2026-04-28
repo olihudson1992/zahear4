@@ -30,11 +30,11 @@ export default function AdminExportPage() {
   const [passwordError, setPasswordError] = useState(false)
 
   const supabase = createClient()
-
   const correctPassword = "onlythewayitgoes"
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
+
     if (password === correctPassword) {
       setIsAuthenticated(true)
       setPasswordError(false)
@@ -44,23 +44,33 @@ export default function AdminExportPage() {
   }
 
   const fetchData = useCallback(async () => {
-    const { data: paintingsData } = await supabase
+    setLoading(true)
+
+    // 🔥 ALWAYS get fresh DB state
+    const { data: paintingsData, error: pError } = await supabase
       .from("paintings")
       .select("id, title, artist, current_bid")
       .order("id")
 
-    if (paintingsData) {
-      setPaintings(paintingsData)
-    }
+    if (pError) console.log("Paintings error:", pError)
 
-    const { data: bidsData } = await supabase
+    const safePaintings = (paintingsData ?? []).map(p => ({
+      ...p,
+      current_bid: Number(p.current_bid ?? 0)
+    }))
+
+    setPaintings(safePaintings)
+
+    const { data: bidsData, error: bError } = await supabase
       .from("bids")
       .select("*")
       .order("created_at", { ascending: false })
 
-    if (bidsData && paintingsData) {
+    if (bError) console.log("Bids error:", bError)
+
+    if (bidsData) {
       const enriched = bidsData.map(bid => {
-        const painting = paintingsData.find(p => p.id === bid.painting_id)
+        const painting = safePaintings.find(p => p.id === bid.painting_id)
 
         return {
           ...bid,
@@ -73,17 +83,15 @@ export default function AdminExportPage() {
     }
 
     setLoading(false)
-  }, [supabase])
+  }, [])
 
   useEffect(() => {
     if (!isAuthenticated) return
 
     fetchData()
 
-    // 🔥 THIS IS THE FIX
-    const interval = setInterval(() => {
-      fetchData()
-    }, 2000)
+    // 🔥 live refresh so admin always updates
+    const interval = setInterval(fetchData, 3000)
 
     return () => clearInterval(interval)
   }, [isAuthenticated, fetchData])
@@ -202,7 +210,7 @@ export default function AdminExportPage() {
             <tr key={p.id}>
               <td>{p.title}</td>
               <td>{p.artist}</td>
-              <td>£{p.current_bid.toFixed(2)}</td>
+              <td className="font-bold">£{Number(p.current_bid).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
