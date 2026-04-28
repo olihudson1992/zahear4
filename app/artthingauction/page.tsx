@@ -22,7 +22,6 @@ export default function PaintingsCarousel() {
 
   const supabase = createClient()
 
-  // 🔥 FETCH WITH REAL BID LOGIC
   const fetchPaintings = async () => {
     const { data: paintingsData } = await supabase
       .from('paintings')
@@ -40,7 +39,7 @@ export default function PaintingsCarousel() {
 
       const highestBid = bidsForPainting.length
         ? Math.max(...bidsForPainting.map(b => b.amount))
-        : 1 // 👈 START AT £1
+        : 1
 
       return {
         ...p,
@@ -54,7 +53,6 @@ export default function PaintingsCarousel() {
   useEffect(() => {
     fetchPaintings()
 
-    // 🔥 REALTIME
     const channel = supabase
       .channel('bids-live')
       .on(
@@ -112,13 +110,11 @@ export default function PaintingsCarousel() {
     <div className="min-h-screen bg-white flex flex-col">
       <audio ref={audioRef} src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
 
-      {/* HEADER */}
       <div className="text-center py-2">
         <h1 className="text-xl font-bold">THE EGG ART THING</h1>
         <p className="text-xs text-gray-500">Tap a painting to bid</p>
       </div>
 
-      {/* CAROUSEL */}
       <div
         ref={carouselRef}
         className="flex-1 flex overflow-x-auto snap-x snap-mandatory scroll-smooth"
@@ -146,7 +142,6 @@ export default function PaintingsCarousel() {
         ))}
       </div>
 
-      {/* DOTS */}
       <div className="flex justify-center gap-1 py-2">
         {paintings.map((_, i) => (
           <button
@@ -159,7 +154,6 @@ export default function PaintingsCarousel() {
         ))}
       </div>
 
-      {/* PLAY BUTTON */}
       <div className="flex justify-center pb-3">
         <button
           onClick={togglePlay}
@@ -169,7 +163,6 @@ export default function PaintingsCarousel() {
         </button>
       </div>
 
-      {/* MODAL */}
       {selectedPainting && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center"
@@ -237,6 +230,11 @@ function BidForm({
           <h2 className="font-bold mb-2">{painting.title}</h2>
 
           <p className="mb-2">Current: £{painting.current_bid.toFixed(2)}</p>
+
+          {/* 🔥 UPDATED TEXT ONLY */}
+          <p className="text-sm text-gray-500 mb-3 italic">
+            The artists decide what they do with the money, and 20% goes to The Egg
+          </p>
 
           <form onSubmit={handleSubmit}>
             <input
