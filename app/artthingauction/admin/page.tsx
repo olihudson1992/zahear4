@@ -18,7 +18,6 @@ interface Painting {
   id: number
   title: string
   artist: string
-  current_bid: number
 }
 
 export default function AdminExportPage() {
@@ -30,7 +29,6 @@ export default function AdminExportPage() {
   const [passwordError, setPasswordError] = useState(false)
 
   const supabase = createClient()
-
   const correctPassword = "onlythewayitgoes"
 
   const handleLogin = (e: React.FormEvent) => {
@@ -46,42 +44,23 @@ export default function AdminExportPage() {
   const fetchData = useCallback(async () => {
     const { data: paintingsData } = await supabase
       .from("paintings")
-      .select("id, title, artist, current_bid")
+      .select("id, title, artist")
       .order("id")
-
-    if (paintingsData) {
-      setPaintings(paintingsData)
-    }
 
     const { data: bidsData } = await supabase
       .from("bids")
       .select("*")
       .order("created_at", { ascending: false })
 
-    if (bidsData && paintingsData) {
-      // ✅ FIXED: stable lookup map (prevents duplicates + mismatch bugs)
-      const paintingMap = new Map(
-        paintingsData.map(p => [p.id, p])
-      )
-
-      const enriched: Bid[] = bidsData.map(bid => {
-        const painting = paintingMap.get(bid.painting_id)
-
-        return {
-          ...bid,
-          painting_title: painting?.title || "Unknown",
-          painting_artist: painting?.artist || "Unknown"
-        }
-      })
-
-      setBids(enriched)
-    }
+    if (paintingsData) setPaintings(paintingsData)
+    if (bidsData) setBids(bidsData as Bid[])
 
     setLoading(false)
   }, [supabase])
 
   useEffect(() => {
     if (!isAuthenticated) return
+
     fetchData()
 
     const interval = setInterval(() => {
@@ -91,18 +70,28 @@ export default function AdminExportPage() {
     return () => clearInterval(interval)
   }, [isAuthenticated, fetchData])
 
+  function getHighestBid(paintingId: number) {
+    const paintingBids = bids.filter(b => b.painting_id === paintingId)
+    if (paintingBids.length === 0) return 0
+    return Math.max(...paintingBids.map(b => b.amount))
+  }
+
+  function getWinner(paintingId: number) {
+    const paintingBids = bids.filter(b => b.painting_id === paintingId)
+    if (paintingBids.length === 0) return null
+    return paintingBids.reduce((max, b) => b.amount > max.amount ? b : max)
+  }
+
   function exportToCSV() {
-    if (bids.length === 0) return
+    const headers = ["Painting", "Artist", "Bidder", "Email", "Amount", "Date"]
 
-    const headers = ["Painting", "Artist", "Bidder Name", "Bidder Email", "Amount (£)", "Date"]
-
-    const rows = bids.map(bid => [
-      bid.painting_title,
-      bid.painting_artist,
-      bid.bidder_name,
-      bid.bidder_email,
-      bid.amount.toString(),
-      new Date(bid.created_at).toLocaleString()
+    const rows = bids.map(b => [
+      b.painting_title,
+      b.painting_artist,
+      b.bidder_name,
+      b.bidder_email,
+      b.amount,
+      new Date(b.created_at).toLocaleString()
     ])
 
     const csv = [
@@ -115,40 +104,7 @@ export default function AdminExportPage() {
 
     const a = document.createElement("a")
     a.href = url
-    a.download = `bids-${new Date().toISOString().split("T")[0]}.csv`
-    a.click()
-  }
-
-  function exportWinnersCSV() {
-    const winners = paintings.map(p => {
-      const paintingBids = bids.filter(b => b.painting_id === p.id)
-
-      const highest = paintingBids.length
-        ? paintingBids.reduce((max, b) => (b.amount > max.amount ? b : max))
-        : null
-
-      return [
-        p.title,
-        p.artist,
-        highest?.bidder_name || "No bids",
-        highest?.bidder_email || "-",
-        highest?.amount?.toString() || "0"
-      ]
-    })
-
-    const csv = [
-      ["Painting", "Artist", "Winner", "Email", "Amount"],
-      ...winners
-    ]
-      .map(r => r.map(c => `"${c}"`).join(","))
-      .join("\n")
-
-    const blob = new Blob([csv], { type: "text/csv" })
-    const url = URL.createObjectURL(blob)
-
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `winners-${new Date().toISOString().split("T")[0]}.csv`
+    a.download = "bids.csv"
     a.click()
   }
 
@@ -172,42 +128,39 @@ export default function AdminExportPage() {
     )
   }
 
-  if (loading) {
-    return <div className="p-10">Loading...</div>
-  }
+  if (loading) return <div className="p-10">Loading...</div>
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Admin</h1>
 
-      <div className="flex gap-4 mb-6">
-        <button onClick={exportToCSV} className="bg-sky-300 px-4 py-2">
-          Export Bids
-        </button>
+      <button onClick={exportToCSV} className="bg-sky-300 px-4 py-2 mb-6">
+        Export CSV
+      </button>
 
-        <button onClick={exportWinnersCSV} className="bg-green-400 px-4 py-2">
-          Export Winners
-        </button>
-      </div>
-
-      <h2 className="font-bold mb-2">Highest Bids</h2>
+      <h2 className="font-bold mb-2">Highest Bids (LIVE CALCULATED)</h2>
 
       <table className="w-full border">
         <thead>
           <tr>
             <th>Painting</th>
             <th>Artist</th>
-            <th>Current Bid</th>
+            <th>Highest Bid</th>
           </tr>
         </thead>
+
         <tbody>
-          {paintings.map(p => (
-            <tr key={p.id}>
-              <td>{p.title}</td>
-              <td>{p.artist}</td>
-              <td>£{p.current_bid.toFixed(2)}</td>
-            </tr>
-          ))}
+          {paintings.map(p => {
+            const highest = getHighestBid(p.id)
+
+            return (
+              <tr key={p.id}>
+                <td>{p.title}</td>
+                <td>{p.artist}</td>
+                <td>£{highest.toFixed(2)}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
 
