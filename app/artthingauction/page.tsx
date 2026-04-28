@@ -10,8 +10,13 @@ const images = [
   "https://rangatracks.b-cdn.net/artthing%20resize/Brad%20-%20Mr%20Gonk_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/CHLOE%20-%20Fuzanglong_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/Darcie%20-%20Bag%20Piss_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Deb%20-%20untitled_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5195_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5198_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5208_result.jpg",
 ]
 
+/* ---------------- INTRO ANIMATION (YOUR ORIGINAL) ---------------- */
 function IntroAnimation({ onDone }: { onDone: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -19,73 +24,91 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    const size = Math.min(window.innerWidth, window.innerHeight)
+    const size = Math.min(window.innerWidth - 32, window.innerHeight - 160) * 0.82
     canvas.width = size
     canvas.height = size
 
-    const center = size / 2
+    const centerX = size / 2
+    const centerY = size / 2
     const radius = size / 2 - 10
-    const slice = (Math.PI * 2) / images.length
 
-    const imgs: HTMLImageElement[] = []
-    let loaded = 0
+    const numSlices = images.length
+    const sliceAngle = (2 * Math.PI) / numSlices
 
-    let rotation = 0
+    let loadedImages = 0
+    const imageElements: HTMLImageElement[] = []
 
-    images.forEach((src, i) => {
+    const sliceSpeeds: number[] = []
+    const sliceOffsets: number[] = []
+
+    for (let i = 0; i < numSlices; i++) {
+      sliceSpeeds[i] = (Math.random() - 0.5) * 0.015
+      sliceOffsets[i] = i * sliceAngle
+    }
+
+    images.forEach((src, index) => {
       const img = new Image()
       img.crossOrigin = "anonymous"
+
       img.onload = () => {
-        imgs[i] = img
-        loaded++
-        if (loaded === images.length) animate()
+        imageElements[index] = img
+        loadedImages++
+
+        if (loadedImages === images.length) {
+          draw()
+          setTimeout(animate, 5000)
+        }
       }
+
       img.src = src
     })
 
+    let animationId: number
+
+    function animate() {
+      for (let i = 0; i < numSlices; i++) {
+        sliceOffsets[i] += sliceSpeeds[i]
+        sliceSpeeds[i] *= 0.999
+      }
+
+      draw()
+      animationId = requestAnimationFrame(animate)
+    }
+
     function draw() {
+      if (!ctx) return
+
       ctx.clearRect(0, 0, size, size)
 
-      for (let i = 0; i < images.length; i++) {
-        const start = rotation + i * slice
-        const end = start + slice
+      for (let i = 0; i < numSlices; i++) {
+        const start = sliceOffsets[i] - Math.PI / 2
+        const end = start + sliceAngle
+        const mid = (start + end) / 2
 
         ctx.save()
         ctx.beginPath()
-        ctx.moveTo(center, center)
-        ctx.arc(center, center, radius, start, end)
+        ctx.moveTo(centerX, centerY)
+        ctx.arc(centerX, centerY, radius, start, end)
         ctx.closePath()
         ctx.clip()
 
-        if (imgs[i]) {
-          ctx.drawImage(imgs[i], 0, 0, size, size)
+        const img = imageElements[i]
+        if (img) {
+          const scale = (radius * 2) / Math.min(img.width, img.height)
+          const x = centerX - (img.width * scale) / 2
+          const y = centerY - (img.height * scale) / 2
+          ctx.drawImage(img, x, y, img.width * scale, img.height * scale)
         }
 
         ctx.restore()
       }
     }
 
-    let frame: number
-    const startTime = Date.now()
-
-    function animate() {
-      const elapsed = Date.now() - startTime
-      rotation += 0.02
-
-      draw()
-
-      if (elapsed < 4000) {
-        frame = requestAnimationFrame(animate)
-      } else {
-        onDone()
-      }
-    }
-
-    return () => cancelAnimationFrame(frame)
-  }, [onDone])
+    return () => cancelAnimationFrame(animationId)
+  }, [])
 
   return (
     <div className="h-screen flex items-center justify-center bg-white">
@@ -94,11 +117,11 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
   )
 }
 
-function PaintingsCarousel() {
+/* ---------------- MAIN APP ---------------- */
+export default function PaintingsCarousel() {
   const [paintings, setPaintings] = useState<any[]>([])
   const [bids, setBids] = useState<any[]>([])
   const [showIntro, setShowIntro] = useState(true)
-
   const [showInfo, setShowInfo] = useState(false)
 
   const supabase = createClient()
@@ -113,7 +136,6 @@ function PaintingsCarousel() {
 
   useEffect(() => {
     fetchData()
-
     const interval = setInterval(fetchData, 2000)
     return () => clearInterval(interval)
   }, [])
@@ -140,10 +162,7 @@ function PaintingsCarousel() {
       {/* CAROUSEL */}
       <div className="flex-1 flex overflow-x-auto snap-x snap-mandatory">
         {paintings.map(p => (
-          <div
-            key={p.id}
-            className="w-full flex-shrink-0 snap-center flex flex-col items-center p-4"
-          >
+          <div key={p.id} className="w-full flex-shrink-0 snap-center flex flex-col items-center p-4">
             <img src={p.image_url} className="max-h-[65vh] object-contain" />
 
             <h2 className="font-bold mt-2">{p.title}</h2>
@@ -156,21 +175,22 @@ function PaintingsCarousel() {
         ))}
       </div>
 
-      {/* PLAY + INFO */}
+      {/* BUTTONS */}
       <div className="flex justify-center gap-3 pb-3 items-center">
 
+        {/* play */}
         <button
           onClick={() => {
             const audio = document.querySelector('audio')
             if (!audio) return
-            if (audio.paused) audio.play()
-            else audio.pause()
+            audio.paused ? audio.play() : audio.pause()
           }}
           className="w-10 h-10 bg-sky-300 rounded-full flex items-center justify-center"
         >
           ▶
         </button>
 
+        {/* info */}
         <button
           onClick={() => setShowInfo(true)}
           className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold"
@@ -178,10 +198,7 @@ function PaintingsCarousel() {
           i
         </button>
 
-        <audio
-          src="https://rangatracks.b-cdn.net/ENCHELADER.mp3"
-          loop
-        />
+        <audio src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
       </div>
 
       {/* INFO MODAL */}
@@ -202,27 +219,25 @@ function PaintingsCarousel() {
             <br />
 
             <p>
-              The artists will decide whether to reinvest the money into the group for the next adventure,
-              or take their share. The organiser wanted to explore circular systems, sharing and art.
+              The artists decide whether to reinvest the money into the group or take their share.
+              The organiser wanted to explore circular systems, sharing and art.
             </p>
 
             <br />
 
             <p>
-              The artworks are all on 15x30 inch canvas with whatever paints and colours the artists brought with them.
+              15x30 inch canvases, using whatever paints the artists brought.
             </p>
 
             <br />
 
             <p>
-              The auction ends on the 8th of May in The Egg Cafe with a live auction.
+              Auction ends 8th May at The Egg Cafe with a live auction.
             </p>
 
             <br />
 
-            <p>
-              Contact: <strong>wyrdliverpool@gmail.com</strong>
-            </p>
+            <p><strong>wyrdliverpool@gmail.com</strong></p>
 
             <button
               className="mt-4 w-full bg-sky-300 py-2"
@@ -237,5 +252,3 @@ function PaintingsCarousel() {
     </div>
   )
 }
-
-export default PaintingsCarousel
