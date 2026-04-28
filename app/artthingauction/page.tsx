@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-/* ================= INTRO IMAGES ================= */
 const images = [
   "https://rangatracks.b-cdn.net/artthing%20resize/AJ%20-%20Krakatoaz%20CC_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/alex_result.jpg",
@@ -17,7 +16,7 @@ const images = [
   "https://rangatracks.b-cdn.net/artthing%20resize/Tom%20-%20Revolving%20faces_result.jpg",
 ]
 
-/* ================= INTRO ANIMATION ================= */
+/* ================= INTRO ================= */
 function IntroAnimation({ onDone }: { onDone: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -135,6 +134,8 @@ export default function PaintingsCarousel() {
   const [selected, setSelected] = useState<any>(null)
   const [showInfo, setShowInfo] = useState(false)
 
+  const [isPlaying, setIsPlaying] = useState(false)
+
   const audioRef = useRef<HTMLAudioElement>(null)
   const supabase = createClient()
 
@@ -157,10 +158,16 @@ export default function PaintingsCarousel() {
     return list.length ? Math.max(...list.map(b => b.amount)) : 1
   }
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (!audioRef.current) return
-    if (audioRef.current.paused) audioRef.current.play()
-    else audioRef.current.pause()
+
+    if (audioRef.current.paused) {
+      await audioRef.current.play()
+      setIsPlaying(true)
+    } else {
+      audioRef.current.pause()
+      setIsPlaying(false)
+    }
   }
 
   if (showIntro) {
@@ -170,7 +177,6 @@ export default function PaintingsCarousel() {
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-hidden">
 
-      {/* HIDE SCROLLBAR */}
       <style jsx global>{`
         ::-webkit-scrollbar { display: none; }
         html, body {
@@ -179,7 +185,6 @@ export default function PaintingsCarousel() {
         }
       `}</style>
 
-      {/* AUDIO */}
       <audio
         ref={audioRef}
         src="https://rangatracks.b-cdn.net/ENCHELADER.mp3"
@@ -202,7 +207,6 @@ export default function PaintingsCarousel() {
             className="w-full flex-shrink-0 snap-center flex flex-col items-center justify-center min-h-[75vh] p-4"
             onClick={() => setSelected(p)}
           >
-
             <div className="flex items-center justify-center h-[55vh] w-full">
               <img
                 src={p.image_url}
@@ -218,20 +222,19 @@ export default function PaintingsCarousel() {
                 £{getBid(p.id).toFixed(2)}
               </p>
             </div>
-
           </div>
         ))}
 
       </div>
 
       {/* BUTTONS */}
-      <div className="flex justify-center gap-3 pb-3 relative z-10">
+      <div className="flex justify-center gap-3 pb-3">
 
         <button
           onClick={togglePlay}
-          className="w-10 h-10 bg-sky-300 rounded-full"
+          className="w-10 h-10 bg-sky-300 rounded-full flex items-center justify-center"
         >
-          ▶
+          {isPlaying ? "❚❚" : "▶"}
         </button>
 
         <button
@@ -243,41 +246,17 @@ export default function PaintingsCarousel() {
 
       </div>
 
-      {/* INFO MODAL */}
+      {/* INFO */}
       {showInfo && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
           onClick={() => setShowInfo(false)}
         >
           <div
-            className="bg-white w-full max-w-md max-h-[70vh] overflow-y-auto p-4 text-xs leading-relaxed"
+            className="bg-white w-full max-w-md max-h-[70vh] overflow-y-auto p-4 text-xs"
             onClick={e => e.stopPropagation()}
           >
-            <p>
-              28 artists got together in The Egg Cafe, Liverpool, painted, ate and split costs.
-            </p>
-
-            <br />
-
-            <p>
-              The project explores circular systems, sharing and collective art ownership.
-            </p>
-
-            <br />
-
-            <p>
-              Each artist decides what to do with their share.
-            </p>
-
-            <br />
-
-            <p>
-              Live auction: 8th May at The Egg Cafe.
-            </p>
-
-            <br />
-
-            <p><strong>wyrdliverpool@gmail.com</strong></p>
+            <p>28 artists created works in The Egg Cafe, Liverpool...</p>
 
             <button
               className="mt-4 w-full bg-sky-300 py-2 text-sm"
