@@ -24,22 +24,53 @@ function PaintingsCarousel() {
   const supabase = createClient()
 
   const fetchPaintings = useCallback(async () => {
-    const { data, error } = await supabase
+    const { data: paintingsData } = await supabase
       .from('paintings')
       .select('*')
       .order('id')
 
-    if (!error && data) {
-      setPaintings(data)
-    }
+    const { data: bidsData } = await supabase
+      .from('bids')
+      .select('painting_id, amount')
+
+    if (!paintingsData || !bidsData) return
+
+    // 🔥 TRUE SOURCE OF TRUTH: recompute from bids
+    const highest: Record<string, number> = {}
+
+    bidsData.forEach(b => {
+      if (!highest[b.painting_id] || b.amount > highest[b.painting_id]) {
+        highest[b.painting_id] = b.amount
+      }
+    })
+
+    const merged = paintingsData.map(p => ({
+      ...p,
+      current_bid: highest[p.id] ?? 1
+    }))
+
+    setPaintings(merged)
   }, [supabase])
 
   useEffect(() => {
     fetchPaintings()
-  }, [fetchPaintings])
+
+    const channel = supabase
+      .channel('bids-live')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'bids' },
+        () => fetchPaintings()
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchPaintings, supabase])
 
   useEffect(() => {
-    if (paintings.length > 0 && carouselRef.current && !initialScrollDone) {
+    if (paintings.length && carouselRef.current && !initialScrollDone) {
       const randomIndex = Math.floor(Math.random() * paintings.length)
       setCurrentIndex(randomIndex)
 
@@ -65,42 +96,30 @@ function PaintingsCarousel() {
   const togglePlay = () => {
     if (!audioRef.current) return
 
-    if (isPlaying) {
-      audioRef.current.pause()
-    } else {
-      audioRef.current.play()
-    }
+    if (isPlaying) audioRef.current.pause()
+    else audioRef.current.play()
 
     setIsPlaying(!isPlaying)
   }
 
-  // 🔥 THIS IS THE IMPORTANT FIX
-  const handleBidPlaced = async (id: string, newAmount: number) => {
-    // instantly update UI (no waiting for fetch)
+  const handleBidPlaced = async (id: string, amount: number) => {
+    await supabase.from('bids').insert({
+      painting_id: id,
+      amount
+    })
+
+    // instant UI update
     setPaintings(prev =>
       prev.map(p =>
-        p.id === id ? { ...p, current_bid: newAmount } : p
+        p.id === id ? { ...p, current_bid: amount } : p
       )
     )
-
-    // update selected painting too
-    setSelectedPainting(prev =>
-      prev && prev.id === id
-        ? { ...prev, current_bid: newAmount }
-        : prev
-    )
-
-    // still sync with database
-    await supabase
-      .from('paintings')
-      .update({ current_bid: newAmount })
-      .eq('id', id)
   }
 
-  if (paintings.length === 0) {
+  if (!paintings.length) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        Loading paintings...
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
       </div>
     )
   }
@@ -109,13 +128,11 @@ function PaintingsCarousel() {
     <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: 'Arial, sans-serif' }}>
       <audio ref={audioRef} src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
 
-      {/* Header */}
       <div className="text-center py-2">
         <h1 className="text-xl font-bold">THE EGG ART THING</h1>
         <p className="text-xs text-gray-500">Tap a painting to bid</p>
       </div>
 
-      {/* Carousel */}
       <div
         ref={carouselRef}
         className="flex-1 flex overflow-x-auto snap-x snap-mandatory scroll-smooth"
@@ -126,10 +143,7 @@ function PaintingsCarousel() {
             className="w-full flex-shrink-0 snap-center flex flex-col items-center px-4 py-2"
             onClick={() => setSelectedPainting(painting)}
           >
-            <img
-              src={painting.image_url}
-              className="max-h-[60vh] object-contain"
-            />
+            <img src={painting.image_url} className="max-h-[60vh] object-contain" />
 
             <h2 className="font-bold mt-2">{painting.title}</h2>
             <p className="text-sm text-gray-600">{painting.artist}</p>
@@ -141,7 +155,6 @@ function PaintingsCarousel() {
         ))}
       </div>
 
-      {/* dots */}
       <div className="flex justify-center gap-1 py-2">
         {paintings.map((_, i) => (
           <button
@@ -152,7 +165,6 @@ function PaintingsCarousel() {
         ))}
       </div>
 
-      {/* play button (UNCHANGED STYLE) */}
       <div className="flex justify-center pb-3">
         <button
           onClick={togglePlay}
@@ -162,7 +174,6 @@ function PaintingsCarousel() {
         </button>
       </div>
 
-      {/* modal */}
       {selectedPainting && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center"
@@ -188,8 +199,6 @@ function BidForm({
   onClose: () => void
   onBidPlaced: (id: string, amount: number) => void
 }) {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
   const [amount, setAmount] = useState(painting.current_bid + 0.01)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -201,15 +210,6 @@ function BidForm({
     if (amount < minBid) return
 
     setIsSubmitting(true)
-
-    const supabase = createClient()
-
-    await supabase.from('bids').insert({
-      painting_id: painting.id,
-      bidder_name: name,
-      bidder_email: email,
-      amount
-    })
 
     await onBidPlaced(painting.id, amount)
 
@@ -224,20 +224,6 @@ function BidForm({
       <p className="mb-2">Current: £{painting.current_bid.toFixed(2)}</p>
 
       <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          className="border w-full p-2 mb-2"
-        />
-
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          className="border w-full p-2 mb-2"
-        />
-
         <input
           type="number"
           value={amount}
