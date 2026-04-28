@@ -11,12 +11,30 @@ const images = [
   "https://rangatracks.b-cdn.net/artthing%20resize/CHLOE%20-%20Fuzanglong_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/Darcie%20-%20Bag%20Piss_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/Deb%20-%20untitled_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5195_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5198_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5208_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/Eliza%20-%20Issac_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Elleyna%20-%20Trukish%20Cafe_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Eva%20-%20_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Evelyn%20-%20I%20dont%20know%20(wink%20wink)_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Harry%20-%20Where's%20the%20Whale_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Hattie%20-%20unknown_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Isaac%20-%20Animal%20Instinct_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Joanne%20-%20table%20top%20view_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Joanne%20-%20untitled_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Lynn%20-%20The%20Sigh_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Marths%20maybe%20-%20I%20can't%203_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Meta%20-%20Metamorphosis_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/OLI%20-%20PANTOMINE_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Rose%20-%20Running%20to%20the%20chapel%20and%20talking%20to%20the%20aliens_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Taco%20-%20Unknown_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Tilda%20-%20Unknown_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/Tom%20-%20Revolving%20faces_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Tom%20-%20Scratch_result.jpg",
 ]
 
-/* ================= INTRO ================= */
+/* ================= INTRO ANIMATION ================= */
 function IntroAnimation({ onDone }: { onDone: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -131,7 +149,6 @@ export default function PaintingsCarousel() {
   const [showIntro, setShowIntro] = useState(true)
   const [selected, setSelected] = useState<any>(null)
   const [showInfo, setShowInfo] = useState(false)
-
   const [isPlaying, setIsPlaying] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -168,17 +185,13 @@ export default function PaintingsCarousel() {
 
   const handleBid = async (e: any) => {
     e.preventDefault()
-
     const form = new FormData(e.target)
-    const name = form.get("name")
-    const email = form.get("email")
-    const amount = Number(form.get("amount"))
 
-    await supabase.from("bids").insert({
+    await supabase.from('bids').insert({
       painting_id: selected.id,
-      bidder_name: name,
-      bidder_email: email,
-      amount
+      bidder_name: form.get('name'),
+      bidder_email: form.get('email'),
+      amount: Number(form.get('amount'))
     })
 
     setSelected(null)
@@ -203,7 +216,7 @@ export default function PaintingsCarousel() {
       {/* HEADER */}
       <div className="text-center py-2">
         <h1 className="text-xl font-bold">THE EGG ART THING</h1>
-        <p className="text-xs text-gray-500">Click a painting to bid</p>
+        <p className="text-xs text-gray-500">Click a painting to place a bid</p>
       </div>
 
       {/* CAROUSEL */}
@@ -215,17 +228,34 @@ export default function PaintingsCarousel() {
             className="w-full flex-shrink-0 snap-center flex flex-col items-center justify-center min-h-[75vh] p-4"
             onClick={() => setSelected(p)}
           >
+
             <div className="flex items-center justify-center h-[55vh] w-full">
-              <img src={p.image_url} className="max-h-full max-w-full object-contain" />
+              <img
+                src={p.image_url}
+                className={`max-h-full max-w-full object-contain
+                  ${
+                    p.title === "DSCF5198"
+                      ? "rotate-90"
+                      : p.title === "DSCF5208"
+                      ? "-rotate-90"
+                      : ""
+                  }
+                `}
+              />
             </div>
 
             <div className="text-center mt-3">
-              <h2 className="font-bold">{p.title}</h2>
+              <h2 className="font-bold">
+                {p.title === "Tom FM" ? "Tom" : p.title}
+              </h2>
+
               <p className="text-sm text-gray-600">{p.artist}</p>
+
               <p className="text-sky-500 font-bold mt-1">
                 £{getBid(p.id).toFixed(2)}
               </p>
             </div>
+
           </div>
         ))}
 
@@ -250,37 +280,9 @@ export default function PaintingsCarousel() {
 
       </div>
 
-      {/* INFO */}
-      {showInfo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setShowInfo(false)}
-        >
-          <div className="bg-white w-full max-w-md max-h-[70vh] overflow-y-auto p-4 text-xs"
-            onClick={e => e.stopPropagation()}
-          >
-            <p className="text-xs leading-relaxed">
-  28 artists got together in The Egg Cafe in Liverpool, painted, ate and split the costs. <br /><br />
-
-  These paintings are now on auction for an experiment. The artists will choose whether to reinvest the money into the group for the next adventure, or take their share. <br /><br />
-
-  The organiser wanted to explore circular systems, sharing and art. The artworks are all 15x30 inch canvases made with whatever paints and materials the artists brought with them. <br /><br />
-
-  The auction will end on the 8th of May at The Egg Cafe with a live auction. <br /><br />
-
-  Thanks for your time. If you need to get in touch, speak to Oli at{" "}
-  <span className="font-medium">wyrdliverpool@gmail.com</span>
-</p>
-            <button className="mt-4 w-full bg-sky-300 py-2" onClick={() => setShowInfo(false)}>
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* BID MODAL (RESTORED FULL FORM) */}
+      {/* BID MODAL */}
       {selected && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center"
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center"
           onClick={() => setSelected(null)}
         >
           <form
@@ -288,26 +290,29 @@ export default function PaintingsCarousel() {
             className="bg-white p-5 w-80"
             onClick={e => e.stopPropagation()}
           >
-
             <h2 className="font-bold mb-2">{selected.title}</h2>
-            <p className="mb-2">Current: £{getBid(selected.id).toFixed(2)}</p>
 
-            <input name="name" placeholder="Name" className="border w-full p-2 mb-2" required />
-            <input name="email" placeholder="Email" className="border w-full p-2 mb-2" required />
-            <input
-              name="amount"
-              type="number"
-              step="0.01"
-              min={getBid(selected.id) + 0.01}
-              className="border w-full p-2 mb-2"
-              required
-            />
+            <input name="name" placeholder="Name" className="border w-full p-2 mb-2" />
+            <input name="email" placeholder="Email" className="border w-full p-2 mb-2" />
+            <input name="amount" type="number" className="border w-full p-2 mb-2" />
 
             <button className="bg-sky-300 w-full py-2">
               Place Bid
             </button>
-
           </form>
+        </div>
+      )}
+
+      {/* INFO */}
+      {showInfo && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
+          onClick={() => setShowInfo(false)}
+        >
+          <div className="bg-white max-w-md p-4 text-xs">
+            <p>
+              28 artists got together in The Egg Cafe in Liverpool...
+            </p>
+          </div>
         </div>
       )}
 
