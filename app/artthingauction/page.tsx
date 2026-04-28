@@ -16,7 +16,7 @@ const images = [
   "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5208_result.jpg",
 ]
 
-/* ---------------- INTRO ANIMATION (YOUR ORIGINAL) ---------------- */
+/* ================= INTRO (FIXED 4s VERSION) ================= */
 function IntroAnimation({ onDone }: { onDone: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -38,45 +38,33 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
     const numSlices = images.length
     const sliceAngle = (2 * Math.PI) / numSlices
 
-    let loadedImages = 0
     const imageElements: HTMLImageElement[] = []
+    let loaded = 0
 
-    const sliceSpeeds: number[] = []
     const sliceOffsets: number[] = []
+    const sliceSpeeds: number[] = []
 
     for (let i = 0; i < numSlices; i++) {
-      sliceSpeeds[i] = (Math.random() - 0.5) * 0.015
       sliceOffsets[i] = i * sliceAngle
+      sliceSpeeds[i] = (Math.random() - 0.5) * 0.08
     }
 
-    images.forEach((src, index) => {
+    let animationId: number
+    const startTime = performance.now()
+    const DURATION = 4000
+
+    images.forEach((src, i) => {
       const img = new Image()
       img.crossOrigin = "anonymous"
 
       img.onload = () => {
-        imageElements[index] = img
-        loadedImages++
-
-        if (loadedImages === images.length) {
-          draw()
-          setTimeout(animate, 5000)
-        }
+        imageElements[i] = img
+        loaded++
+        if (loaded === images.length) animate()
       }
 
       img.src = src
     })
-
-    let animationId: number
-
-    function animate() {
-      for (let i = 0; i < numSlices; i++) {
-        sliceOffsets[i] += sliceSpeeds[i]
-        sliceSpeeds[i] *= 0.999
-      }
-
-      draw()
-      animationId = requestAnimationFrame(animate)
-    }
 
     function draw() {
       if (!ctx) return
@@ -86,7 +74,6 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
       for (let i = 0; i < numSlices; i++) {
         const start = sliceOffsets[i] - Math.PI / 2
         const end = start + sliceAngle
-        const mid = (start + end) / 2
 
         ctx.save()
         ctx.beginPath()
@@ -97,13 +84,35 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
 
         const img = imageElements[i]
         if (img) {
-          const scale = (radius * 2) / Math.min(img.width, img.height)
+          const scale = (radius * 2.2) / Math.min(img.width, img.height)
           const x = centerX - (img.width * scale) / 2
           const y = centerY - (img.height * scale) / 2
           ctx.drawImage(img, x, y, img.width * scale, img.height * scale)
         }
 
         ctx.restore()
+      }
+    }
+
+    function animate() {
+      const now = performance.now()
+      const elapsed = now - startTime
+      const progress = elapsed / DURATION
+
+      const damping = Math.max(0.02, 1 - progress)
+
+      for (let i = 0; i < numSlices; i++) {
+        sliceOffsets[i] += sliceSpeeds[i] * damping
+        sliceSpeeds[i] *= 0.98
+      }
+
+      draw()
+
+      if (elapsed < DURATION) {
+        animationId = requestAnimationFrame(animate)
+      } else {
+        draw()
+        setTimeout(onDone, 200)
       }
     }
 
@@ -117,7 +126,7 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
   )
 }
 
-/* ---------------- MAIN APP ---------------- */
+/* ================= MAIN ================= */
 export default function PaintingsCarousel() {
   const [paintings, setPaintings] = useState<any[]>([])
   const [bids, setBids] = useState<any[]>([])
@@ -178,7 +187,6 @@ export default function PaintingsCarousel() {
       {/* BUTTONS */}
       <div className="flex justify-center gap-3 pb-3 items-center">
 
-        {/* play */}
         <button
           onClick={() => {
             const audio = document.querySelector('audio')
@@ -190,7 +198,6 @@ export default function PaintingsCarousel() {
           ▶
         </button>
 
-        {/* info */}
         <button
           onClick={() => setShowInfo(true)}
           className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center font-bold"
@@ -201,38 +208,37 @@ export default function PaintingsCarousel() {
         <audio src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
       </div>
 
-      {/* INFO MODAL */}
+      {/* INFO */}
       {showInfo && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center p-6"
           onClick={() => setShowInfo(false)}
         >
           <div
-            className="bg-white max-w-md p-5 text-sm leading-relaxed"
+            className="bg-white max-w-md p-5 text-sm"
             onClick={e => e.stopPropagation()}
           >
             <p>
-              28 artists got together in The Egg Cafe in Liverpool, painted, ate and split the costs.
-              These paintings are now on auction for an experiment.
+              28 artists at The Egg Cafe, Liverpool. Painted together, ate together, split costs.
             </p>
 
             <br />
 
             <p>
-              The artists decide whether to reinvest the money into the group or take their share.
-              The organiser wanted to explore circular systems, sharing and art.
+              Artists decide whether to reinvest or take their share.
+              Exploring circular systems, sharing and art.
             </p>
 
             <br />
 
             <p>
-              15x30 inch canvases, using whatever paints the artists brought.
+              15x30 inch canvases, all materials brought by artists.
             </p>
 
             <br />
 
             <p>
-              Auction ends 8th May at The Egg Cafe with a live auction.
+              Auction ends 8th May at The Egg Cafe.
             </p>
 
             <br />
@@ -248,7 +254,6 @@ export default function PaintingsCarousel() {
           </div>
         </div>
       )}
-
     </div>
   )
 }
