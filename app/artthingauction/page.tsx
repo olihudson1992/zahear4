@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+/* ================= INTRO IMAGES ================= */
 const images = [
   "https://rangatracks.b-cdn.net/artthing%20resize/AJ%20-%20Krakatoaz%20CC_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/alex_result.jpg",
@@ -11,12 +12,12 @@ const images = [
   "https://rangatracks.b-cdn.net/artthing%20resize/CHLOE%20-%20Fuzanglong_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/Darcie%20-%20Bag%20Piss_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/Deb%20-%20untitled_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5195_result.jpg",
   "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5198_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5208_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Eliza%20-%20Issac_result.jpg",
+  "https://rangatracks.b-cdn.net/artthing%20resize/Tom%20-%20Revolving%20faces_result.jpg",
 ]
 
-/* ================= INTRO ================= */
+/* ================= INTRO ANIMATION ================= */
 function IntroAnimation({ onDone }: { onDone: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -134,6 +135,7 @@ export default function PaintingsCarousel() {
   const [selected, setSelected] = useState<any>(null)
   const [showInfo, setShowInfo] = useState(false)
 
+  const audioRef = useRef<HTMLAudioElement>(null)
   const supabase = createClient()
 
   const fetchData = async () => {
@@ -155,12 +157,35 @@ export default function PaintingsCarousel() {
     return list.length ? Math.max(...list.map(b => b.amount)) : 1
   }
 
+  const togglePlay = () => {
+    if (!audioRef.current) return
+    if (audioRef.current.paused) audioRef.current.play()
+    else audioRef.current.pause()
+  }
+
   if (showIntro) {
     return <IntroAnimation onDone={() => setShowIntro(false)} />
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col overflow-hidden">
+
+      {/* HIDE SCROLLBAR */}
+      <style jsx global>{`
+        ::-webkit-scrollbar { display: none; }
+        html, body {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+      `}</style>
+
+      {/* AUDIO */}
+      <audio
+        ref={audioRef}
+        src="https://rangatracks.b-cdn.net/ENCHELADER.mp3"
+        loop
+        preload="auto"
+      />
 
       {/* HEADER */}
       <div className="text-center py-2">
@@ -168,7 +193,7 @@ export default function PaintingsCarousel() {
         <p className="text-xs text-gray-500">Click a painting to place a bid</p>
       </div>
 
-      {/* CAROUSEL FIXED CENTER */}
+      {/* CAROUSEL */}
       <div className="flex-1 flex overflow-x-auto snap-x snap-mandatory">
 
         {paintings.map(p => (
@@ -178,7 +203,6 @@ export default function PaintingsCarousel() {
             onClick={() => setSelected(p)}
           >
 
-            {/* FIXED IMAGE FRAME */}
             <div className="flex items-center justify-center h-[55vh] w-full">
               <img
                 src={p.image_url}
@@ -186,7 +210,6 @@ export default function PaintingsCarousel() {
               />
             </div>
 
-            {/* TEXT ALWAYS ALIGNED */}
             <div className="text-center mt-3">
               <h2 className="font-bold">{p.title}</h2>
               <p className="text-sm text-gray-600">{p.artist}</p>
@@ -202,9 +225,14 @@ export default function PaintingsCarousel() {
       </div>
 
       {/* BUTTONS */}
-      <div className="flex justify-center gap-3 pb-3">
+      <div className="flex justify-center gap-3 pb-3 relative z-10">
 
-        <button className="w-10 h-10 bg-sky-300 rounded-full">▶</button>
+        <button
+          onClick={togglePlay}
+          className="w-10 h-10 bg-sky-300 rounded-full"
+        >
+          ▶
+        </button>
 
         <button
           onClick={() => setShowInfo(true)}
@@ -213,7 +241,6 @@ export default function PaintingsCarousel() {
           i
         </button>
 
-        <audio src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
       </div>
 
       {/* INFO MODAL */}
@@ -227,19 +254,19 @@ export default function PaintingsCarousel() {
             onClick={e => e.stopPropagation()}
           >
             <p>
-              28 artists gathered at The Egg Cafe, Liverpool, to paint, eat, and share costs.
+              28 artists got together in The Egg Cafe, Liverpool, painted, ate and split costs.
             </p>
 
             <br />
 
             <p>
-              The project explores circular systems of value, collaboration, and shared ownership in art.
+              The project explores circular systems, sharing and collective art ownership.
             </p>
 
             <br />
 
             <p>
-              Each artwork is 15x30 inches using materials brought by the artists.
+              Each artist decides what to do with their share.
             </p>
 
             <br />
