@@ -30,6 +30,7 @@ export default function AdminExportPage() {
   const [passwordError, setPasswordError] = useState(false)
 
   const supabase = createClient()
+
   const correctPassword = "onlythewayitgoes"
 
   const handleLogin = (e: React.FormEvent) => {
@@ -43,55 +44,44 @@ export default function AdminExportPage() {
   }
 
   const fetchData = useCallback(async () => {
-
     const { data: paintingsData } = await supabase
       .from("paintings")
-      .select("id, title, artist")
+      .select("id, title, artist, current_bid")
       .order("id")
+
+    if (paintingsData) {
+      setPaintings(paintingsData)
+    }
 
     const { data: bidsData } = await supabase
       .from("bids")
       .select("*")
       .order("created_at", { ascending: false })
 
-    if (!paintingsData || !bidsData) {
-      setLoading(false)
-      return
-    }
-
-    // 🧠 FIX: compute real highest bid from bids table
-    const enrichedPaintings = paintingsData.map(p => {
-      const relatedBids = bidsData.filter(b => b.painting_id === p.id)
-
-      const highest = relatedBids.reduce(
-        (max, b) => (b.amount > (max?.amount || 0) ? b : max),
-        null as Bid | null
+    if (bidsData && paintingsData) {
+      // ✅ FIXED: stable lookup map (prevents duplicates + mismatch bugs)
+      const paintingMap = new Map(
+        paintingsData.map(p => [p.id, p])
       )
 
-      return {
-        ...p,
-        current_bid: highest?.amount || 1
-      }
-    })
+      const enriched: Bid[] = bidsData.map(bid => {
+        const painting = paintingMap.get(bid.painting_id)
 
-    const enrichedBids = bidsData.map(bid => {
-      const painting = paintingsData.find(p => p.id === bid.painting_id)
+        return {
+          ...bid,
+          painting_title: painting?.title || "Unknown",
+          painting_artist: painting?.artist || "Unknown"
+        }
+      })
 
-      return {
-        ...bid,
-        painting_title: painting?.title || "Unknown",
-        painting_artist: painting?.artist || "Unknown"
-      }
-    })
+      setBids(enriched)
+    }
 
-    setPaintings(enrichedPaintings)
-    setBids(enrichedBids)
     setLoading(false)
   }, [supabase])
 
   useEffect(() => {
     if (!isAuthenticated) return
-
     fetchData()
 
     const interval = setInterval(() => {
@@ -101,6 +91,67 @@ export default function AdminExportPage() {
     return () => clearInterval(interval)
   }, [isAuthenticated, fetchData])
 
+  function exportToCSV() {
+    if (bids.length === 0) return
+
+    const headers = ["Painting", "Artist", "Bidder Name", "Bidder Email", "Amount (£)", "Date"]
+
+    const rows = bids.map(bid => [
+      bid.painting_title,
+      bid.painting_artist,
+      bid.bidder_name,
+      bid.bidder_email,
+      bid.amount.toString(),
+      new Date(bid.created_at).toLocaleString()
+    ])
+
+    const csv = [
+      headers.join(","),
+      ...rows.map(r => r.map(c => `"${c}"`).join(","))
+    ].join("\n")
+
+    const blob = new Blob([csv], { type: "text/csv" })
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `bids-${new Date().toISOString().split("T")[0]}.csv`
+    a.click()
+  }
+
+  function exportWinnersCSV() {
+    const winners = paintings.map(p => {
+      const paintingBids = bids.filter(b => b.painting_id === p.id)
+
+      const highest = paintingBids.length
+        ? paintingBids.reduce((max, b) => (b.amount > max.amount ? b : max))
+        : null
+
+      return [
+        p.title,
+        p.artist,
+        highest?.bidder_name || "No bids",
+        highest?.bidder_email || "-",
+        highest?.amount?.toString() || "0"
+      ]
+    })
+
+    const csv = [
+      ["Painting", "Artist", "Winner", "Email", "Amount"],
+      ...winners
+    ]
+      .map(r => r.map(c => `"${c}"`).join(","))
+      .join("\n")
+
+    const blob = new Blob([csv], { type: "text/csv" })
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `winners-${new Date().toISOString().split("T")[0]}.csv`
+    a.click()
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -109,20 +160,35 @@ export default function AdminExportPage() {
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
+            placeholder="Password"
             className="border p-2"
           />
+
           {passwordError && <p className="text-red-500">Wrong password</p>}
+
           <button className="bg-sky-300 p-2">Login</button>
         </form>
       </div>
     )
   }
 
-  if (loading) return <div className="p-10">Loading...</div>
+  if (loading) {
+    return <div className="p-10">Loading...</div>
+  }
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Admin</h1>
+
+      <div className="flex gap-4 mb-6">
+        <button onClick={exportToCSV} className="bg-sky-300 px-4 py-2">
+          Export Bids
+        </button>
+
+        <button onClick={exportWinnersCSV} className="bg-green-400 px-4 py-2">
+          Export Winners
+        </button>
+      </div>
 
       <h2 className="font-bold mb-2">Highest Bids</h2>
 
