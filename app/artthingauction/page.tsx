@@ -1,21 +1,20 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Painting {
-  id: string
+  id: number
   title: string
   artist: string
   image_url: string
   current_bid: number
 }
 
-function PaintingsCarousel() {
+export default function PaintingsCarousel() {
   const [paintings, setPaintings] = useState<Painting[]>([])
   const [selectedPainting, setSelectedPainting] = useState<Painting | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [initialScrollDone, setInitialScrollDone] = useState(false)
 
   const carouselRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -23,50 +22,58 @@ function PaintingsCarousel() {
 
   const supabase = createClient()
 
-  const fetchPaintings = useCallback(async () => {
-    const { data, error } = await supabase
+  // 🔥 FETCH WITH REAL BID LOGIC
+  const fetchPaintings = async () => {
+    const { data: paintingsData } = await supabase
       .from('paintings')
       .select('*')
       .order('id')
 
-    if (!error && data) {
-      setPaintings(data)
-    }
-  }, [supabase])
+    const { data: bidsData } = await supabase
+      .from('bids')
+      .select('*')
+
+    if (!paintingsData) return
+
+    const updated = paintingsData.map(p => {
+      const bidsForPainting = bidsData?.filter(b => b.painting_id === p.id) || []
+
+      const highestBid = bidsForPainting.length
+        ? Math.max(...bidsForPainting.map(b => b.amount))
+        : 1 // 👈 START AT £1
+
+      return {
+        ...p,
+        current_bid: highestBid
+      }
+    })
+
+    setPaintings(updated)
+  }
 
   useEffect(() => {
     fetchPaintings()
 
-    const interval = setInterval(() => {
-      fetchPaintings()
-    }, 3000)
+    // 🔥 REALTIME
+    const channel = supabase
+      .channel('bids-live')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'bids'
+        },
+        () => {
+          fetchPaintings()
+        }
+      )
+      .subscribe()
 
-    return () => clearInterval(interval)
-  }, [fetchPaintings])
-
-  useEffect(() => {
-    if (paintings.length > 0 && carouselRef.current && !initialScrollDone) {
-      const randomIndex = Math.floor(Math.random() * paintings.length)
-      setCurrentIndex(randomIndex)
-
-      const itemWidth = carouselRef.current.scrollWidth / paintings.length
-      carouselRef.current.scrollLeft = itemWidth * randomIndex
-
-      setInitialScrollDone(true)
+    return () => {
+      supabase.removeChannel(channel)
     }
-  }, [paintings, initialScrollDone])
-
-  const scrollToIndex = (index: number) => {
-    if (!carouselRef.current) return
-
-    const itemWidth = carouselRef.current.scrollWidth / paintings.length
-    carouselRef.current.scrollTo({
-      left: itemWidth * index,
-      behavior: 'smooth'
-    })
-
-    setCurrentIndex(index)
-  }
+  }, [])
 
   const togglePlay = () => {
     if (!audioRef.current) return
@@ -80,58 +87,29 @@ function PaintingsCarousel() {
     setIsPlaying(!isPlaying)
   }
 
-  const handleBidPlaced = async (id: string, amount: number) => {
-    await supabase
-      .from('paintings')
-      .update({ current_bid: amount })
-      .eq('id', id)
+  const scrollToIndex = (index: number) => {
+    if (!carouselRef.current) return
 
-    await fetchPaintings()
-  }
+    const itemWidth = carouselRef.current.scrollWidth / paintings.length
 
-  // =========================
-  // FIXED TITLES + ARTISTS
-  // =========================
-  const fixMeta = (p: Painting) => {
-    const map: Record<string, { title?: string; artist?: string }> = {
-      'DSCF5214': { title: 'Big Al' },
-      'DSCF5198': { title: 'Who needs skin?', artist: 'Bethan' },
-      'Green Blue Abstract': { artist: 'Tom FM' },
-      'Cats': { artist: 'Tom' },
-      'Elleyna': { artist: 'Elenyar' }
-    }
+    carouselRef.current.scrollTo({
+      left: itemWidth * index,
+      behavior: 'smooth'
+    })
 
-    return {
-      title: map[p.title]?.title || p.title,
-      artist: map[p.title]?.artist || p.artist
-    }
-  }
-
-  // =========================
-  // ROTATION RULES
-  // =========================
-  const getRotation = (title: string) => {
-    const rotate90 = ['Elleyna', 'Joanne Untitled', 'Tilda']
-    const rotateMinus90 = ['Lynn']
-    const rotate180 = ['Big Al', 'Anna and Robby', 'Eliza', 'Green Blue Abstract']
-
-    if (rotate90.includes(title)) return 'rotate(90deg)'
-    if (rotateMinus90.includes(title)) return 'rotate(-90deg)'
-    if (rotate180.includes(title)) return 'rotate(180deg)'
-    return 'none'
+    setCurrentIndex(index)
   }
 
   if (paintings.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading paintings...
+        Loading...
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white" style={{ fontFamily: 'Arial' }}>
-      
+    <div className="min-h-screen bg-white flex flex-col">
       <audio ref={audioRef} src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
 
       {/* HEADER */}
@@ -145,36 +123,27 @@ function PaintingsCarousel() {
         ref={carouselRef}
         className="flex-1 flex overflow-x-auto snap-x snap-mandatory scroll-smooth"
       >
-        {paintings.map((p) => {
-          const fixed = fixMeta(p)
-
-          return (
-            <div
-              key={p.id}
-              className="w-full flex-shrink-0 snap-center flex flex-col items-center justify-center px-4 py-2"
-              onClick={() => setSelectedPainting(p)}
-            >
-              {/* CENTERING FIX */}
-              <div className="flex items-center justify-center w-full h-[65vh]">
-                <img
-                  src={p.image_url}
-                  className="max-h-full max-w-full object-contain"
-                  style={{
-                    transform: getRotation(p.title),
-                    transition: 'transform 0.3s ease'
-                  }}
-                />
-              </div>
-
-              <h2 className="font-bold mt-2">{fixed.title}</h2>
-              <p className="text-sm text-gray-600">{fixed.artist}</p>
-
-              <p className="text-sky-500 font-bold mt-1">
-                Current bid: £{p.current_bid.toFixed(2)}
-              </p>
+        {paintings.map((p) => (
+          <div
+            key={p.id}
+            className="w-full flex-shrink-0 snap-center flex flex-col items-center justify-center px-4"
+            onClick={() => setSelectedPainting(p)}
+          >
+            <div className="flex items-center justify-center h-[60vh] w-full">
+              <img
+                src={p.image_url}
+                className="max-h-full max-w-full object-contain"
+              />
             </div>
-          )
-        })}
+
+            <h2 className="font-bold mt-2">{p.title}</h2>
+            <p className="text-sm text-gray-600">{p.artist}</p>
+
+            <p className="text-sky-500 font-bold mt-1">
+              Current bid: £{p.current_bid.toFixed(2)}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* DOTS */}
@@ -183,7 +152,9 @@ function PaintingsCarousel() {
           <button
             key={i}
             onClick={() => scrollToIndex(i)}
-            className={`w-2 h-2 rounded-full ${i === currentIndex ? 'bg-sky-400' : 'bg-gray-300'}`}
+            className={`w-2 h-2 rounded-full ${
+              i === currentIndex ? 'bg-sky-400' : 'bg-gray-300'
+            }`}
           />
         ))}
       </div>
@@ -207,7 +178,7 @@ function PaintingsCarousel() {
           <BidForm
             painting={selectedPainting}
             onClose={() => setSelectedPainting(null)}
-            onBidPlaced={handleBidPlaced}
+            refresh={fetchPaintings}
           />
         </div>
       )}
@@ -218,23 +189,20 @@ function PaintingsCarousel() {
 function BidForm({
   painting,
   onClose,
-  onBidPlaced
+  refresh
 }: {
   painting: Painting
   onClose: () => void
-  onBidPlaced: (id: string, amount: number) => void
+  refresh: () => void
 }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [amount, setAmount] = useState(painting.current_bid + 0.01)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const minBid = painting.current_bid + 0.01
+  const [success, setSuccess] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (amount < minBid) return
 
     setIsSubmitting(true)
 
@@ -247,52 +215,65 @@ function BidForm({
       amount
     })
 
-    await onBidPlaced(painting.id, amount)
-
     setIsSubmitting(false)
-    onClose()
+    setSuccess(true)
+
+    refresh()
+
+    setTimeout(() => {
+      onClose()
+    }, 2000)
   }
 
   return (
     <div className="bg-white p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
-      <h2 className="font-bold">{painting.title}</h2>
+      {success ? (
+        <div className="text-center">
+          <p className="text-lg font-bold text-sky-500">Thanks!</p>
+          <p className="text-sm">We’ll contact you if you win</p>
+        </div>
+      ) : (
+        <>
+          <h2 className="font-bold mb-2">{painting.title}</h2>
 
-      <p className="mb-2">Current: £{painting.current_bid.toFixed(2)}</p>
+          <p className="mb-2">Current: £{painting.current_bid.toFixed(2)}</p>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          className="border w-full p-2 mb-2"
-        />
+          <form onSubmit={handleSubmit}>
+            <input
+              placeholder="Name"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="border w-full p-2 mb-2"
+              required
+            />
 
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          className="border w-full p-2 mb-2"
-        />
+            <input
+              placeholder="Email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="border w-full p-2 mb-2"
+              required
+            />
 
-        <input
-          type="number"
-          value={amount}
-          min={minBid}
-          step={0.01}
-          onChange={e => setAmount(Number(e.target.value))}
-          className="border w-full p-2 mb-2"
-        />
+            <input
+              type="number"
+              value={amount}
+              step={0.01}
+              onChange={e => setAmount(Number(e.target.value))}
+              className="border w-full p-2 mb-2"
+              required
+            />
 
-        <button className="bg-sky-300 w-full py-2">
-          {isSubmitting ? '...' : 'Place Bid'}
-        </button>
+            <button className="bg-sky-300 w-full py-2">
+              {isSubmitting ? '...' : 'Place Bid'}
+            </button>
 
-        <button type="button" onClick={onClose} className="w-full mt-2">
-          Cancel
-        </button>
-      </form>
+            <button type="button" onClick={onClose} className="w-full mt-2">
+              Cancel
+            </button>
+          </form>
+        </>
+      )}
     </div>
   )
 }
-
-export default PaintingsCarousel
