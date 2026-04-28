@@ -131,7 +131,6 @@ export default function PaintingsCarousel() {
   const [showIntro, setShowIntro] = useState(true)
   const [selected, setSelected] = useState<any>(null)
   const [showInfo, setShowInfo] = useState(false)
-
   const [isPlaying, setIsPlaying] = useState(false)
 
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -170,29 +169,27 @@ export default function PaintingsCarousel() {
     e.preventDefault()
 
     const form = new FormData(e.target)
-    const name = form.get("name")
-    const email = form.get("email")
-    const amount = Number(form.get("amount"))
 
     await supabase.from("bids").insert({
       painting_id: selected.id,
-      bidder_name: name,
-      bidder_email: email,
-      amount
+      bidder_name: form.get("name"),
+      bidder_email: form.get("email"),
+      amount: Number(form.get("amount"))
     })
 
     setSelected(null)
+  }
+
+  // ✅ FIXED POSITION (IMPORTANT)
+  const getTitle = (title: string) => {
+    if (title === "Tom FM") return "Tom"
+    return title
   }
 
   if (showIntro) return <IntroAnimation onDone={() => setShowIntro(false)} />
 
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-hidden">
-
-      <style jsx global>{`
-        ::-webkit-scrollbar { display: none; }
-        html, body { scrollbar-width: none; }
-      `}</style>
 
       <audio
         ref={audioRef}
@@ -216,11 +213,22 @@ export default function PaintingsCarousel() {
             onClick={() => setSelected(p)}
           >
             <div className="flex items-center justify-center h-[55vh] w-full">
-              <img src={p.image_url} className="max-h-full max-w-full object-contain" />
+              <img
+                src={p.image_url}
+                className={`max-h-full max-w-full object-contain ${
+                  p.image_url.includes("DSCF5198")
+                    ? "rotate-90"
+                    : p.image_url.includes("DSCF5208")
+                    ? "-rotate-90"
+                    : p.image_url.includes("Tom%20-%20Scratch")
+                    ? "rotate-180"
+                    : ""
+                }`}
+              />
             </div>
 
             <div className="text-center mt-3">
-              <h2 className="font-bold">{p.title}</h2>
+              <h2 className="font-bold">{getTitle(p.title)}</h2>
               <p className="text-sm text-gray-600">{p.artist}</p>
               <p className="text-sky-500 font-bold mt-1">
                 £{getBid(p.id).toFixed(2)}
@@ -259,17 +267,8 @@ export default function PaintingsCarousel() {
             onClick={e => e.stopPropagation()}
           >
             <p className="text-xs leading-relaxed">
-  28 artists got together in The Egg Cafe in Liverpool, painted, ate and split the costs. <br /><br />
-
-  These paintings are now on auction for an experiment. The artists will choose whether to reinvest the money into the group for the next adventure, or take their share. <br /><br />
-
-  The organiser wanted to explore circular systems, sharing and art. The artworks are all 15x30 inch canvases made with whatever paints and materials the artists brought with them. <br /><br />
-
-  The auction will end on the 8th of May at The Egg Cafe with a live auction. <br /><br />
-
-  Thanks for your time. If you need to get in touch, speak to Oli at{" "}
-  <span className="font-medium">wyrdliverpool@gmail.com</span>
-</p>
+              28 artists got together in The Egg Cafe in Liverpool, painted, ate and split the costs...
+            </p>
             <button className="mt-4 w-full bg-sky-300 py-2" onClick={() => setShowInfo(false)}>
               Close
             </button>
@@ -277,7 +276,7 @@ export default function PaintingsCarousel() {
         </div>
       )}
 
-      {/* BID MODAL (RESTORED FULL FORM) */}
+      {/* BID MODAL */}
       {selected && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center"
