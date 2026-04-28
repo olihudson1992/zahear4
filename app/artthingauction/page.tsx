@@ -1,144 +1,292 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Painting {
-  id: number
+  id: string
   title: string
   artist: string
   image_url: string
   current_bid: number
 }
 
-const images = [
-  "https://rangatracks.b-cdn.net/artthing%20resize/AJ%20-%20Krakatoaz%20CC_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/alex_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Anna%20%26b%20Robby%20-%20Tiny%20Distraction_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Brad%20-%20Mr%20Gonk_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/CHLOE%20-%20Fuzanglong_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Darcie%20-%20Bag%20Piss_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Deb%20-%20untitled_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5195_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5198_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/DSCF5208_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Eliza%20-%20Issac_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Elleyna%20-%20Trukish%20Cafe_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Eva%20-%20_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Evelyn%20-%20I%20dont%20know%20(wink%20wink)_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Harry%20-%20Where's%20the%20Whale_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Hattie%20-%20unknown_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Isaac%20-%20Animal%20Instinct_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Joanne%20-%20table%20top%20view_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Joanne%20-%20untitled_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Lynn%20-%20The%20Sigh_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Marths%20maybe%20-%20I%20can't%203_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Meta%20-%20Metamorphosis_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/OLI%20-%20PANTOMINE_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Rose%20-%20Running%20to%20the%20chapel%20and%20talking%20to%20the%20aliens_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Taco%20-%20Unknown_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Tilda%20-%20Unknown_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Tom%20-%20Revolving%20faces_result.jpg",
-  "https://rangatracks.b-cdn.net/artthing%20resize/Tom%20-%20Scratch_result.jpg",
-]
-
-function transformStyle(title: string) {
-  const rotate90 = "rotate(90deg)"
-  const rotateM90 = "rotate(-90deg)"
-  const rotate180 = "rotate(180deg)"
-
-  if (title.includes("Elleyna") || title.includes("Joanne") || title.includes("Tilda")) {
-    return rotate90
-  }
-
-  if (title.includes("Lynn")) {
-    return rotateM90
-  }
-
-  if (
-    title.includes("Big Alex") ||
-    title.includes("Anna") ||
-    title.includes("Eliza") ||
-    title.includes("Green Blue")
-  ) {
-    return rotate180
-  }
-
-  return "none"
-}
-
-function fixText(title: string, artist: string) {
-  if (title.toLowerCase().includes("untitled") && artist === "DSCF5214") {
-    return { title: "Untitled", artist: "Big Al" }
-  }
-
-  if (title.includes("DSCF5198")) {
-    return { title: "Who needs skin?", artist: "Bethan" }
-  }
-
-  if (title.includes("Green Blue Abstract")) {
-    return { title: "Green Blue Abstract", artist: "Tom FM" }
-  }
-
-  if (title.includes("Cats")) {
-    return { title: "Cats", artist: "Tom" }
-  }
-
-  if (title.includes("Elleyna")) {
-    return { title, artist: "Elenyar" }
-  }
-
-  return { title, artist }
-}
-
-export default function Page() {
+function PaintingsCarousel() {
   const [paintings, setPaintings] = useState<Painting[]>([])
   const [selectedPainting, setSelectedPainting] = useState<Painting | null>(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [initialScrollDone, setInitialScrollDone] = useState(false)
+
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   const supabase = createClient()
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase.from('paintings').select('*')
-      if (data) setPaintings(data)
-    }
+  // ---------- FETCH ----------
+  const fetchPaintings = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('paintings')
+      .select('*')
+      .order('id')
 
-    load()
-  }, [])
+    if (!error && data) {
+      setPaintings(
+        data.map((p) => ({
+          ...p,
+          artist: p.artist === 'Tom FM' ? 'Tom' : p.artist
+        }))
+      )
+    }
+  }, [supabase])
+
+  useEffect(() => {
+    fetchPaintings()
+  }, [fetchPaintings])
+
+  // ---------- REALTIME SYNC (THIS FIXES YOUR ISSUE) ----------
+  useEffect(() => {
+    const channel = supabase
+      .channel('paintings-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'paintings' },
+        (payload) => {
+          setPaintings((prev) =>
+            prev.map((p) =>
+              p.id === payload.new.id
+                ? { ...p, current_bid: payload.new.current_bid }
+                : p
+            )
+          )
+
+          setSelectedPainting((prev) =>
+            prev && prev.id === payload.new.id
+              ? { ...prev, current_bid: payload.new.current_bid }
+              : prev
+          )
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [supabase])
+
+  // ---------- INITIAL SCROLL ----------
+  useEffect(() => {
+    if (paintings.length > 0 && carouselRef.current && !initialScrollDone) {
+      const randomIndex = Math.floor(Math.random() * paintings.length)
+      setCurrentIndex(randomIndex)
+
+      const itemWidth = carouselRef.current.scrollWidth / paintings.length
+      carouselRef.current.scrollLeft = itemWidth * randomIndex
+
+      setInitialScrollDone(true)
+    }
+  }, [paintings, initialScrollDone])
+
+  const scrollToIndex = (index: number) => {
+    if (!carouselRef.current) return
+
+    const itemWidth = carouselRef.current.scrollWidth / paintings.length
+
+    carouselRef.current.scrollTo({
+      left: itemWidth * index,
+      behavior: 'smooth'
+    })
+
+    setCurrentIndex(index)
+  }
+
+  const togglePlay = () => {
+    if (!audioRef.current) return
+
+    if (isPlaying) audioRef.current.pause()
+    else audioRef.current.play()
+
+    setIsPlaying(!isPlaying)
+  }
+
+  // ---------- BID UPDATE ----------
+  const handleBidPlaced = async (id: string, amount: number) => {
+    setPaintings((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, current_bid: amount } : p
+      )
+    )
+
+    setSelectedPainting((prev) =>
+      prev && prev.id === id
+        ? { ...prev, current_bid: amount }
+        : prev
+    )
+
+    await supabase
+      .from('paintings')
+      .update({ current_bid: amount })
+      .eq('id', id)
+  }
+
+  if (paintings.length === 0) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        Loading paintings...
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col" style={{ fontFamily: 'Arial, sans-serif' }}>
+      <audio ref={audioRef} src="https://rangatracks.b-cdn.net/ENCHELADER.mp3" loop />
+
       <div className="text-center py-2">
         <h1 className="text-xl font-bold">THE EGG ART THING</h1>
+        <p className="text-xs text-gray-500">Tap a painting to bid</p>
       </div>
 
-      <div className="flex-1 flex overflow-x-auto">
-        {paintings.map(p => {
-          const fixed = fixText(p.title, p.artist)
-          const rotation = transformStyle(p.title)
+      {/* Carousel */}
+      <div
+        ref={carouselRef}
+        className="flex-1 flex overflow-x-auto snap-x snap-mandatory scroll-smooth"
+      >
+        {paintings.map((painting) => (
+          <div
+            key={painting.id}
+            className="w-full flex-shrink-0 snap-center flex flex-col items-center px-4 py-2"
+            onClick={() => setSelectedPainting(painting)}
+          >
+            <img
+              src={painting.image_url}
+              className="max-h-[60vh] object-contain mx-auto my-auto"
+            />
 
-          return (
-            <div
-              key={p.id}
-              className="w-full flex-shrink-0 flex flex-col items-center justify-center"
-              onClick={() => setSelectedPainting(p)}
-            >
-              <div className="flex items-center justify-center h-[60vh] w-full">
-                <img
-                  src={p.image_url}
-                  style={{ transform: rotation }}
-                  className="max-h-full max-w-full object-contain"
-                />
-              </div>
+            <h2 className="font-bold mt-2">{painting.title}</h2>
+            <p className="text-sm text-gray-600">{painting.artist}</p>
 
-              <h2 className="font-bold mt-2">{fixed.title}</h2>
-              <p className="text-sm text-gray-600">{fixed.artist}</p>
-
-              <p>£{p.current_bid.toFixed(2)}</p>
-            </div>
-          )
-        })}
+            <p className="text-sky-500 font-bold mt-1">
+              Current bid: £{painting.current_bid.toFixed(2)}
+            </p>
+          </div>
+        ))}
       </div>
+
+      {/* dots */}
+      <div className="flex justify-center gap-1 py-2">
+        {paintings.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => scrollToIndex(i)}
+            className={`w-2 h-2 rounded-full ${i === currentIndex ? 'bg-sky-400' : 'bg-gray-300'}`}
+          />
+        ))}
+      </div>
+
+      {/* play */}
+      <div className="flex justify-center pb-3">
+        <button
+          onClick={togglePlay}
+          className="w-10 h-10 bg-sky-300 rounded-full flex items-center justify-center"
+        >
+          {isPlaying ? '⏸' : '▶'}
+        </button>
+      </div>
+
+      {/* modal */}
+      {selectedPainting && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center"
+          onClick={() => setSelectedPainting(null)}
+        >
+          <BidForm
+            painting={selectedPainting}
+            onClose={() => setSelectedPainting(null)}
+            onBidPlaced={handleBidPlaced}
+          />
+        </div>
+      )}
     </div>
   )
 }
+
+function BidForm({
+  painting,
+  onClose,
+  onBidPlaced
+}: {
+  painting: Painting
+  onClose: () => void
+  onBidPlaced: (id: string, amount: number) => void
+}) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [amount, setAmount] = useState(painting.current_bid + 0.01)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const minBid = painting.current_bid + 0.01
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (amount < minBid) return
+
+    setIsSubmitting(true)
+
+    const supabase = createClient()
+
+    await supabase.from('bids').insert({
+      painting_id: painting.id,
+      bidder_name: name,
+      bidder_email: email,
+      amount
+    })
+
+    await onBidPlaced(painting.id, amount)
+
+    setIsSubmitting(false)
+    onClose()
+  }
+
+  return (
+    <div className="bg-white p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+      <h2 className="font-bold">{painting.title}</h2>
+
+      <p>Current: £{painting.current_bid.toFixed(2)}</p>
+
+      <form onSubmit={handleSubmit}>
+        <input
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="border w-full p-2 mb-2"
+        />
+
+        <input
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="border w-full p-2 mb-2"
+        />
+
+        <input
+          type="number"
+          value={amount}
+          min={minBid}
+          step={0.01}
+          onChange={(e) => setAmount(Number(e.target.value))}
+          className="border w-full p-2 mb-2"
+        />
+
+        <button className="bg-sky-300 w-full py-2">
+          {isSubmitting ? '...' : 'Place Bid'}
+        </button>
+
+        <button type="button" onClick={onClose} className="w-full mt-2">
+          Cancel
+        </button>
+      </form>
+    </div>
+  )
+}
+
+export default PaintingsCarousel
