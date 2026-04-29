@@ -182,15 +182,20 @@ export default function PaintingsCarousel() {
 
   // ✅ FIX: rename
   const getTitle = (title: string) => {
+    if (title === "Big Al") return "Untitled DSCF5214"
     if (title === "Tom FM") return "Tom"
+    if (title === "Tom WN") return "Tom WM"
     return title
   }
 
   // ✅ FIX: correct rotations
   const getRotation = (url: string) => {
     if (!url) return ""
-    if (url.includes("DSCF5198")) return "rotate-90"
-    if (url.includes("DSCF5208")) return "-rotate-90"
+    if (url.includes("DSCF5198")) return "-rotate-90"
+    if (url.includes("DSCF5208")) return ""
+    if (url.includes("Trukish%20Cafe")) return "-rotate-90"
+    if (url.includes("The%20Sigh")) return "-rotate-90"
+    if (url.includes("Tilda")) return "-rotate-90"
     if (url.includes("Revolving%20faces")) return "rotate-180"
     return ""
   }
