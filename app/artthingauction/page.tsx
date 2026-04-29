@@ -181,11 +181,11 @@ export default function PaintingsCarousel() {
   }
 
   // Custom painting overrides (URL-based)
-  const customizations: Record<string, { title?: string; rotation?: string }> = {
-    "DSCF5214": { title: "Untitled - Big Al" },
-    "DSCF5195": { title: "Cats - Bethan" },
-    "DSCF5198": { title: "Tom - Untitled" },
-    "DSCF5208": { title: "Blue and Green abstract - Tom WM" },
+  const customizations: Record<string, { displayTitle?: string; displayArtist?: string; rotation?: string }> = {
+    "DSCF5214": { displayTitle: "Untitled", displayArtist: "Big Al" },
+    "DSCF5195": { displayTitle: "Cats", displayArtist: "Bethan" },
+    "DSCF5198": { displayTitle: "Untitled", displayArtist: "Tom" },
+    "DSCF5208": { displayTitle: "Blue and Green abstract", displayArtist: "Tom WM" },
     "Trukish%20Cafe": { rotation: "-rotate-90" },
     "The%20Sigh": { rotation: "-rotate-90" },
     "Tilda": { rotation: "-rotate-90" },
@@ -193,11 +193,20 @@ export default function PaintingsCarousel() {
 
   const getTitle = (url: string, fallbackTitle: string) => {
     for (const [key, value] of Object.entries(customizations)) {
-      if (url.includes(key) && value.title) {
-        return value.title
+      if (url.includes(key) && value.displayTitle) {
+        return value.displayTitle
       }
     }
     return fallbackTitle || url.split('/').pop()?.split('_')[0] || "Untitled"
+  }
+
+  const getArtist = (url: string, fallbackArtist: string) => {
+    for (const [key, value] of Object.entries(customizations)) {
+      if (url.includes(key) && value.displayArtist) {
+        return value.displayArtist
+      }
+    }
+    return fallbackArtist || ""
   }
 
   const getRotation = (url: string) => {
@@ -245,7 +254,7 @@ export default function PaintingsCarousel() {
 
             <div className="text-center mt-3">
               <h2 className="font-bold">{getTitle(p.image_url, p.title)}</h2>
-              <p className="text-sm text-gray-600">{p.artist}</p>
+              <p className="text-sm text-gray-600">{getArtist(p.image_url, p.artist)}</p>
               <p className="text-sky-500 font-bold mt-1">
                 £{getBid(p.id).toFixed(2)}
               </p>
@@ -283,7 +292,7 @@ export default function PaintingsCarousel() {
             onClick={e => e.stopPropagation()}
           >
             <p className="text-xs leading-relaxed">
-              28 artists got together in The Egg Cafe in Liverpool...
+              28 artists got together in The Egg Cafe in Liverpool, painted, ate and split the costs. <br /><br /> These paintings are now on auction for an experiment. The artists will choose whether to reinvest the money into the group for the next adventure, or take their share. <br /><br /> The organiser wanted to explore circular systems, sharing and art. The artworks are all 15x30 inch canvases made with whatever paints and materials the artists brought with them. <br /><br /> The auction will end on the 8th of May at The Egg Cafe with a live auction. <br /><br /> Thanks for your time. If you need to get in touch, speak to Oli at{" "} <span className="font-medium">wyrdliverpool@gmail.com</span>
             </p>
             <button className="mt-4 w-full bg-sky-300 py-2" onClick={() => setShowInfo(false)}>
               Close
@@ -305,6 +314,7 @@ export default function PaintingsCarousel() {
           >
 
             <h2 className="font-bold mb-2">{getTitle(selected.image_url, selected.title)}</h2>
+            <p className="text-sm text-gray-600 mb-2">{getArtist(selected.image_url, selected.artist)}</p>
             <p className="mb-2">Current: £{getBid(selected.id).toFixed(2)}</p>
 
             <input name="name" placeholder="Name" className="border w-full p-2 mb-2" required />
