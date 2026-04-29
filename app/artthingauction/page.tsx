@@ -180,23 +180,33 @@ export default function PaintingsCarousel() {
     setSelected(null)
   }
 
-  // ✅ FIX: rename
-  const getTitle = (title: string) => {
-    if (title === "Big Al") return "Untitled DSCF5214"
-    if (title === "Tom FM") return "Tom"
-    if (title === "Tom WN") return "Tom WM"
-    return title
+  // Custom painting overrides (URL-based)
+  const customizations: Record<string, { title?: string; rotation?: string }> = {
+    "DSCF5214": { title: "Untitled DSCF5214" },
+    "DSCF5195": { title: "Bethan" },
+    "DSCF5198": { title: "Tom", rotation: "-rotate-90" },
+    "DSCF5208": { title: "Tom WM" },
+    "Trukish%20Cafe": { rotation: "-rotate-90" },
+    "The%20Sigh": { rotation: "-rotate-90" },
+    "Tilda": { rotation: "-rotate-90" },
   }
 
-  // ✅ FIX: correct rotations
+  const getTitle = (url: string, fallbackTitle: string) => {
+    for (const [key, value] of Object.entries(customizations)) {
+      if (url.includes(key) && value.title) {
+        return value.title
+      }
+    }
+    return fallbackTitle || url.split('/').pop()?.split('_')[0] || "Untitled"
+  }
+
   const getRotation = (url: string) => {
     if (!url) return ""
-    if (url.includes("DSCF5198")) return "-rotate-90"
-    if (url.includes("DSCF5208")) return ""
-    if (url.includes("Trukish%20Cafe")) return "-rotate-90"
-    if (url.includes("The%20Sigh")) return "-rotate-90"
-    if (url.includes("Tilda")) return "-rotate-90"
-    if (url.includes("Revolving%20faces")) return "rotate-180"
+    for (const [key, value] of Object.entries(customizations)) {
+      if (url.includes(key) && value.rotation) {
+        return value.rotation
+      }
+    }
     return ""
   }
 
@@ -234,7 +244,7 @@ export default function PaintingsCarousel() {
             </div>
 
             <div className="text-center mt-3">
-              <h2 className="font-bold">{getTitle(p.title)}</h2>
+              <h2 className="font-bold">{getTitle(p.image_url, p.title)}</h2>
               <p className="text-sm text-gray-600">{p.artist}</p>
               <p className="text-sky-500 font-bold mt-1">
                 £{getBid(p.id).toFixed(2)}
@@ -294,7 +304,7 @@ export default function PaintingsCarousel() {
             onClick={e => e.stopPropagation()}
           >
 
-            <h2 className="font-bold mb-2">{selected.title}</h2>
+            <h2 className="font-bold mb-2">{getTitle(selected.image_url, selected.title)}</h2>
             <p className="mb-2">Current: £{getBid(selected.id).toFixed(2)}</p>
 
             <input name="name" placeholder="Name" className="border w-full p-2 mb-2" required />
