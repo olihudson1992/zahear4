@@ -183,9 +183,9 @@ export default function PaintingsCarousel() {
   // Custom painting overrides (URL-based)
   const customizations: Record<string, { title?: string; rotation?: string }> = {
     "DSCF5214": { title: "Big Al" },
-    "DSCF5195": { title: "Bethan" },
-    "DSCF5198": { title: "Tom", rotation: "-rotate-90" },
-    "DSCF5208": { title: "Tom WM" },
+    "DSCF5195": { title: "Cats - Bethan" },
+    "DSCF5198": { title: "Tom - Untitled" },
+    "DSCF5208": { title: "Blue and Green abstract - Tom WM" },
     "Trukish%20Cafe": { rotation: "-rotate-90" },
     "The%20Sigh": { rotation: "-rotate-90" },
     "Tilda": { rotation: "-rotate-90" },
