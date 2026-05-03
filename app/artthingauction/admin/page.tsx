@@ -18,6 +18,7 @@ interface Painting {
   id: number
   title: string
   artist: string
+  image_url?: string
 }
 
 export default function AdminExportPage() {
@@ -44,7 +45,7 @@ export default function AdminExportPage() {
   const fetchData = useCallback(async () => {
     const { data: paintingsData } = await supabase
       .from("paintings")
-      .select("id, title, artist")
+      .select("id, title, artist, image_url")
       .order("id")
 
     const { data: bidsData } = await supabase
@@ -70,14 +71,23 @@ export default function AdminExportPage() {
     return () => clearInterval(interval)
   }, [isAuthenticated, fetchData])
 
+  const excludedPaintingKeys = ["DSCF5198"]
+
+  const shouldExcludePainting = (painting: Painting) =>
+    !!painting.image_url && excludedPaintingKeys.some(key => painting.image_url.includes(key))
+
+  const visiblePaintings = paintings.filter(p => !shouldExcludePainting(p))
+  const visiblePaintingIds = new Set(visiblePaintings.map(p => p.id))
+  const visibleBids = bids.filter(b => visiblePaintingIds.has(b.painting_id))
+
   function getHighestBid(paintingId: number) {
-    const paintingBids = bids.filter(b => b.painting_id === paintingId)
+    const paintingBids = visibleBids.filter(b => b.painting_id === paintingId)
     if (paintingBids.length === 0) return 0
     return Math.max(...paintingBids.map(b => b.amount))
   }
 
   function getWinner(paintingId: number) {
-    const paintingBids = bids.filter(b => b.painting_id === paintingId)
+    const paintingBids = visibleBids.filter(b => b.painting_id === paintingId)
     if (paintingBids.length === 0) return null
     return paintingBids.reduce((max, b) => b.amount > max.amount ? b : max)
   }
@@ -85,7 +95,7 @@ export default function AdminExportPage() {
   function exportToCSV() {
     const headers = ["Painting", "Artist", "Bidder", "Email", "Amount", "Date"]
 
-    const rows = bids.map(b => [
+    const rows = visibleBids.map(b => [
       b.painting_title,
       b.painting_artist,
       b.bidder_name,
@@ -141,7 +151,7 @@ export default function AdminExportPage() {
       <h2 className="font-bold mb-2">Highest Bids (LIVE CALCULATED)</h2>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {paintings.map(p => {
+        {visiblePaintings.map(p => {
           const highest = getHighestBid(p.id)
           const winner = getWinner(p.id)
 
@@ -178,7 +188,7 @@ export default function AdminExportPage() {
           </tr>
         </thead>
         <tbody>
-          {bids.map(b => (
+          {visibleBids.map(b => (
             <tr key={b.id} className="border-t">
               <td className="p-2">{b.painting_title || `ID ${b.painting_id}`}</td>
               <td className="p-2">{b.bidder_name}</td>

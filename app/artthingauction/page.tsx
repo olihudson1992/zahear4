@@ -219,6 +219,12 @@ export default function PaintingsCarousel() {
     return ""
   }
 
+  const excludedPaintingKeys = ["DSCF5198"]
+  const shouldExcludePainting = (imageUrl: string) =>
+    excludedPaintingKeys.some(key => imageUrl?.includes(key))
+
+  const visiblePaintings = paintings.filter(p => !shouldExcludePainting(p.image_url))
+
   if (showIntro) return <IntroAnimation onDone={() => setShowIntro(false)} />
 
   return (
@@ -239,7 +245,7 @@ export default function PaintingsCarousel() {
       {/* CAROUSEL */}
       <div className="flex-1 flex overflow-x-auto snap-x snap-mandatory">
 
-        {paintings.map(p => (
+        {visiblePaintings.map(p => (
           <div
             key={p.id}
             className="w-full flex-shrink-0 snap-center flex flex-col items-center justify-center min-h-[75vh] p-4"
