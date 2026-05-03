@@ -140,39 +140,50 @@ export default function AdminExportPage() {
 
       <h2 className="font-bold mb-2">Highest Bids (LIVE CALCULATED)</h2>
 
-      <table className="w-full border">
-        <thead>
-          <tr>
-            <th>Painting</th>
-            <th>Artist</th>
-            <th>Highest Bid</th>
-          </tr>
-        </thead>
+      <div className="grid gap-4 md:grid-cols-2">
+        {paintings.map(p => {
+          const highest = getHighestBid(p.id)
+          const winner = getWinner(p.id)
 
-        <tbody>
-          {paintings.map(p => {
-            const highest = getHighestBid(p.id)
+          return (
+            <div key={p.id} className="border rounded-lg p-4 shadow-sm bg-white">
+              <div className="font-bold text-lg">{p.title || `Painting ${p.id}`}</div>
+              <div className="text-sm text-gray-600 mb-3">{p.artist || `ID ${p.id}`}</div>
 
-            return (
-              <tr key={p.id}>
-                <td>{p.title}</td>
-                <td>{p.artist}</td>
-                <td>£{highest.toFixed(2)}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+              <div className="text-sm mb-1">Current bid:</div>
+              <div className="text-xl font-semibold">£{highest.toFixed(2)}</div>
+
+              {winner ? (
+                <div className="mt-3 text-sm space-y-1">
+                  <div><span className="font-semibold">Bidder:</span> {winner.bidder_name}</div>
+                  <div><span className="font-semibold">Email:</span> {winner.bidder_email}</div>
+                </div>
+              ) : (
+                <div className="mt-3 text-sm text-gray-500">No bids yet</div>
+              )}
+            </div>
+          )
+        })}
+      </div>
 
       <h2 className="font-bold mt-6 mb-2">All Bids</h2>
 
       <table className="w-full border text-sm">
+        <thead>
+          <tr>
+            <th className="text-left p-2">Painting</th>
+            <th className="text-left p-2">Bidder</th>
+            <th className="text-left p-2">Email</th>
+            <th className="text-left p-2">Amount</th>
+          </tr>
+        </thead>
         <tbody>
           {bids.map(b => (
-            <tr key={b.id}>
-              <td>{b.painting_title}</td>
-              <td>{b.bidder_name}</td>
-              <td>£{b.amount}</td>
+            <tr key={b.id} className="border-t">
+              <td className="p-2">{b.painting_title || `ID ${b.painting_id}`}</td>
+              <td className="p-2">{b.bidder_name}</td>
+              <td className="p-2">{b.bidder_email}</td>
+              <td className="p-2">£{b.amount.toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
