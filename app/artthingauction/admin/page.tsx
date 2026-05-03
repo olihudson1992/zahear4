@@ -150,31 +150,33 @@ export default function AdminExportPage() {
 
       <h2 className="font-bold mb-2">Highest Bids (LIVE CALCULATED)</h2>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {visiblePaintings.map(p => {
-          const highest = getHighestBid(p.id)
-          const winner = getWinner(p.id)
+      <table className="w-full border text-sm">
+        <thead>
+          <tr>
+            <th className="text-left p-2">Painting</th>
+            <th className="text-left p-2">Artist</th>
+            <th className="text-left p-2">Current Bid</th>
+            <th className="text-left p-2">Bidder</th>
+            <th className="text-left p-2">Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visiblePaintings.map(p => {
+            const highest = getHighestBid(p.id)
+            const winner = getWinner(p.id)
 
-          return (
-            <div key={p.id} className="border rounded-lg p-4 shadow-sm bg-white">
-              <div className="font-bold text-lg">{p.title || `Painting ${p.id}`}</div>
-              <div className="text-sm text-gray-600 mb-3">{p.artist || `ID ${p.id}`}</div>
-
-              <div className="text-sm mb-1">Current bid:</div>
-              <div className="text-xl font-semibold">£{highest.toFixed(2)}</div>
-
-              {winner ? (
-                <div className="mt-3 text-sm space-y-1">
-                  <div><span className="font-semibold">Bidder:</span> {winner.bidder_name}</div>
-                  <div><span className="font-semibold">Email:</span> {winner.bidder_email}</div>
-                </div>
-              ) : (
-                <div className="mt-3 text-sm text-gray-500">No bids yet</div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+            return (
+              <tr key={p.id} className="border-t">
+                <td className="p-2">{p.title || `Painting ${p.id}`}</td>
+                <td className="p-2">{p.artist || `ID ${p.id}`}</td>
+                <td className="p-2">£{highest.toFixed(2)}</td>
+                <td className="p-2">{winner?.bidder_name || "-"}</td>
+                <td className="p-2">{winner?.bidder_email || "-"}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
 
       <h2 className="font-bold mt-6 mb-2">All Bids</h2>
 
