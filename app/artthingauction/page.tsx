@@ -183,9 +183,11 @@ export default function PaintingsCarousel() {
   // Custom painting overrides (URL-based)
   const customizations: Record<string, { displayTitle?: string; displayArtist?: string; rotation?: string }> = {
     "DSCF5214": { displayTitle: "Untitled", displayArtist: "Big Al" },
-    "DSCF5195": { displayTitle: "Cats", displayArtist: "Bethan" },
+    "DSCF5195": { displayTitle: "Tiger King", displayArtist: "Tom" },
     "DSCF5198": { displayTitle: "Untitled", displayArtist: "Tom" },
     "DSCF5208": { displayTitle: "Blue and Green abstract", displayArtist: "Tom WM" },
+    "Brad%20-%20Mr%20Gonk": { displayTitle: "Reginald Esquire", displayArtist: "Mr Gonk" },
+    "Darcie%20-%20Bag%20Piss": { displayTitle: "Skin Picker", displayArtist: "Bag Piss" },
     "Trukish%20Cafe": { rotation: "-rotate-90" },
     "The%20Sigh": { rotation: "-rotate-90" },
     "Tilda": { rotation: "-rotate-90" },
