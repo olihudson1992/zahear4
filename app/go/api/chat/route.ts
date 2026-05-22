@@ -3,8 +3,7 @@ import { NextResponse } from "next/server"
 interface UserProfile {
   name: string
   colour: string
-  dateOfBirth: string
-  placeOfBirth: string
+  wordOfTheDay: string
 }
 
 interface Message {
@@ -12,74 +11,7 @@ interface Message {
   content: string
 }
 
-function getSunSign(dateOfBirth: string): string {
-  const date = new Date(dateOfBirth)
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-
-  if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) return "the pioneer — bold, direct, impatient, brave, always first"
-  if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) return "the builder — sensual, stubborn, patient, deeply loyal, loves beauty"
-  if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) return "the weaver — curious, quick, dual-natured, loves connection and story"
-  if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) return "the keeper — deep feeling, protective, intuitive, home-seeking"
-  if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) return "the sovereign — generous, dramatic, needs to be seen, warm-hearted"
-  if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) return "the craftsperson — precise, helpful, analytical, seeks perfection"
-  if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) return "the harmoniser — seeks balance, avoids conflict, sees all sides"
-  if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) return "the depth-seeker — intense, private, transformative, nothing is surface"
-  if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) return "the wanderer — freedom-seeking, philosophical, honest to a fault"
-  if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) return "the climber — disciplined, ambitious, dry humour, earns everything slowly"
-  if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) return "the visionary — unconventional, community-minded, ahead of their time"
-  return "the dreamer — fluid, empathic, absorbs everything, lives between worlds"
-}
-
-function getMoonSign(dateOfBirth: string): string {
-  const date = new Date(dateOfBirth)
-  const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000)
-  const moonCycle = Math.floor((dayOfYear % 354) / 29.5)
-
-  const moonQualities = [
-    "instinctive and fiercely protective — feels through the body",
-    "comfort-seeking and sensory — needs beauty and stability to feel safe",
-    "restless and talkative inside — processes emotion through words",
-    "deeply nostalgic — feelings run ancient and tidal",
-    "proud and warm — needs appreciation to feel emotionally secure",
-    "anxious and helpful — feels better when useful",
-    "emotionally fair — needs harmony, hates feeling alone",
-    "emotionally intense — feels everything at the extreme",
-    "emotionally free — afraid of being trapped by feeling",
-    "emotionally reserved — keeps the inner world under control",
-    "emotionally detached — processes feeling through ideas",
-    "emotionally porous — absorbs the moods of everyone nearby",
-  ]
-
-  return moonQualities[moonCycle % 12]
-}
-
-function getRisingSign(dateOfBirth: string, placeOfBirth: string): string {
-  const seed = placeOfBirth.charCodeAt(0) % 12
-
-  const risingQualities = [
-    "becoming bold and self-starting — learning to act without permission",
-    "becoming deeply embodied — learning to trust the body and its pleasures",
-    "becoming a communicator — learning to speak and connect freely",
-    "becoming a nurturer — learning to open the heart without fear",
-    "becoming radiant — learning to be seen without shame",
-    "becoming useful — learning that service is its own reward",
-    "becoming balanced — learning that peace requires honest conflict first",
-    "becoming transformative — learning that death of the old self is safe",
-    "becoming a truth-teller — learning that honesty is the only freedom",
-    "becoming disciplined — learning that structure is a form of love",
-    "becoming original — learning that difference is the gift",
-    "becoming boundless — learning that surrender is not weakness",
-  ]
-
-  return risingQualities[seed]
-}
-
 function buildSystemPrompt(profile: UserProfile): string {
-  const sunSign = getSunSign(profile.dateOfBirth)
-  const moonSign = getMoonSign(profile.dateOfBirth)
-  const risingSign = getRisingSign(profile.dateOfBirth, profile.placeOfBirth)
-
   return `You are a gentle, playful, mysterious guide leading ${profile.name} on an inner journey of self-discovery. You speak warmly, simply, and with a sense of wonder. You never explain what you are doing or why. You never use any spiritual, religious, astrological, or psychological terminology. No chakras, no star signs, no archetypes, no shadow, no soul, no karma. None of it. You work entirely through story, image, and question.
 
 Your only job is to ask questions and receive answers. You suggest almost nothing. The user builds the world. You just open the doors.
@@ -87,9 +19,6 @@ Your only job is to ask questions and receive answers. You suggest almost nothin
 INVISIBLE USER PROFILE — use this to subtly shape the journey, never reference it directly:
 - Name: ${profile.name}
 - Favourite colour: ${profile.colour}
-- Their core nature (who they are): ${sunSign}
-- Their emotional nature (the animal energy): ${moonSign}
-- Who they are becoming (the wounded figure they will meet): ${risingSign}
 
 EMOJI OUTPUT: After each response, on a new line output EMOJIS:["🐪","🌊"] with 3-5 emojis related to what the user just mentioned. The front end strips this line out.
 

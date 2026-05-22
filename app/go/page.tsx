@@ -2,13 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 
-type Step = "colour" | "name" | "dob" | "birthplace" | "word" | "chat"
+type Step = "colour" | "name" | "word" | "chat"
 
 interface UserProfile {
   colour: string
   name: string
-  dateOfBirth: string
-  placeOfBirth: string
   wordOfTheDay: string
 }
 
@@ -32,8 +30,6 @@ export default function ZenApp() {
   const [profile, setProfile] = useState<UserProfile>({
     colour: "",
     name: "",
-    dateOfBirth: "",
-    placeOfBirth: "",
     wordOfTheDay: "",
   })
   const [bgColor, setBgColor] = useState("#ffffff")
@@ -51,17 +47,13 @@ export default function ZenApp() {
   const placeholders: Record<Step, string> = {
     colour: "what is your favourite colour?",
     name: "what is your name?",
-    dob: "and when were you born?",
-    birthplace: "where were you born?",
     word: "and your word of the day?",
     chat: "",
   }
 
   const nextStep: Record<Step, Step> = {
     colour: "name",
-    name: "dob",
-    dob: "birthplace",
-    birthplace: "word",
+    name: "word",
     word: "chat",
     chat: "chat",
   }
@@ -113,8 +105,6 @@ export default function ZenApp() {
       const fieldMap: Record<Step, keyof UserProfile> = {
         colour: "colour",
         name: "name",
-        dob: "dateOfBirth",
-        birthplace: "placeOfBirth",
         word: "wordOfTheDay",
         chat: "wordOfTheDay",
       }
@@ -148,8 +138,6 @@ export default function ZenApp() {
           userProfile: {
             name: profile.name,
             colour: profile.colour,
-            dateOfBirth: profile.dateOfBirth,
-            placeOfBirth: profile.placeOfBirth,
             wordOfTheDay: profile.wordOfTheDay,
           },
         }),
@@ -208,8 +196,6 @@ export default function ZenApp() {
           userProfile: {
             name: profile.name,
             colour: profile.colour,
-            dateOfBirth: profile.dateOfBirth,
-            placeOfBirth: profile.placeOfBirth,
             wordOfTheDay: profile.wordOfTheDay,
           },
         }),
@@ -360,7 +346,7 @@ export default function ZenApp() {
         }`}
       >
         <input
-          type={step === "dob" ? "date" : "text"}
+          type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
