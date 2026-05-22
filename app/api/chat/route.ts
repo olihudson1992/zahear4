@@ -271,6 +271,17 @@ export async function POST(request: Request) {
     })
 
     const data = await response.json()
+
+    // Surface Anthropic API errors instead of swallowing them silently
+    if (!response.ok) {
+      const errMsg = data?.error?.message || JSON.stringify(data)
+      console.error("Anthropic API error:", response.status, errMsg)
+      return NextResponse.json(
+        { message: `API error ${response.status}: ${errMsg}` },
+        { status: 500 }
+      )
+    }
+
     const rawMessage = data.content?.[0]?.text || "..."
 
     // Strip the EMOJIS line from the displayed message
@@ -282,9 +293,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: cleanMessage, emojis })
   } catch (err) {
-    console.error(err)
+    console.error("Chat route error:", err)
     return NextResponse.json(
-      { message: "a quiet error occurred..." },
+      { message: `error: ${err instanceof Error ? err.message : String(err)}` },
       { status: 500 }
     )
   }
