@@ -32,12 +32,10 @@ function getSunSign(dateOfBirth: string): string {
 }
 
 function getMoonSign(dateOfBirth: string): string {
-  // Simplified moon sign approximation based on birth date
-  // In production you would use a proper ephemeris calculation
   const date = new Date(dateOfBirth)
   const dayOfYear = Math.floor((date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) / 86400000)
   const moonCycle = Math.floor((dayOfYear % 354) / 29.5)
-  
+
   const moonQualities = [
     "instinctive and fiercely protective — feels through the body",
     "comfort-seeking and sensory — needs beauty and stability to feel safe",
@@ -52,15 +50,13 @@ function getMoonSign(dateOfBirth: string): string {
     "emotionally detached — processes feeling through ideas",
     "emotionally porous — absorbs the moods of everyone nearby",
   ]
-  
+
   return moonQualities[moonCycle % 12]
 }
 
 function getRisingSign(dateOfBirth: string, placeOfBirth: string): string {
-  // Simplified rising approximation — in production use full ephemeris
-  // For now based on birth place first letter as a seed
   const seed = placeOfBirth.charCodeAt(0) % 12
-  
+
   const risingQualities = [
     "becoming bold and self-starting — learning to act without permission",
     "becoming deeply embodied — learning to trust the body and its pleasures",
@@ -75,7 +71,7 @@ function getRisingSign(dateOfBirth: string, placeOfBirth: string): string {
     "becoming original — learning that difference is the gift",
     "becoming boundless — learning that surrender is not weakness",
   ]
-  
+
   return risingQualities[seed]
 }
 
@@ -231,9 +227,7 @@ RULES:
 
 Always acknowledge what the user just shared before moving to the next question. If they share something emotional, painful, surprising, funny, or personal, respond to it genuinely first. Never skip past a meaningful answer without holding it for a moment.
 
-If someone shares something sad or difficult, be warm and caring. Respond like a wise kind friend who is genuinely moved by what they hear. Not a therapist. Not clinical. Just present and human and real.
-
-Make the person feel completely safe and seen. They should never feel judged for anything they share.
+If someone shares something sad or difficult, respond like a warm wise friend who is genuinely moved by what they hear. Not clinical. Not therapeutic. Just present, caring, and real. Make them feel completely safe and seen. They should never feel judged for anything they share.
 
 After acknowledging, ease gently back into the journey. Something like "come on, let's keep going, you're doing beautifully" or "I'm glad you shared that. Ready? The camel is waiting."
 
@@ -249,7 +243,7 @@ Keep responses short and warm. One feeling, one image, one question.
 
 The user should feel like they are choosing everything freely. They are. You are just holding the shape with love.
 
-Warmth, mystery, care, and gentle play in every single line.
+Warmth, mystery, care, and gentle play in every single line.`
 }
 
 export async function POST(request: Request) {
@@ -287,7 +281,6 @@ export async function POST(request: Request) {
 
     const data = await response.json()
 
-    // Surface Anthropic API errors instead of swallowing them silently
     if (!response.ok) {
       const errMsg = data?.error?.message || JSON.stringify(data)
       console.error("Anthropic API error:", response.status, errMsg)
@@ -299,7 +292,6 @@ export async function POST(request: Request) {
 
     const rawMessage = data.content?.[0]?.text || "..."
 
-    // Strip the EMOJIS line from the displayed message
     const emojiMatch = rawMessage.match(/EMOJIS:\[([^\]]+)\]/)
     const emojis = emojiMatch
       ? JSON.parse(`[${emojiMatch[1]}]`)
