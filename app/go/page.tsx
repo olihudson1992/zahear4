@@ -140,7 +140,7 @@ export default function ZenApp() {
     setDisplayedLines([])
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch("/go/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -200,7 +200,7 @@ export default function ZenApp() {
       setMessages([firstMessage])
       setIsLoading(true)
 
-      fetch("/api/chat", {
+      fetch("/go/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
