@@ -6,8 +6,7 @@ const __dirname = dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  outputFileTracingRoot: __dirname,
+  output: 'standalone',
   webpack: (config) => {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
