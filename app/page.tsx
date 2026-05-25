@@ -2,6 +2,32 @@
 export default function HomePage() {
   return (
     <div style={{ padding: "2rem", fontFamily: "sans-serif", lineHeight: 1.6, maxWidth: "800px", margin: "0 auto" }}>
+
+      <style>{`
+        @keyframes wizard-float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        .wizard-float {
+          animation: wizard-float 3s ease-in-out infinite;
+        }
+        .wizard-bubble {
+          opacity: 0;
+          transform: translateY(4px);
+          transition: opacity 0.2s, transform 0.2s;
+        }
+        .wizard-wrap:hover .wizard-bubble {
+          opacity: 1;
+          transform: translateY(0px);
+        }
+      `}</style>
+
+      <a href="/everything" className="wizard-wrap" style={{ position: "fixed", bottom: "2rem", right: "2rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem", textDecoration: "none", zIndex: 100 }}>
+        <div className="wizard-bubble" style={{ background: "white", color: "black", borderRadius: "1rem", padding: "0.4rem 0.8rem", fontSize: "0.85rem", fontWeight: 500, whiteSpace: "nowrap", boxShadow: "0 2px 12px rgba(0,0,0,0.15)" }}>
+          wanna see everything?
+        </div>
+        <div className="wizard-float" style={{ fontSize: "2.5rem", lineHeight: 1 }}>🧙🏻‍♂️</div>
+      </a>
       <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "1rem" }}>Origin and history of weird</h1>
 
       <p>
