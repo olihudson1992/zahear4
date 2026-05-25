@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "WYRD",
   generator: "v0.dev",
   icons: {
-    icon: "/favicon.ico", // default favicon for all pages
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♒</text></svg>",
   },
 }
 
