@@ -101,7 +101,7 @@ function Orb({ position, color, name, path, scale = 1, onHover }: OrbProps) {
             onHover(null)
             document.body.style.cursor = "default"
           }}
-          onClick={() => { window.location.href = path }}
+          onClick={() => { window.location.href = encodeURI(path) }}
         >
           <sphereGeometry args={[1, 32, 32]} />
           <meshStandardMaterial
