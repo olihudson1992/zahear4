@@ -11,9 +11,6 @@ export default function AudioVisualizer() {
   const audioElementRef = useRef<HTMLAudioElement | null>(null)
   const animationFrameRef = useRef<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [showWizard, setShowWizard] = useState(false)
-  const [wizardLeaving, setWizardLeaving] = useState(false)
-  const wizardTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
@@ -35,21 +32,9 @@ export default function AudioVisualizer() {
           await audioElementRef.current.play()
           setIsPlaying(true)
           animate()
-          setTimeout(() => {
-            setShowWizard(true)
-            wizardTimerRef.current = setTimeout(() => {
-              hideWizard()
-            }, 20000)
-          }, 60000)
         }
       } catch (error) {
         console.log("[v0] Autoplay blocked, user interaction required")
-        setTimeout(() => {
-          setShowWizard(true)
-          wizardTimerRef.current = setTimeout(() => {
-            hideWizard()
-          }, 20000)
-        }, 15000)
       }
     }
 
@@ -65,19 +50,8 @@ export default function AudioVisualizer() {
       if (audioContextRef.current) {
         audioContextRef.current.close()
       }
-      if (wizardTimerRef.current) {
-        clearTimeout(wizardTimerRef.current)
-      }
     }
   }, [])
-
-  const hideWizard = () => {
-    setWizardLeaving(true)
-    setTimeout(() => {
-      setShowWizard(false)
-      setWizardLeaving(false)
-    }, 1000)
-  }
 
   const animate = () => {
     const canvas = canvasRef.current
@@ -149,13 +123,6 @@ export default function AudioVisualizer() {
   const handleCanvasClick = () => {
     if (!audioElementRef.current || !audioContextRef.current) return
 
-    if (showWizard || wizardLeaving) {
-      if (wizardTimerRef.current) {
-        clearTimeout(wizardTimerRef.current)
-      }
-      hideWizard()
-    }
-
     if (!isPlaying) {
       if (audioContextRef.current.state === "suspended") {
         audioContextRef.current.resume()
@@ -163,12 +130,6 @@ export default function AudioVisualizer() {
       audioElementRef.current.play()
       setIsPlaying(true)
       animate()
-      setTimeout(() => {
-        setShowWizard(true)
-        wizardTimerRef.current = setTimeout(() => {
-          hideWizard()
-        }, 20000)
-      }, 60000)
     } else {
       fetch(AUDIO_URL)
         .then((response) => response.blob())
@@ -215,43 +176,6 @@ export default function AudioVisualizer() {
         </div>
       )}
 
-      {showWizard && (
-        <div
-          className={`fixed bottom-8 left-1/2 -translate-x-1/2 transition-all duration-1000 ${
-            wizardLeaving ? "opacity-0 scale-95" : "opacity-100 scale-100"
-          }`}
-          style={{
-            animation: wizardLeaving ? "none" : "sparkle 0.6s ease-out",
-          }}
-        >
-          <div className="relative flex flex-col items-center">
-            <div className="bg-white rounded-2xl px-6 py-4 shadow-2xl max-w-md mb-2">
-              <p className="text-black font-luminari text-lg text-center">
-                Azar! Just click anywhere and the track will download!
-              </p>
-            </div>
-            <div className="text-5xl">🧙🏻‍♂️</div>
-          </div>
-        </div>
-      )}
-
-      <style jsx>{`
-        @keyframes sparkle {
-          0% {
-            opacity: 0;
-            transform: scale(0.5) rotate(-10deg);
-            filter: brightness(2);
-          }
-          50% {
-            filter: brightness(1.5);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1) rotate(0deg);
-            filter: brightness(1);
-          }
-        }
-      `}</style>
     </div>
   )
 }
