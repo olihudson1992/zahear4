@@ -1618,21 +1618,13 @@ export default function Component() {
           <div className="flex gap-3 mb-4 justify-center">
             <button
               onClick={toggleAudio}
-              className="w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow"
+              className="w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-shadow text-xl"
               style={{
                 backgroundColor: "#ffffff",
                 border: "2px solid #e5e7eb",
               }}
             >
-              <img
-                src="/images/play-button.png"
-                alt={audioEnabled ? "Pause" : "Play"}
-                className="w-6 h-6"
-                style={{
-                  filter: audioEnabled ? "none" : "grayscale(100%)",
-                  opacity: audioEnabled ? 1 : 0.7,
-                }}
-              />
+              {audioEnabled ? "■" : "▶"}
             </button>
             <button
               onClick={handleReset}
@@ -1774,18 +1766,10 @@ export default function Component() {
               <div className="flex gap-2 mb-4 justify-center">
                 <button
                   onClick={toggleAudio}
-                  className="w-10 h-10 rounded-full flex items-center justify-center shadow-md"
+                  className="w-10 h-10 rounded-full flex items-center justify-center shadow-md text-lg"
                   style={{ backgroundColor: "#ffffff", border: "2px solid #e5e7eb" }}
                 >
-                  <img
-                    src="/images/play-button.png"
-                    alt={audioEnabled ? "Pause" : "Play"}
-                    className="w-5 h-5"
-                    style={{
-                      filter: audioEnabled ? "none" : "grayscale(100%)",
-                      opacity: audioEnabled ? 1 : 0.7,
-                    }}
-                  />
+                  {audioEnabled ? "■" : "▶"}
                 </button>
                 <button
                   onClick={handleReset}
