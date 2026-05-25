@@ -204,6 +204,17 @@ export default function AudioVisualizer() {
     <div className="relative w-full h-screen overflow-hidden bg-black">
       <canvas ref={canvasRef} onClick={handleCanvasClick} className="cursor-pointer" />
 
+      {!isPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <p
+            className="text-white text-3xl md:text-5xl luminari text-center px-8 opacity-80"
+            style={{ fontFamily: "Luminari, fantasy", textShadow: "0 0 20px rgba(255,255,255,0.5)" }}
+          >
+            press the screen
+          </p>
+        </div>
+      )}
+
       {showWizard && (
         <div
           className={`fixed bottom-8 left-1/2 -translate-x-1/2 transition-all duration-1000 ${

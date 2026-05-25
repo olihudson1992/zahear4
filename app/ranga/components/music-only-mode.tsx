@@ -249,113 +249,90 @@ const TRACK_LIST = [
   "Zinabu_Ranga.mp3",
 ]
 
-// Working audio player hook (copied from main page)
 function useAudioPlayer() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [volume, setVolume] = useState(0.7)
+  const [volumeState, setVolumeState] = useState(0.7)
   const [shuffledIndices, setShuffledIndices] = useState<number[]>([])
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const currentTrackIndexRef = useRef(0)
+  const shuffledIndicesRef = useRef<number[]>([])
+  const isPlayingRef = useRef(false)
 
-  // Create shuffled playlist on mount
+  useEffect(() => { currentTrackIndexRef.current = currentTrackIndex }, [currentTrackIndex])
+  useEffect(() => { shuffledIndicesRef.current = shuffledIndices }, [shuffledIndices])
+  useEffect(() => { isPlayingRef.current = isPlaying }, [isPlaying])
+
   useEffect(() => {
     const indices = Array.from({ length: TRACK_LIST.length }, (_, i) => i)
-    const shuffled = [...indices].sort(() => Math.random() - 0.5)
-    setShuffledIndices(shuffled)
+    setShuffledIndices([...indices].sort(() => Math.random() - 0.5))
+  }, [])
+
+  const loadTrack = useCallback((index: number, shouldPlay = false) => {
+    if (!audioRef.current || shuffledIndicesRef.current.length === 0) return
+    const actualIndex = shuffledIndicesRef.current[index]
+    const trackName = TRACK_LIST[actualIndex]
+    const url = `https://rangatracks.b-cdn.net/${trackName}`
+    audioRef.current.src = url
+    audioRef.current.load()
+    setCurrentTrackIndex(index)
+    currentTrackIndexRef.current = index
+    if (shouldPlay) {
+      setTimeout(() => {
+        audioRef.current?.play()
+          .then(() => setIsPlaying(true))
+          .catch(() => setIsPlaying(false))
+      }, 100)
+    }
   }, [])
 
   const skipToNext = useCallback(() => {
-    if (shuffledIndices.length === 0) return
+    if (shuffledIndicesRef.current.length === 0) return
+    const nextIndex = (currentTrackIndexRef.current + 1) % shuffledIndicesRef.current.length
+    loadTrack(nextIndex, isPlayingRef.current)
+  }, [loadTrack])
 
-    const nextIndex = (currentTrackIndex + 1) % shuffledIndices.length
-    loadTrack(nextIndex)
-
-    if (isPlaying) {
-      setTimeout(() => {
-        audioRef.current
-          ?.play()
-          .then(() => {
-            setIsPlaying(true)
-          })
-          .catch(() => {
-            setIsPlaying(false)
-          })
-      }, 100)
-    }
-  }, [shuffledIndices, currentTrackIndex, isPlaying])
-
-  // Initialize audio element
   useEffect(() => {
     if (shuffledIndices.length === 0) return
 
     const audio = new Audio()
     audio.crossOrigin = "anonymous"
-    audio.volume = volume
+    audio.volume = volumeState
     audioRef.current = audio
 
-    const handleEnded = () => {
-      skipToNext()
-    }
+    audio.addEventListener("ended", skipToNext)
+    audio.addEventListener("error", skipToNext)
 
-    const handleError = () => {
-      console.error("Audio error, skipping to next track")
-      skipToNext()
-    }
-
-    audio.addEventListener("ended", handleEnded)
-    audio.addEventListener("error", handleError)
-
-    // Load first track
     loadTrack(0)
 
     return () => {
-      audio.removeEventListener("ended", handleEnded)
-      audio.removeEventListener("error", handleError)
+      audio.removeEventListener("ended", skipToNext)
+      audio.removeEventListener("error", skipToNext)
       audio.pause()
+      audioRef.current = null
     }
-  }, [shuffledIndices])
+  }, [shuffledIndices.length])
 
-  // Update volume when it changes
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume
-    }
-  }, [volume])
+  const setVolume = useCallback((v: number) => {
+    setVolumeState(v)
+    if (audioRef.current) audioRef.current.volume = v
+  }, [])
 
-  const loadTrack = (index: number) => {
-    if (!audioRef.current || shuffledIndices.length === 0) return
-
-    const actualIndex = shuffledIndices[index]
-    const trackName = TRACK_LIST[actualIndex]
-    const url = `https://rangatracks.b-cdn.net/${trackName}`
-
-    audioRef.current.src = url
-    audioRef.current.load()
-    setCurrentTrackIndex(index)
-  }
-
-  const togglePlayPause = () => {
+  const togglePlayPause = useCallback(() => {
     if (!audioRef.current) return
-
-    if (isPlaying) {
+    if (isPlayingRef.current) {
       audioRef.current.pause()
       setIsPlaying(false)
     } else {
-      audioRef.current
-        .play()
-        .then(() => {
-          setIsPlaying(true)
-        })
-        .catch((error) => {
-          console.error("Play failed:", error)
-          skipToNext()
-        })
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(() => skipToNext())
     }
-  }
+  }, [skipToNext])
 
-  const getCurrentTrackName = () => {
-    if (shuffledIndices.length === 0) return "Loading..."
-    const actualIndex = shuffledIndices[currentTrackIndex]
+  const getCurrentTrackName = useCallback(() => {
+    if (shuffledIndicesRef.current.length === 0) return "Loading..."
+    const actualIndex = shuffledIndicesRef.current[currentTrackIndexRef.current]
     return (
       TRACK_LIST[actualIndex]
         ?.replace(/%20/g, " ")
@@ -365,23 +342,21 @@ function useAudioPlayer() {
         .replace(/%26/g, "&")
         .replace(/\.mp3$/, "") || "Unknown Track"
     )
-  }
+  }, [])
 
-  const downloadCurrentTrack = () => {
-    if (shuffledIndices.length === 0) return
-    const actualIndex = shuffledIndices[currentTrackIndex]
+  const downloadCurrentTrack = useCallback(() => {
+    if (shuffledIndicesRef.current.length === 0) return
+    const actualIndex = shuffledIndicesRef.current[currentTrackIndexRef.current]
     const trackName = TRACK_LIST[actualIndex]
     const url = `https://rangatracks.b-cdn.net/${trackName}`
-
-    // Create a temporary link element and trigger download
     const link = document.createElement("a")
     link.href = url
     link.download = getCurrentTrackName()
-    link.target = "_blank" // Open in new tab as fallback
+    link.target = "_blank"
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-  }
+  }, [getCurrentTrackName])
 
   return {
     isPlaying,
@@ -389,10 +364,17 @@ function useAudioPlayer() {
     skipToNext,
     getCurrentTrackName,
     downloadCurrentTrack,
-    audioElement: audioRef.current,
-    volume,
+    volume: volumeState,
     setVolume,
   }
+}
+
+function getContrastColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16) / 255
+  const g = parseInt(hex.slice(3, 5), 16) / 255
+  const b = parseInt(hex.slice(5, 7), 16) / 255
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  return luminance > 0.45 ? "#000000" : "#ffffff"
 }
 
 interface MusicOnlyModeProps {
@@ -403,6 +385,8 @@ export default function MusicOnlyMode({ onBack }: MusicOnlyModeProps) {
   const { isPlaying, togglePlayPause, skipToNext, getCurrentTrackName, downloadCurrentTrack, volume, setVolume } =
     useAudioPlayer()
   const [backgroundColor, setBackgroundColor] = useState("#FF6B35")
+  const textColor = getContrastColor(backgroundColor)
+  const [currentTrackName, setCurrentTrackName] = useState("")
 
   const colors = [
     "#FF6B35", // Orange
@@ -416,9 +400,17 @@ export default function MusicOnlyMode({ onBack }: MusicOnlyModeProps) {
   ]
 
   useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTrackName(getCurrentTrackName())
+    }, 500)
+    return () => clearInterval(interval)
+  }, [getCurrentTrackName])
+
+  useEffect(() => {
+    if (!currentTrackName) return
     const colorIndex = Math.floor(Math.random() * colors.length)
     setBackgroundColor(colors[colorIndex])
-  }, [getCurrentTrackName()])
+  }, [currentTrackName])
 
   return (
     <div
@@ -429,28 +421,29 @@ export default function MusicOnlyMode({ onBack }: MusicOnlyModeProps) {
         <Button
           onClick={onBack}
           variant="outline"
-          className="absolute top-4 left-4 bg-white/20 border-white/30 text-white hover:bg-white/30 luminari"
-          style={{ transform: "translate(-100%, -100%)" }}
+          className="absolute top-4 left-4 bg-black/10 border-black/20 hover:bg-black/20 luminari"
+          style={{ transform: "translate(-100%, -100%)", color: textColor }}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
 
         <div className="space-y-8">
-          <h1 className="text-4xl md:text-6xl font-bold text-white luminari">Bangas</h1>
+          <h1 className="text-4xl md:text-6xl font-bold luminari" style={{ color: textColor }}>Bangas</h1>
 
-          <Card className="bg-white/10 border-white/20 backdrop-blur-sm w-full">
+          <Card className="bg-black/10 border-black/20 backdrop-blur-sm w-full">
             <CardContent className="p-6">
               <div className="space-y-4">
-                <h2 className="text-xl font-bold text-white luminari">Now Playing:</h2>
+                <h2 className="text-xl font-bold luminari" style={{ color: textColor }}>Now Playing:</h2>
                 <button
                   onClick={downloadCurrentTrack}
-                  className="text-lg text-white hover:text-white/80 transition-colors cursor-pointer underline decoration-white/50 hover:decoration-white/80 luminari"
+                  className="text-lg transition-colors cursor-pointer underline luminari"
+                  style={{ color: textColor, textDecorationColor: textColor + "80" }}
                   title="Click to download"
                 >
-                  {getCurrentTrackName()}
+                  {currentTrackName || "Loading..."}
                 </button>
-                <div className="flex items-center justify-center gap-2 text-sm text-white/70">
+                <div className="flex items-center justify-center gap-2 text-sm" style={{ color: textColor + "b0" }}>
                   <Download className="w-4 h-4" />
                   <span className="luminari">Click track name to download</span>
                 </div>
@@ -458,31 +451,32 @@ export default function MusicOnlyMode({ onBack }: MusicOnlyModeProps) {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/10 border-white/20 backdrop-blur-sm w-full">
+          <Card className="bg-black/10 border-black/20 backdrop-blur-sm w-full">
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="flex justify-center gap-4">
                   <Button
                     onClick={togglePlayPause}
                     size="lg"
-                    className="bg-white/20 hover:bg-white/30 text-white border-white/30 luminari"
+                    className="bg-black/10 hover:bg-black/20 border-black/20 luminari"
+                    style={{ color: textColor }}
                   >
                     {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                    <span className="ml-2 text-white/90">{isPlaying ? "Pause" : "Play"}</span>
+                    <span className="ml-2">{isPlaying ? "Pause" : "Play"}</span>
                   </Button>
                   <Button
                     onClick={skipToNext}
                     size="lg"
-                    className="bg-white/20 hover:bg-white/30 text-white border-white/30 luminari"
+                    className="bg-black/10 hover:bg-black/20 border-black/20 luminari"
+                    style={{ color: textColor }}
                   >
                     <SkipForward className="w-6 h-6" />
-                    <span className="ml-2 text-white/90">Next</span>
+                    <span className="ml-2">Next</span>
                   </Button>
                 </div>
 
-                {/* Volume Control */}
                 <div className="flex items-center justify-center gap-3 mt-4">
-                  <Volume2 className="w-5 h-5 text-white/70" />
+                  <Volume2 className="w-5 h-5" style={{ color: textColor + "b0" }} />
                   <input
                     type="range"
                     min="0"
@@ -490,25 +484,26 @@ export default function MusicOnlyMode({ onBack }: MusicOnlyModeProps) {
                     step="0.1"
                     value={volume}
                     onChange={(e) => setVolume(Number.parseFloat(e.target.value))}
-                    className="w-32 h-2 bg-white/20 rounded-lg appearance-none cursor-pointer slider"
+                    className="w-32 h-2 rounded-lg appearance-none cursor-pointer slider"
                     style={{
-                      background: `linear-gradient(to right, #ffffff ${volume * 100}%, rgba(255,255,255,0.2) ${volume * 100}%)`,
+                      background: `linear-gradient(to right, ${textColor} ${volume * 100}%, ${textColor}33 ${volume * 100}%)`,
                     }}
                   />
-                  <span className="text-white/70 text-sm luminari min-w-[3ch]">{Math.round(volume * 100)}%</span>
+                  <span className="text-sm luminari min-w-[3ch]" style={{ color: textColor + "b0" }}>{Math.round(volume * 100)}%</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="text-white/70 text-sm space-y-2 luminari">
+          <div className="text-sm space-y-2 luminari" style={{ color: textColor + "b0" }}>
             <p>24 hours of unrepeated, uninterrupted original music made by Ranga between 2011 and 2017</p>
             <p>
               <a
                 href="https://linktr.ee/olranga"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/90 hover:text-white underline"
+                className="underline"
+                style={{ color: textColor }}
               >
                 linktr.ee/olranga
               </a>
