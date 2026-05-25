@@ -88,8 +88,9 @@ export default function ZenApp() {
     setShowInput(false)
 
     if (step === "colour") {
-      setBgColor(inputValue.trim())
-      setProfile((p) => ({ ...p, colour: inputValue.trim() }))
+      const normalized = normalizeColor(inputValue.trim())
+      setBgColor(normalized)
+      setProfile((p) => ({ ...p, colour: normalized }))
       setJourneyStarted(true)
 
       setTimeout(() => {
@@ -361,6 +362,16 @@ export default function ZenApp() {
       </div>
     </main>
   )
+}
+
+function normalizeColor(input: string): string {
+  if (typeof document === "undefined") return "#1a1a2e"
+  const el = document.createElement("div")
+  document.body.appendChild(el)
+  el.style.backgroundColor = input
+  const valid = el.style.backgroundColor !== ""
+  document.body.removeChild(el)
+  return valid ? input : "#1a1a2e"
 }
 
 function getContrastColor(bgColor: string): string {

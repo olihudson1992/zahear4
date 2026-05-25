@@ -1,8 +1,8 @@
 "use client"
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
-import { Float } from "@react-three/drei"
-import { useRef, useMemo, useEffect, useState } from "react"
+import { Float, OrbitControls } from "@react-three/drei"
+import { useRef, useMemo, useState } from "react"
 import * as THREE from "three"
 
 const pages = [
@@ -18,25 +18,18 @@ const pages = [
   { name: "עʃᚢ",            path: "/עʃᚢ",             color: "#00aaff" },
 ]
 
-function Lights({ isMobile }: { isMobile: boolean }) {
+function Lights() {
   const light1Ref = useRef<THREE.PointLight>(null)
   const light2Ref = useRef<THREE.PointLight>(null)
   const { viewport, pointer } = useThree()
   const targetPos = useRef(new THREE.Vector3(0, 0, 4))
   const currentPos = useRef(new THREE.Vector3(0, 0, 4))
 
-  useFrame((state) => {
-    if (isMobile) {
-      const t = state.clock.elapsedTime * 0.5
-      currentPos.current.x = Math.sin(t) * 4
-      currentPos.current.y = Math.cos(t * 0.7) * 2
-      currentPos.current.z = 4 + Math.cos(t * 0.5) * 2
-    } else {
-      targetPos.current.x = (pointer.x * viewport.width) / 2
-      targetPos.current.y = (pointer.y * viewport.height) / 2
-      targetPos.current.z = 4
-      currentPos.current.lerp(targetPos.current, 0.08)
-    }
+  useFrame(() => {
+    targetPos.current.x = (pointer.x * viewport.width) / 2
+    targetPos.current.y = (pointer.y * viewport.height) / 2
+    targetPos.current.z = 4
+    currentPos.current.lerp(targetPos.current, 0.08)
 
     if (light1Ref.current) light1Ref.current.position.copy(currentPos.current)
     if (light2Ref.current) {
@@ -153,28 +146,29 @@ function Orbs({ onHover }: { onHover: (name: string | null) => void }) {
 }
 
 export default function OrbScene() {
-  const [isMobile, setIsMobile] = useState(false)
   const [hoveredName, setHoveredName] = useState<string | null>(null)
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener("resize", check)
-    return () => window.removeEventListener("resize", check)
-  }, [])
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-[#030308]">
       <Canvas
-        camera={{ position: [0, 0, 7], fov: 50 }}
+        camera={{ position: [0, 0, 12], fov: 60 }}
         gl={{ antialias: true, powerPreference: "high-performance" }}
         dpr={[1, 1.5]}
       >
         <color attach="background" args={["#030308"]} />
-        <fog attach="fog" args={["#030308", 8, 25]} />
+        <fog attach="fog" args={["#030308", 12, 30]} />
         <ambientLight intensity={0.05} />
-        <Lights isMobile={isMobile} />
+        <Lights />
         <Orbs onHover={setHoveredName} />
+        <OrbitControls
+          enableDamping
+          dampingFactor={0.05}
+          enableZoom
+          enableRotate
+          enablePan={false}
+          minDistance={4}
+          maxDistance={25}
+        />
       </Canvas>
       <div
         className={`pointer-events-none fixed left-1/2 top-8 -translate-x-1/2 transition-all duration-200 ${
