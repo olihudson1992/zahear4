@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Play, Pause, SkipForward, Download, ArrowLeft, Volume2 } from "lucide-react"
+import { Play, Pause, SkipForward, Download, Volume2 } from "lucide-react"
 
 // Import the track list
 const TRACK_LIST = [
@@ -387,6 +387,7 @@ export default function MusicOnlyMode({ onBack }: MusicOnlyModeProps) {
   const [backgroundColor, setBackgroundColor] = useState("#FF6B35")
   const textColor = getContrastColor(backgroundColor)
   const [currentTrackName, setCurrentTrackName] = useState("")
+  const [showHelp, setShowHelp] = useState(false)
 
   const colors = [
     "#FF6B35", // Orange
@@ -414,20 +415,10 @@ export default function MusicOnlyMode({ onBack }: MusicOnlyModeProps) {
 
   return (
     <div
-      className="w-full h-screen flex items-center justify-center transition-colors duration-1000"
+      className="w-full min-h-screen flex items-center justify-center transition-colors duration-1000 py-8"
       style={{ backgroundColor }}
     >
-      <div className="max-w-2xl mx-auto text-center p-8 relative">
-        <Button
-          onClick={onBack}
-          variant="outline"
-          className="absolute top-4 left-4 bg-black/10 border-black/20 hover:bg-black/20 luminari"
-          style={{ transform: "translate(-100%, -100%)", color: textColor }}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
+      <div className="max-w-2xl mx-auto text-center p-8 w-full">
         <div className="space-y-8">
           <h1 className="text-4xl md:text-6xl font-bold luminari" style={{ color: textColor }}>Bangas</h1>
 
@@ -495,22 +486,82 @@ export default function MusicOnlyMode({ onBack }: MusicOnlyModeProps) {
             </CardContent>
           </Card>
 
-          <div className="text-sm space-y-2 luminari" style={{ color: textColor + "b0" }}>
-            <p>24 hours of unrepeated, uninterrupted original music made by Ranga between 2011 and 2017</p>
-            <p>
-              <a
-                href="https://linktr.ee/olranga"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-                style={{ color: textColor }}
-              >
-                linktr.ee/olranga
-              </a>
-            </p>
+          <p className="text-sm luminari" style={{ color: textColor + "b0" }}>
+            24 hours of unrepeated, uninterrupted original music made by Ranga between 2011 and 2017
+          </p>
+
+          {/* Social links row */}
+          <div className="flex items-center justify-center gap-5">
+            {/* ? help button */}
+            <button
+              onClick={() => setShowHelp(true)}
+              className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold luminari transition-opacity hover:opacity-70"
+              style={{ backgroundColor: textColor, color: backgroundColor }}
+              title="About Ranga"
+            >
+              ?
+            </button>
+
+            {/* Linktree */}
+            <a href="https://linktr.ee/olranga" target="_blank" rel="noopener noreferrer" title="Linktree" className="transition-opacity hover:opacity-70">
+              <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+                <path d="m13.73635 5.85251 4.00467 -4.11665 2.3248 2.3808 -4.20064 4.00466h5.9085v3.30473h-5.9365l4.22865 4.10766 -2.3248 2.3338L12.0005 12.099l-5.74052 5.76852 -2.3248 -2.3248 4.22864 -4.10766h-5.9375V8.12132h5.9085L3.93417 4.11666l2.3248 -2.3808 4.00468 4.11665V0h3.4727zm-3.4727 10.30614h3.4727V24h-3.4727z" fill={textColor} />
+              </svg>
+            </a>
+
+            {/* Instagram */}
+            <a href="https://instagram.com/wyrdolranga" target="_blank" rel="noopener noreferrer" title="Instagram" className="transition-opacity hover:opacity-70">
+              <svg fill={textColor} width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                <g>
+                  <path d="M22.3,8.4c-0.8,0-1.4,0.6-1.4,1.4c0,0.8,0.6,1.4,1.4,1.4c0.8,0,1.4-0.6,1.4-1.4C23.7,9,23.1,8.4,22.3,8.4z"/>
+                  <path d="M16,10.2c-3.3,0-5.9,2.7-5.9,5.9s2.7,5.9,5.9,5.9s5.9-2.7,5.9-5.9S19.3,10.2,16,10.2z M16,19.9c-2.1,0-3.8-1.7-3.8-3.8c0-2.1,1.7-3.8,3.8-3.8c2.1,0,3.8,1.7,3.8,3.8C19.8,18.2,18.1,19.9,16,19.9z"/>
+                  <path d="M20.8,4h-9.5C7.2,4,4,7.2,4,11.2v9.5c0,4,3.2,7.2,7.2,7.2h9.5c4,0,7.2-3.2,7.2-7.2v-9.5C28,7.2,24.8,4,20.8,4z M25.7,20.8c0,2.7-2.2,5-5,5h-9.5c-2.7,0-5-2.2-5-5v-9.5c0-2.7,2.2-5,5-5h9.5c2.7,0,5,2.2,5,5V20.8z"/>
+                </g>
+              </svg>
+            </a>
+
+            {/* Bandcamp */}
+            <a href="https://rangatanga.bandcamp.com" target="_blank" rel="noopener noreferrer" title="Bandcamp" className="transition-opacity hover:opacity-70">
+              <img
+                src="/ranga/images/bandcamp.png"
+                alt="Bandcamp"
+                width="32"
+                height="32"
+                style={{ filter: textColor === "#ffffff" ? "invert(1)" : "none" }}
+              />
+            </a>
           </div>
         </div>
       </div>
+
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+          <Card className="bg-white border-2 border-orange-500 max-w-4xl max-h-[80vh] overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-5xl font-bold text-black luminari">Yo<span className="text-orange-500">!</span></h2>
+                <Button onClick={() => setShowHelp(false)} variant="ghost" size="sm" className="text-black hover:bg-gray-100">✕</Button>
+              </div>
+              <div className="overflow-y-auto max-h-[60vh] pr-2 text-sm leading-relaxed space-y-4 text-black">
+                <p>Thanks for being here in <span className="luminari text-orange-500">Ranga's</span> cave. You might have one of these statues, but do you know the whole story?</p>
+                <p>Long ago, in the cave inside the earth, <span className="luminari text-orange-500">Ranga</span> banged and banged and banged. He loved to drum, and drummed on everything around everyone. He travelled around the kingdom he called <span className="luminari" style={{ color: "#00BFFF" }}>Argara</span>, until he found <span className="luminari" style={{ color: "#8B4513" }}>Shuk</span>, a mountain that rose high up towards the central floating core in the inside of the earth. Inside <span className="luminari" style={{ color: "#8B4513" }}>Shuk</span> is a magical infinite cave, the cave is known for having the most interesting echo effect.</p>
+                <p>The echoes would become alive and dance in the cave, they would take forms and find rocks to bang, the echoes created shadows who grew winds and sparks that created harps, gongs, fubarbettes and any instrument he could imagine. <span className="luminari text-orange-500">Ranga</span> loved this cave, and he spent many years alone here banging and banging and banging with his own echoes, the music you can hear here.</p>
+                <p>As this went on <span className="luminari" style={{ color: "#8B4513" }}>Shuk</span>, the mountain <span className="luminari text-orange-500">Ranga</span> lived inside began to dance. <span className="luminari" style={{ color: "#8B4513" }}>Shuk</span> is one of the biggest mountains of <span className="luminari" style={{ color: "#00BFFF" }}>Argara</span>, and their dancing caused so much fuss. All kinds of muck, dust and smoke covered stone city, and the dust was laying thick on crystal city; so <span className="luminari" style={{ color: "#00BFFF" }}>Argara</span> decided to do something about it.</p>
+                <p><span className="luminari" style={{ color: "#00BFFF" }}>Argara</span> sent out an ask for help, they asked for someone to stop <span className="luminari text-orange-500">Ranga</span>. So came the witch and sage, <span className="luminari" style={{ color: "#00FF00" }}>Nana</span> & <span className="luminari" style={{ color: "#8A2BE2" }}>Azar</span>. They travelled together, and entered <span className="luminari text-orange-500">Ranga's</span> cave.</p>
+                <p><span className="luminari" style={{ color: "#8A2BE2" }}>Azar</span> went first, but as soon as he heard the music he couldn't help but to dance and play. He drummed as well and piped upon his flute, he grew into a cluster of red balloons on the roof and flew away each time he came close to <span className="luminari text-orange-500">Ranga's</span> way.</p>
+                <p>So <span className="luminari" style={{ color: "#00FF00" }}>Nana</span> kept it simple, and in a poof of smoke, arrived behind <span className="luminari text-orange-500">Ranga</span> singing her own song. She clicked her fingers and in an instant, <span className="luminari text-orange-500">Ranga</span> was turned to stone.</p>
+                <p>"Slippy slop this smock, he can for now live as a rock" <span className="luminari" style={{ color: "#00FF00" }}>Nana</span> cackled.</p>
+                <p>to which <span className="luminari" style={{ color: "#8A2BE2" }}>Azar</span> added a twist to the spell.</p>
+                <p>"Until we need the music for the change of days"</p>
+                <p>--</p>
+                <p>So here, for you is <span className="luminari text-orange-500">Ranga</span>. <span className="luminari text-orange-500">Ranga</span> is ultimately <span className="luminari text-orange-500">Oli</span>. Listen through 24 hours of his earliest music.</p>
+                <p>Thanks again<span className="text-orange-500">!</span></p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <style jsx>{`
         .slider::-webkit-slider-thumb {

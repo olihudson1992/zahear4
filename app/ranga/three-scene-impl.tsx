@@ -1273,23 +1273,6 @@ export default function Page() {
 
   return (
     <div className="w-full h-screen bg-black">
-      <Button
-        onClick={() => {
-          // Stop the music
-          if (audioPlayer.audioElement) {
-            audioPlayer.audioElement.pause()
-          }
-          setHasReturnedFromMode(true)
-          setCurrentMode("welcome")
-        }}
-        variant="outline"
-        className="absolute top-4 left-4 z-10 bg-black/80 border-gray-600 text-white hover:bg-gray-800 luminari ui-button"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back
-      </Button>
-
-
       {/* Wizard Toggle Button with Speech Bubble - Center bottom of screen */}
       {isLoadingComplete && (
         <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-70">
