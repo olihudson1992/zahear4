@@ -1247,7 +1247,7 @@ export default function Page() {
     )
 
 
-  const [currentMode, setCurrentMode] = useState<"welcome" | "cave" | "music-only">("welcome")
+  const [currentMode, setCurrentMode] = useState<"welcome" | "cave" | "music-only">("music-only")
   const [hasReturnedFromMode, setHasReturnedFromMode] = useState(false)
 
   if (currentMode === "welcome") {
