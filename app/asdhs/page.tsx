@@ -2,7 +2,6 @@
 
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Html } from "@react-three/drei"
-import { EffectComposer, Bloom } from "@react-three/postprocessing"
 import { GradientPlane } from "./gradient-plane"
 import { GradientDisk } from "./gradient-disk"
 import { GradientTriangle } from "./gradient-triangle"
@@ -126,10 +125,6 @@ export default function Page() {
         />
 
         <OrbitControls enableDamping dampingFactor={0.05} />
-
-        <EffectComposer>
-          <Bloom intensity={8} luminanceThreshold={0.1} luminanceSmoothing={0.3} radius={2} mipmapBlur />
-        </EffectComposer>
       </Canvas>
     </div>
   )

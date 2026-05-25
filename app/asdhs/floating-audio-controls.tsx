@@ -161,8 +161,8 @@ export function FloatingAudioControls({ setAudioData, setIsPlaying, setCurrentTr
     dataArrayRef.current = dataArray
     const update = () => {
       if (!analyserRef.current || !dataArrayRef.current) return
-      analyserRef.current.getByteFrequencyData(dataArrayRef.current)
-      setAudioData(dataArrayRef.current)
+      analyserRef.current.getByteFrequencyData(dataArrayRef.current as Uint8Array<ArrayBuffer>)
+      setAudioData(new Float32Array(dataArrayRef.current))
       animationFrameRef.current = requestAnimationFrame(update)
     }
     update()
