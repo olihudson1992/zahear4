@@ -6,16 +6,16 @@ import { useRef, useMemo, useEffect, useState } from "react"
 import * as THREE from "three"
 
 const pages = [
-  { name: "asdhs", color: "#00ffff" },
-  { name: "demoez", color: "#ff00ff" },
-  { name: "go", color: "#00ff88" },
-  { name: "ranga", color: "#ffff00" },
-  { name: "sing", color: "#ff6600" },
-  { name: "cǝɾǝ̃ɟẃɛ̃ʎ", color: "#00ffaa" },
-  { name: "chapTeronɘ", color: "#aa00ff" },
-  { name: "ɾɔɣ-ǝ̃ xn2gsj", color: "#ff0088" },
-  { name: "ʎịŊ", color: "#88ff00" },
-  { name: "stNG", color: "#00aaff" },
+  { name: "asdhs",          path: "/asdhs",           color: "#00ffff" },
+  { name: "demoez",         path: "/demoez",           color: "#ff00ff" },
+  { name: "go",             path: "/go",               color: "#00ff88" },
+  { name: "ranga",          path: "/ranga",            color: "#ffff00" },
+  { name: "sing",           path: "/sing",             color: "#ff6600" },
+  { name: "𝕊𝔦ＮᎶ",         path: "/𝕊𝔦ＮᎶ",           color: "#00ffaa" },
+  { name: "çøřǎŧÿŵžᛉ",    path: "/çøřǎŧÿŵžᛉ",      color: "#aa00ff" },
+  { name: "ǝuoɹǝʇdɐɥɔ",   path: "/ǝuoɹǝʇdɐɥɔ",     color: "#ff0088" },
+  { name: "юΘف жn2gsj",    path: "/юΘف жn2gsj",      color: "#88ff00" },
+  { name: "עʃᚢ",            path: "/עʃᚢ",             color: "#00aaff" },
 ]
 
 function Lights({ isMobile }: { isMobile: boolean }) {
@@ -60,13 +60,13 @@ interface OrbProps {
   position: [number, number, number]
   color: string
   name: string
-  url: string
+  path: string
   scale?: number
   index: number
   onHover: (name: string | null) => void
 }
 
-function Orb({ position, color, name, url, scale = 1, onHover }: OrbProps) {
+function Orb({ position, color, name, path, scale = 1, onHover }: OrbProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   const glowRef = useRef<THREE.Mesh>(null)
   const hoveredRef = useRef(false)
@@ -101,7 +101,7 @@ function Orb({ position, color, name, url, scale = 1, onHover }: OrbProps) {
             onHover(null)
             document.body.style.cursor = "default"
           }}
-          onClick={() => window.open(url, "_blank")}
+          onClick={() => { window.location.href = path }}
         >
           <sphereGeometry args={[1, 32, 32]} />
           <meshStandardMaterial
@@ -142,7 +142,7 @@ function Orbs({ onHover }: { onHover: (name: string | null) => void }) {
           position={orb.position}
           color={orb.color}
           name={orb.name}
-          url={`https://www.wiiad.world/${orb.name}`}
+          path={orb.path}
           scale={orb.scale}
           index={i}
           onHover={onHover}
