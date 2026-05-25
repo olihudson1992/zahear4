@@ -149,14 +149,14 @@ export default function OrbScene() {
   const [hoveredName, setHoveredName] = useState<string | null>(null)
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#030308]">
+    <div className="relative h-screen w-full overflow-hidden" style={{ background: "linear-gradient(160deg, #ffffff 0%, #0099ff 100%)" }}>
       <Canvas
         camera={{ position: [0, 0, 12], fov: 60 }}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
+        gl={{ antialias: true, powerPreference: "high-performance", alpha: true }}
+        style={{ background: "transparent" }}
         dpr={[1, 1.5]}
       >
-        <color attach="background" args={["#030308"]} />
-        <fog attach="fog" args={["#030308", 12, 30]} />
+        <fog attach="fog" args={["#55bbff", 12, 30]} />
         <ambientLight intensity={0.05} />
         <Lights />
         <Orbs onHover={setHoveredName} />
