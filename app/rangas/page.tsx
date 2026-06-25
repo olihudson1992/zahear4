@@ -84,7 +84,7 @@ function RangaDemos() {
     if (!selectedId) return
     const hasTrack = state.album?.id === selectedId && state.track != null
     const trackPart = hasTrack ? `&track=${state.trackIndex}` : ""
-    router.replace(`/demos?collection=${selectedId}${trackPart}`, { scroll: false })
+    router.replace(`/rangas?collection=${selectedId}${trackPart}`, { scroll: false })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, state.album?.id, state.trackIndex])
 
@@ -118,7 +118,7 @@ function RangaDemos() {
   const handleSelectAlbum = (id: string | null) => {
     if (id === null) {
       setSelectedId(null)
-      router.replace("/demos", { scroll: false })
+      router.replace("/rangas", { scroll: false })
       return
     }
     if (id === selectedId) {
