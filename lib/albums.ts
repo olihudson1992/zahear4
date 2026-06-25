@@ -1,7 +1,8 @@
 export type Track = {
   url: string
   name: string
-  gain?: number  // pre-limiter gain multiplier; defaults to 2.2 if omitted
+  gain?: number      // pre-limiter gain multiplier; defaults to 2.2 if omitted
+  startTime?: number // seek to this position (seconds) on load, to skip leading silence
 }
 
 export type AlbumTheme = {
@@ -113,7 +114,7 @@ export const albums: Album[] = [
     },
     tracks: [
       { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%2012%20Susans.mp3", name: "12 Susans", gain: 5.0 },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20L().mp3", name: "L()", gain: 3.7 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20L().mp3", name: "L()", gain: 3.7, startTime: 41 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20Oorb6.mp3", name: "Oorb6" },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20Orbic.mp3", name: "Orbic" },
     ],

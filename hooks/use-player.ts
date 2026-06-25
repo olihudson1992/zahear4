@@ -133,6 +133,10 @@ export function usePlayer() {
       setDuration(0)
 
       audio.src = t.url
+      if (t.startTime) {
+        const skip = () => { audio.currentTime = t.startTime!; audio.removeEventListener("loadedmetadata", skip) }
+        audio.addEventListener("loadedmetadata", skip)
+      }
       trackGainRef.current = t.gain ?? 2.2
       if (gainNodeRef.current) {
         gainNodeRef.current.gain.value = volume * trackGainRef.current

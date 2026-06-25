@@ -171,17 +171,20 @@ function TrackOrb({
       ? 1 + Math.sin(t * 3.2 + seed) * 0.18
       : 1 + Math.sin(t * 0.7 + seed) * 0.07
 
+    // Visited-but-inactive orbs stay permanently dim — no hover brightening
+    const dim = visited && !active
+
     // Outer gas cloud — very faint, large
     if (outerRef.current) outerRef.current.scale.setScalar(2.4 * breathe)
     if (outerMat.current) {
-      const target = active ? 0.10 : showName ? 0.07 : 0.04
+      const target = active ? 0.10 : (showName && !dim) ? 0.07 : dim ? 0.025 : 0.04
       outerMat.current.opacity += (target * breathe - outerMat.current.opacity) * 0.06
     }
 
     // Mid halo
     if (midRef.current) midRef.current.scale.setScalar(1.6 * (0.96 + breathe * 0.04))
     if (midMat.current) {
-      const target = active ? 0.22 : showName ? 0.15 : 0.08
+      const target = active ? 0.22 : (showName && !dim) ? 0.15 : dim ? 0.04 : 0.08
       midMat.current.opacity += (target * breathe - midMat.current.opacity) * 0.07
     }
 
@@ -189,7 +192,7 @@ function TrackOrb({
     if (coreMat.current) {
       const target = active && isPlaying
         ? 2.0 + Math.sin(t * 3.2 + seed) * 0.5
-        : active ? 1.6 : showName ? 1.2 : 0.7
+        : active ? 1.6 : (showName && !dim) ? 1.2 : dim ? 0.25 : 0.7
       coreMat.current.emissiveIntensity += (target - coreMat.current.emissiveIntensity) * 0.08
     }
   })
