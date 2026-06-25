@@ -130,18 +130,6 @@ export function FloatingPlayer({
           }}
         >
           <div className="flex flex-col gap-3 px-4 pb-2 pt-3">
-            <div className="text-center leading-tight">
-              <p
-                className={`truncate text-sm font-medium ${album?.theme.display ?? ""}`}
-                style={{ color: "#0a0a0e" }}
-              >
-                {track?.name ?? ""}
-              </p>
-              <p className="mt-0.5 truncate text-xs" style={{ color: "rgba(0,0,0,0.45)" }}>
-                {album?.title ?? ""}
-              </p>
-            </div>
-
             <div>
               <input
                 type="range"
