@@ -375,10 +375,41 @@ function TrackOrbsPhysics({
 
 function SceneInfoButton() {
   const [open, setOpen] = useState(false)
+  const groupRef = useRef<THREE.Group>(null)
+  const divRef   = useRef<HTMLDivElement>(null)
+  const openRef  = useRef(false)
+  openRef.current = open
+  // stable target for the "open" position (in front of the orb cluster)
+  const openPos = useMemo(() => new THREE.Vector3(0, 0, 5.5), [])
+
+  useFrame(({ clock }) => {
+    const g   = groupRef.current
+    const div = divRef.current
+    if (!g || !div) return
+
+    if (openRef.current) {
+      // Gently float toward a readable front-center position
+      g.position.lerp(openPos, 0.04)
+      div.style.opacity = "1"
+      return
+    }
+
+    // Slow orbit around the orb cluster, drifting in Y too
+    const t  = clock.elapsedTime
+    const rx = 4.3, rz = 3.5
+    g.position.x = Math.sin(t * 0.07) * rx
+    g.position.z = Math.cos(t * 0.07) * rz
+    g.position.y = Math.sin(t * 0.053 + 1.6) * 2.6
+
+    // Fade: near-invisible at the back (z ≈ -rz), subtly visible at the front (z ≈ +rz)
+    const norm = (g.position.z + rz) / (rz * 2)         // 0 → 1 back→front
+    div.style.opacity = String(Math.max(0.06, norm * 0.55))
+  })
+
   return (
-    <group position={[0, 0, 0]}>
+    <group ref={groupRef}>
       <Html center zIndexRange={[40, 0]}>
-        <div style={{ position: "relative", display: "inline-block" }}>
+        <div ref={divRef} style={{ position: "relative", display: "inline-block", opacity: 0.06 }}>
           {open && (
             <div
               style={{
@@ -391,7 +422,7 @@ function SceneInfoButton() {
                 WebkitBackdropFilter: "blur(20px)",
                 borderRadius: 16,
                 padding: "12px 16px",
-                width: 200,
+                width: 210,
                 color: "#0a0a0e",
                 fontSize: 13,
                 lineHeight: 1.6,
@@ -402,7 +433,10 @@ function SceneInfoButton() {
                 fontFamily: "inherit",
               }}
             >
-              this is a space for ranga, aka oli hudson, who produces music in liverpool with an mpc 1000, a novation k station, digitone, hydrasynth, tascam desk, effects and a load of instruments. you can check out ranga{" "}
+              this is a space for ranga, aka oli hudson, who produces music in
+              liverpool with an mpc 1000, a novation k station, digitone,
+              hydrasynth, tascam desk, effects and a load of instruments. you can
+              check out ranga{" "}
               <a
                 href="https://www.linktr.ee/olranga"
                 target="_blank"
@@ -411,30 +445,30 @@ function SceneInfoButton() {
               >
                 here
               </a>{" "}
-              and drop a big up in the chat if you like. explore the floating balls to hear over 80 tracks oli&apos;s looking to share.
+              and drop a big up in the chat if you like. explore the floating
+              balls to hear over 80 tracks oli&apos;s looking to share.
             </div>
           )}
           <button
             onClick={(e) => { e.stopPropagation(); setOpen((o) => !o) }}
             onPointerDown={(e) => e.stopPropagation()}
             style={{
-              width: 28,
-              height: 28,
+              width: 26,
+              height: 26,
               borderRadius: "50%",
-              background: open ? "#f97316" : "rgba(255,255,255,0.14)",
-              border: `1.5px solid ${open ? "#f97316" : "rgba(255,255,255,0.3)"}`,
+              background: open ? "#f97316" : "rgba(255,255,255,0.12)",
+              border: `1.5px solid ${open ? "#f97316" : "rgba(255,255,255,0.28)"}`,
               color: open ? "#fff" : "rgba(255,255,255,0.7)",
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 700,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
               userSelect: "none",
               WebkitUserSelect: "none",
-              transition: "background 0.2s, border-color 0.2s",
               fontFamily: "inherit",
               lineHeight: "1",
             } as React.CSSProperties}

@@ -8,6 +8,7 @@ import { GradientField } from "@/components/gradient-field"
 import dynamic from "next/dynamic"
 import { FloatingPlayer } from "@/components/floating-player"
 import { X } from "lucide-react"
+import { WizardPrompt } from "@/components/wizard-prompt"
 
 const OrbScene = dynamic(
   () => import("@/components/orb-scene").then((m) => ({ default: m.OrbScene })),
@@ -200,6 +201,8 @@ function RangaDemos() {
           </div>
         </div>
       )}
+
+      <WizardPrompt isPlaying={state.isPlaying} />
 
       {playerVisible && (
         <FloatingPlayer
