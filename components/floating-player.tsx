@@ -113,7 +113,7 @@ export function FloatingPlayer({
                 </>
               )}
             </p>
-            <p className="mt-2 text-xs text-black/35">all tracks prod by oli aka ranga</p>
+            <p className="mt-2 text-xs text-black/35">all tracks prod by oli aka <span style={{ color: "#f97316" }}>ranga</span></p>
           </div>
         </div>
       )}
