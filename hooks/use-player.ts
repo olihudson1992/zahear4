@@ -3,6 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { albums, type Album, type Track } from "@/lib/albums"
 
+export const analyserData: { node: AnalyserNode | null } = { node: null }
+
+function shuffleExcluding(n: number, exclude: number): number[] {
+  const arr = Array.from({ length: n }, (_, i) => i).filter((i) => i !== exclude)
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
 export type PlayerState = {
   album: Album | null
   track: Track | null
@@ -21,6 +32,8 @@ export function usePlayer() {
   const gainNodeRef = useRef<GainNode | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
   const trackGainRef = useRef(2.2)  // per-track boost; updated in playTrack
+  const shuffleQueueRef = useRef<number[]>([])
+  const playHistoryRef  = useRef<number[]>([])
 
   const [albumId, setAlbumId] = useState<string | null>(null)
   const [trackIndex, setTrackIndex] = useState(0)
@@ -56,11 +69,16 @@ export function usePlayer() {
         lim.ratio.value = 20           // 20:1 = brickwall
         lim.attack.value = 0.001       // 1 ms
         lim.release.value = 0.06       // 60 ms
+        const analyser = ctx.createAnalyser()
+        analyser.fftSize = 64
+        analyser.smoothingTimeConstant = 0.75
         src.connect(gain)
-        gain.connect(lim)
+        gain.connect(analyser)
+        analyser.connect(lim)
         lim.connect(ctx.destination)
         gainNodeRef.current = gain
         audioCtxRef.current = ctx
+        analyserData.node = analyser
       }
     } catch {
       // Web Audio unavailable — plain audio still works fine
@@ -132,6 +150,8 @@ export function usePlayer() {
       setCurrentTime(0)
       setDuration(0)
 
+      if (a.tracks.length > 1) shuffleQueueRef.current = shuffleExcluding(a.tracks.length, index)
+
       audio.src = t.url
       if (t.startTime) {
         const skip = () => { audio.currentTime = t.startTime!; audio.removeEventListener("loadedmetadata", skip) }
@@ -179,15 +199,27 @@ export function usePlayer() {
 
   const next = useCallback(() => {
     if (!album) return
-    playTrack(album.id, (trackIndex + 1) % album.tracks.length)
+    if (shuffleQueueRef.current.length === 0) {
+      shuffleQueueRef.current = shuffleExcluding(album.tracks.length, trackIndex)
+    }
+    const nextIdx = shuffleQueueRef.current.shift()
+    if (nextIdx === undefined) return
+    playHistoryRef.current.push(trackIndex)
+    if (playHistoryRef.current.length > 30) playHistoryRef.current.shift()
+    playTrack(album.id, nextIdx)
   }, [album, trackIndex, playTrack])
 
   const prev = useCallback(() => {
     if (!album) return
     const audio = audioRef.current
     if (audio && audio.currentTime > 3) { audio.currentTime = 0; return }
-    const i = (trackIndex - 1 + album.tracks.length) % album.tracks.length
-    playTrack(album.id, i)
+    if (playHistoryRef.current.length > 0) {
+      const prevIdx = playHistoryRef.current.pop()!
+      shuffleQueueRef.current.unshift(trackIndex)
+      playTrack(album.id, prevIdx)
+    } else if (audio) {
+      audio.currentTime = 0
+    }
   }, [album, trackIndex, playTrack])
 
   const seek = useCallback((t: number) => {
@@ -204,20 +236,20 @@ export function usePlayer() {
     }
   }, [])
 
-  // Auto-advance: next track in album, or first track of next album when last track ends
+  // Auto-advance: pick a random next track from the shuffle queue (reshuffles when exhausted)
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
     const onEnded = () => {
       if (!album) return
-      if (trackIndex < album.tracks.length - 1) {
-        playTrack(album.id, trackIndex + 1)
-      } else {
-        const idx = albums.findIndex((a) => a.id === album.id)
-        if (idx >= 0 && idx < albums.length - 1) {
-          playTrack(albums[idx + 1].id, 0)
-        }
+      if (shuffleQueueRef.current.length === 0) {
+        shuffleQueueRef.current = shuffleExcluding(album.tracks.length, trackIndex)
       }
+      const nextIdx = shuffleQueueRef.current.shift()
+      if (nextIdx === undefined) return
+      playHistoryRef.current.push(trackIndex)
+      if (playHistoryRef.current.length > 30) playHistoryRef.current.shift()
+      playTrack(album.id, nextIdx)
     }
     audio.addEventListener("ended", onEnded)
     return () => audio.removeEventListener("ended", onEnded)

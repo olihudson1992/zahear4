@@ -123,18 +123,19 @@ function RangaDemos() {
       return
     }
     if (id === selectedId) {
+      // Tapping the current album: toggle only if we're playing from it
       if (state.album?.id === id && state.track) {
         toggle()
-      } else {
-        setPlayerVisible(true)
-        playTrack(id, 0)
       }
       return
     }
     markVisited(id)
     setSelectedId(id)
     setPlayerVisible(true)
-    playTrack(id, 0)
+    // Don't interrupt a track already playing — let the user pick one
+    if (!state.track) {
+      playTrack(id, 0)
+    }
   }
 
   const handleSelectTrack = (album: Album, index: number) => {
