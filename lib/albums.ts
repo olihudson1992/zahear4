@@ -62,12 +62,13 @@ export const albums: Album[] = [
     },
     description: "An album made for MC Dada Shanti in 2017.",
     tracks: [
+      { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/birdy%20dub_ranga%20dada%20shanti.mp3", name: "Birdy Dub" },
       { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/Dada%20Shanti%20-%20%20Outbreak.mp3", name: "Outbreak" },
       { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/Dada%20Shanti%20-%20Da%20Great%20Crocodile.mp3", name: "Da Great Crocodile" },
       { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/Dada%20Shanti%20-%20Healing%20Dub.mp3", name: "Healing Dub" },
-      { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/Dada%20Shanti%20-%20More%20Love%20(Remix)%20mix%202.wav", name: "More Love (Remix)" },
-      { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/Dada%20Shanti%20-%20Plants.wav", name: "Plants" },
-      { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/Godman%20-%20Dada%20Shanti-1.wav", name: "Godman" },
+      { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/dada%20shanti%20plants%202026%20dance%20mix.mp3", name: "Plants 2026 (dance mix)" },
+      { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/dada%20shanti%20plants%202026%20mix%203.mp3", name: "Plants 2026 (mix 3)" },
+      { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/Godman%20-%20Dada%20Shanti-1.mp3", name: "Godman" },
     ],
   },
   {
