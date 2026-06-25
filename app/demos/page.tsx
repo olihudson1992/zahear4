@@ -8,7 +8,6 @@ import { GradientField } from "@/components/gradient-field"
 import dynamic from "next/dynamic"
 import { FloatingPlayer } from "@/components/floating-player"
 import { X } from "lucide-react"
-import { DemosChatButton } from "@/components/demos-chat"
 
 const OrbScene = dynamic(
   () => import("@/components/orb-scene").then((m) => ({ default: m.OrbScene })),
@@ -89,14 +88,14 @@ function RangaDemos() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, state.album?.id, state.trackIndex])
 
-  // Sync scene when the player auto-advances to a new album between tracks
+  // Sync scene when the player auto-advances (same-album or cross-album)
   useEffect(() => {
     const newId = state.album?.id
     if (!newId || newId === selectedId) return
     setSelectedId(newId)
     markVisited(newId)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.album?.id])
+  }, [state.album?.id, state.trackIndex])
 
   // Mark track URL as visited when the player moves on
   useEffect(() => {
@@ -215,7 +214,6 @@ function RangaDemos() {
         />
       )}
 
-      <DemosChatButton accent={accent} />
     </main>
   )
 }

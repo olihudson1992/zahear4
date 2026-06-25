@@ -373,6 +373,71 @@ function TrackOrbsPhysics({
   )
 }
 
+function SceneInfoButton() {
+  const [open, setOpen] = useState(false)
+  return (
+    <group position={[0, 0, 0]}>
+      <Html center zIndexRange={[40, 0]}>
+        <div style={{ position: "relative", display: "inline-block" }}>
+          {open && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "calc(100% + 8px)",
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "rgba(255,255,255,0.93)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
+                borderRadius: 16,
+                padding: "12px 16px",
+                width: 200,
+                color: "#0a0a0e",
+                fontSize: 13,
+                lineHeight: 1.6,
+                boxShadow: "0 4px 28px rgba(0,0,0,0.14)",
+                textAlign: "center",
+                whiteSpace: "normal",
+                pointerEvents: "auto",
+                fontFamily: "inherit",
+              }}
+            >
+              this is a space for ranga
+            </div>
+          )}
+          <button
+            onClick={(e) => { e.stopPropagation(); setOpen((o) => !o) }}
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
+              background: open ? "#f97316" : "rgba(255,255,255,0.14)",
+              border: `1.5px solid ${open ? "#f97316" : "rgba(255,255,255,0.3)"}`,
+              color: open ? "#fff" : "rgba(255,255,255,0.7)",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              userSelect: "none",
+              WebkitUserSelect: "none",
+              transition: "background 0.2s, border-color 0.2s",
+              fontFamily: "inherit",
+              lineHeight: "1",
+            } as React.CSSProperties}
+          >
+            ?
+          </button>
+        </div>
+      </Html>
+    </group>
+  )
+}
+
 function Scene({
   albums, selectedId, onSelectAlbum, currentUrl, onSelectTrack,
   isPlaying, hoverCapable, revealedId, setRevealedId, visitedIds, visitedTrackUrls,
@@ -405,6 +470,8 @@ function Scene({
           onBack={() => onSelectAlbum(null)}
         />
       ))}
+
+      {!selected && <SceneInfoButton />}
 
       {selected && (
         <TrackOrbsPhysics

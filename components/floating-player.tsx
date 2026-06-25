@@ -16,8 +16,10 @@ import {
   X,
   Link2,
   Check,
+  MessageCircle,
 } from "lucide-react"
 import { WaveformScrubber } from "@/components/waveform-scrubber"
+import { DemosChatPanel } from "@/components/demos-chat"
 
 function fmt(t: number) {
   if (!isFinite(t) || t < 0) t = 0
@@ -47,6 +49,7 @@ export function FloatingPlayer({
   const { track, album, isPlaying, currentTime, duration, volume, loading, error } = state
   const [expanded, setExpanded] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const copyLink = useCallback(() => {
@@ -69,6 +72,9 @@ export function FloatingPlayer({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 flex flex-col items-center">
+      {/* Chat panel — appears above info card */}
+      {chatOpen && <DemosChatPanel open={chatOpen} accent={accent} />}
+
       {/* Info card — appears above the player bar */}
       {infoOpen && album?.description && (
         <div className="w-full max-w-lg px-3 pb-2">
@@ -251,7 +257,7 @@ export function FloatingPlayer({
           {/* ? info button — only shown when album has a description */}
           {album?.description && (
             <button
-              onClick={() => setInfoOpen((o) => !o)}
+              onClick={() => { setInfoOpen((o) => !o); setChatOpen(false) }}
               aria-label="Album info"
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-transform hover:scale-105 active:scale-95"
               style={{
@@ -279,6 +285,20 @@ export function FloatingPlayer({
               {copied ? <Check className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
             </button>
           )}
+
+          {/* Chat button */}
+          <button
+            onClick={() => { setChatOpen((o) => !o); setInfoOpen(false) }}
+            aria-label="Chat"
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
+            style={{
+              background: chatOpen ? accent : "rgba(0,0,0,0.07)",
+              color: chatOpen ? "#fff" : "rgba(0,0,0,0.5)",
+              border: `1px solid ${chatOpen ? accent : "rgba(0,0,0,0.1)"}`,
+            }}
+          >
+            <MessageCircle className="h-3 w-3" />
+          </button>
 
           <button
             onClick={() => setExpanded((e) => !e)}
