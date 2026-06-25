@@ -7,6 +7,7 @@ import { usePlayer } from "@/hooks/use-player"
 import { GradientField } from "@/components/gradient-field"
 import dynamic from "next/dynamic"
 import { FloatingPlayer } from "@/components/floating-player"
+import { X } from "lucide-react"
 
 const OrbScene = dynamic(
   () => import("@/components/orb-scene").then((m) => ({ default: m.OrbScene })),
@@ -16,7 +17,6 @@ const OrbScene = dynamic(
 function trackTheme(base: AlbumTheme, trackIndex: number): AlbumTheme {
   if (trackIndex === 0) return base
   const nodes = [...base.nodes]
-  // Rotate the nodes array so a different colour leads the gradient each track
   const rotated = [...nodes.slice(trackIndex % nodes.length), ...nodes.slice(0, trackIndex % nodes.length)]
   return { ...base, nodes: rotated }
 }
@@ -28,6 +28,25 @@ function RangaDemos() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [playerVisible, setPlayerVisible] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
+
+  // Visited album IDs — persisted in localStorage so grey state survives refresh
+  const [visitedIds, setVisitedIds] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set()
+    try {
+      const stored = localStorage.getItem("ranga-visited")
+      return stored ? new Set(JSON.parse(stored) as string[]) : new Set()
+    } catch { return new Set() }
+  })
+
+  const markVisited = (id: string) => {
+    setVisitedIds((prev) => {
+      if (prev.has(id)) return prev
+      const next = new Set([...prev, id])
+      try { localStorage.setItem("ranga-visited", JSON.stringify([...next])) } catch {}
+      return next
+    })
+  }
 
   useEffect(() => {
     const collection = searchParams.get("collection")
@@ -37,12 +56,25 @@ function RangaDemos() {
     }
   }, [searchParams])
 
+  // Sync scene when the player auto-advances to a new album between tracks
+  useEffect(() => {
+    const newId = state.album?.id
+    if (!newId || newId === selectedId) return
+    setSelectedId(newId)
+    markVisited(newId)
+    router.replace(`/demos?collection=${newId}`, { scroll: false })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.album?.id])
+
   const theme = useMemo(() => {
     const base = findAlbum(selectedId)?.theme ?? defaultTheme
     return trackTheme(base, state.trackIndex)
   }, [selectedId, state.trackIndex])
 
+  const selectedAlbum = findAlbum(selectedId)
+
   const handleSelectAlbum = (id: string | null) => {
+    setInfoOpen(false)
     if (id === null) {
       setSelectedId(null)
       router.replace("/demos", { scroll: false })
@@ -57,6 +89,7 @@ function RangaDemos() {
       }
       return
     }
+    markVisited(id)
     setSelectedId(id)
     router.replace(`/demos?collection=${id}`, { scroll: false })
   }
@@ -67,10 +100,7 @@ function RangaDemos() {
   }
 
   return (
-    <main
-      className="fixed inset-0 overflow-hidden"
-      style={{ color: theme.ink }}
-    >
+    <main className="fixed inset-0 overflow-hidden" style={{ color: theme.ink }}>
       <GradientField colors={theme.nodes} base={theme.base} energy={state.energy} />
 
       <OrbScene
@@ -80,7 +110,75 @@ function RangaDemos() {
         currentUrl={state.track?.url ?? null}
         onSelectTrack={handleSelectTrack}
         isPlaying={state.isPlaying}
+        visitedIds={visitedIds}
       />
+
+      {/* Info button — only visible when an album is open */}
+      {selectedAlbum && (
+        <div className="fixed right-4 top-4 z-50 flex flex-col items-end gap-2">
+          <button
+            onClick={() => setInfoOpen((o) => !o)}
+            aria-label="Album info"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold shadow-md transition-transform hover:scale-105 active:scale-95"
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              color: "#0a0a0e",
+              border: `1.5px solid ${theme.nodes[0]}55`,
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            ?
+          </button>
+
+          {infoOpen && (
+            <div
+              className="w-64 rounded-2xl p-4 shadow-xl"
+              style={{
+                background: "rgba(255,255,255,0.94)",
+                backdropFilter: "blur(20px)",
+                border: `1px solid ${theme.nodes[0]}33`,
+                color: "#0a0a0e",
+              }}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p
+                  className={`text-base font-semibold leading-tight ${selectedAlbum.theme.display}`}
+                  style={{ color: theme.nodes[0] }}
+                >
+                  {selectedAlbum.title}
+                </p>
+                <button
+                  onClick={() => setInfoOpen(false)}
+                  className="mt-0.5 shrink-0 text-black/30 hover:text-black/60"
+                  aria-label="Close"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              {selectedAlbum.description && (
+                <p className="mt-2 text-sm leading-relaxed text-black/70">
+                  {selectedAlbum.description}
+                  {selectedAlbum.descriptionLink && (
+                    <>
+                      {" "}
+                      <a
+                        href={selectedAlbum.descriptionLink.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:opacity-70"
+                        style={{ color: theme.nodes[0] }}
+                      >
+                        {selectedAlbum.descriptionLink.label}
+                      </a>
+                      .
+                    </>
+                  )}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {playerVisible && (
         <FloatingPlayer

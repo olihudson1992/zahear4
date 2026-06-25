@@ -17,9 +17,36 @@ export type Album = {
   art?: string
   theme: AlbumTheme
   tracks: Track[]
+  description?: string
+  descriptionLink?: { label: string; url: string }
 }
 
 export const albums: Album[] = [
+  {
+    id: "rangas-top-tip",
+    title: "ranga's top tip",
+    theme: {
+      base: "#0c080e",
+      ink: "#f8f0ff",
+      mutedInk: "rgba(248,240,255,0.6)",
+      nodes: ["#8860c0", "#d4a820", "#a870e0", "#c09018", "#c8a0f0", "#f0cc60", "#502890"],
+      display: "font-display italic tracking-wide",
+    },
+    description: "A curated selection — Ranga's personal favourites across all albums.",
+    tracks: [
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3", name: "Oremus" },
+      { url: "https://rangatracks.b-cdn.net/mwamwa/Tresa%20.mp3", name: "Tresa" },
+      { url: "https://rangatracks.b-cdn.net/mwamwa/Terrano%20.mp3", name: "Terrano" },
+      { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/trip.mp3", name: "Trip" },
+      { url: "https://rangatracks.b-cdn.net/HOME/ol%20-%20The%20Elephants%20Graveyard.mp3", name: "Elephants Graveyard" },
+      { url: "https://rangatracks.b-cdn.net/HOME/pondeavon.mp3", name: "Pon de Avon" },
+      { url: "https://rangatracks.b-cdn.net/pizza/Pizza%20Slice%20140%202.mp3", name: "Pizza Slice 140 2" },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/easy%20ft%20james%20morrigan.mp3", name: "Easy ft James Morrigan" },
+      { url: "https://rangatracks.b-cdn.net/bangas/banga%20three%20-%20ranga-1.mp3", name: "Banga Three" },
+      { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/Fox%20-%20Wyrd.mp3", name: "Fox - Wyrd" },
+      { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/god2_Ol'.mp3", name: "God 2" },
+    ],
+  },
   {
     id: "dada-shanti",
     title: "dada shanti",
@@ -31,6 +58,7 @@ export const albums: Album[] = [
       nodes: ["#2bb6a8", "#1f6f9e", "#e8c46a", "#2f9fd0", "#bfeee4", "#15506b", "#caa14a"],
       display: "font-display italic tracking-wide",
     },
+    description: "An album made for MC Dada Shanti in 2017.",
     tracks: [
       { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/Dada%20Shanti%20-%20%20Outbreak.mp3", name: "Outbreak" },
       { url: "https://rangatracks.b-cdn.net/DADA%20SHANTI%20DEMOS/Dada%20Shanti%20-%20Da%20Great%20Crocodile.mp3", name: "Da Great Crocodile" },
@@ -43,6 +71,7 @@ export const albums: Album[] = [
   {
     id: "ambient",
     title: "ambient",
+    description: "A collection of ambient works for meditation.",
     theme: {
       base: "#0a0e14",
       ink: "#ddeeff",
@@ -73,6 +102,7 @@ export const albums: Album[] = [
   {
     id: "orbic",
     title: "orbic",
+    description: "An EP made in collab with Jenome.",
     theme: {
       base: "#0e0a14",
       ink: "#ecdeff",
@@ -90,6 +120,7 @@ export const albums: Album[] = [
   {
     id: "sanga",
     title: "sanga",
+    description: "An album inspired by joining a Sanga.",
     theme: {
       base: "#0a1318",
       ink: "#e8f6ff",
@@ -110,6 +141,7 @@ export const albums: Album[] = [
   {
     id: "capoweara-pizza",
     title: "capoweara & pizza",
+    description: "Some beats made on hardware.",
     theme: {
       base: "#140a08",
       ink: "#fff0e8",
@@ -131,6 +163,7 @@ export const albums: Album[] = [
   {
     id: "rangas",
     title: "rangas",
+    description: "Some more beats made on hardware, previously used for a live band.",
     theme: {
       base: "#100808",
       ink: "#ffe8e0",
@@ -157,6 +190,7 @@ export const albums: Album[] = [
   {
     id: "bangas",
     title: "bangas",
+    description: "A collection of Bangas — my name for a dance track elaborated from a hardware beat.",
     theme: {
       base: "#160910",
       ink: "#ffe7f1",
@@ -174,6 +208,7 @@ export const albums: Album[] = [
   {
     id: "midsummer",
     title: "midsummer",
+    description: "My latest album, exploring Folk-tronica, Jazz and Dub — inspired from summer 2026.",
     theme: {
       base: "#0e1408",
       ink: "#eeffd8",
@@ -194,6 +229,7 @@ export const albums: Album[] = [
   {
     id: "midwinter",
     title: "midwinter",
+    description: "An album made in January 2026, exploring a move away from hardware and recordings of clock parts.",
     theme: {
       base: "#08100e",
       ink: "#d8f0ee",
@@ -214,6 +250,8 @@ export const albums: Album[] = [
   {
     id: "mwamwa",
     title: "mwamwa",
+    description: "An EP made in collaboration with Mexico City artist",
+    descriptionLink: { label: "Mwamwa", url: "https://mwamwa.bandcamp.com" },
     theme: {
       base: "#100e08",
       ink: "#fff8e0",
@@ -232,6 +270,7 @@ export const albums: Album[] = [
   {
     id: "wyrd-times",
     title: "wyrd times",
+    description: "A collection of dance tracks in weird time signatures.",
     theme: {
       base: "#100810",
       ink: "#f0e0f8",
@@ -261,6 +300,7 @@ export const albums: Album[] = [
   {
     id: "foesil-road",
     title: "foesil road",
+    description: "An EP made in 2016 inspired by Foesil Road in Cov.",
     theme: {
       base: "#0c100a",
       ink: "#e8f0e0",

@@ -91,6 +91,7 @@ function AlbumOrb({
   isPlaying,
   hoverCapable,
   revealed,
+  visited,
   onReveal,
   onSelect,
   onBack,
@@ -102,6 +103,7 @@ function AlbumOrb({
   isPlaying: boolean
   hoverCapable: boolean
   revealed: boolean
+  visited: boolean
   onReveal: () => void
   onSelect: () => void
   onBack: () => void
@@ -113,7 +115,8 @@ function AlbumOrb({
   const glowMat = useRef<THREE.MeshBasicMaterial>(null)
   const [hovered, setHovered] = useState(false)
 
-  const color = album.theme.nodes[0]
+  // Visited orbs turn grey so users can track what they've opened
+  const color = visited && !selected ? "#888888" : album.theme.nodes[0]
   const base = useMemo(() => new THREE.Vector3(...basePosition), [basePosition])
   const seed = useMemo(() => Math.random() * 100, [])
 
@@ -339,6 +342,7 @@ function Scene({
   hoverCapable,
   revealedId,
   setRevealedId,
+  visitedIds,
 }: {
   albums: Album[]
   selectedId: string | null
@@ -349,6 +353,7 @@ function Scene({
   hoverCapable: boolean
   revealedId: string | null
   setRevealedId: (id: string | null) => void
+  visitedIds: Set<string>
 }) {
   const selected = albums.find((a) => a.id === selectedId) ?? null
   const albumPositions = useMemo(() => fibSphere(albums.length, 4.3), [albums.length])
@@ -375,6 +380,7 @@ function Scene({
           isPlaying={isPlaying}
           hoverCapable={hoverCapable}
           revealed={revealedId === album.id}
+          visited={visitedIds.has(album.id)}
           onReveal={() => setRevealedId(album.id)}
           onSelect={() => onSelectAlbum(album.id)}
           onBack={() => onSelectAlbum(null)}
@@ -424,6 +430,7 @@ export function OrbScene(props: {
   currentUrl: string | null
   onSelectTrack: (album: Album, index: number) => void
   isPlaying: boolean
+  visitedIds: Set<string>
 }) {
   const [hoverCapable, setHoverCapable] = useState(true)
   useEffect(() => {
@@ -455,6 +462,7 @@ export function OrbScene(props: {
         hoverCapable={hoverCapable}
         revealedId={revealedId}
         setRevealedId={setRevealedId}
+        visitedIds={props.visitedIds}
       />
     </Canvas>
   )
