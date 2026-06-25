@@ -91,6 +91,7 @@ function AlbumOrb({
   const group = useRef<THREE.Group>(null)
   const core = useRef<THREE.Mesh>(null)
   const glow = useRef<THREE.Mesh>(null)
+  const collider = useRef<THREE.Mesh>(null)
   const coreMat = useRef<THREE.MeshStandardMaterial>(null)
   const glowMat = useRef<THREE.MeshBasicMaterial>(null)
   const [hovered, setHovered] = useState(false)
@@ -132,6 +133,11 @@ function AlbumOrb({
       glow.current.scale.set(1.35 + b * 0.18, 1.35 + b * 0.12, 1.35 + b * 0.16)
     }
     if (core.current) core.current.rotation.y = t * 0.05
+    // Shrink hit collider when selected so track orbs are easy to tap
+    if (collider.current) {
+      const targetColliderScale = selected ? 0.45 : 1
+      collider.current.scale.setScalar(collider.current.scale.x + (targetColliderScale - collider.current.scale.x) * 0.1)
+    }
   })
 
   const interactive = !anySelected || selected
@@ -141,8 +147,9 @@ function AlbumOrb({
         <sphereGeometry args={[1, 32, 32]} />
         <meshBasicMaterial ref={glowMat} color={color} transparent opacity={0.18} depthWrite={false} />
       </mesh>
-      {/* Oversized invisible collider — large tap target for mobile */}
+      {/* Invisible collider — oversized when unselected for easy tapping, tight when selected so track orbs are reachable */}
       <mesh
+        ref={collider}
         onPointerOver={(e) => { if (!interactive || !hoverCapable) return; e.stopPropagation(); setHovered(true); document.body.style.cursor = "pointer" }}
         onPointerOut={() => { setHovered(false); document.body.style.cursor = "default" }}
         onClick={(e) => {
