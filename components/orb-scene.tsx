@@ -137,14 +137,15 @@ function AlbumOrb({
 // No hard geometry — just overlapping soft lights, much easier to tap on mobile.
 function TrackOrb({
   name, position, color, ink, base, fontClass,
-  active, isPlaying, hoverCapable, revealed, onReveal, onPlay,
+  active, isPlaying, hoverCapable, revealed, visited, onReveal, onPlay,
 }: {
   name: string; position: [number, number, number]
   color: string; ink: string; base: string; fontClass: string
   active: boolean; isPlaying: boolean
-  hoverCapable: boolean; revealed: boolean
+  hoverCapable: boolean; revealed: boolean; visited: boolean
   onReveal: () => void; onPlay: () => void
 }) {
+  const orbColor = visited && !active ? "#888888" : color
   const group    = useRef<THREE.Group>(null)
   const outerRef = useRef<THREE.Mesh>(null)
   const midRef   = useRef<THREE.Mesh>(null)
@@ -214,19 +215,19 @@ function TrackOrb({
       {/* Outer gas cloud */}
       <mesh ref={outerRef}>
         <sphereGeometry args={[1, 14, 14]} />
-        <meshBasicMaterial ref={outerMat} color={color} transparent opacity={0.04} depthWrite={false} />
+        <meshBasicMaterial ref={outerMat} color={orbColor} transparent opacity={0.04} depthWrite={false} />
       </mesh>
 
       {/* Mid halo */}
       <mesh ref={midRef}>
         <sphereGeometry args={[1, 18, 18]} />
-        <meshBasicMaterial ref={midMat} color={color} transparent opacity={0.08} depthWrite={false} />
+        <meshBasicMaterial ref={midMat} color={orbColor} transparent opacity={0.08} depthWrite={false} />
       </mesh>
 
       {/* Bright core */}
       <mesh>
         <sphereGeometry args={[1, 22, 22]} />
-        <meshStandardMaterial ref={coreMat} color="#000000" emissive={color}
+        <meshStandardMaterial ref={coreMat} color="#000000" emissive={orbColor}
           emissiveIntensity={0.7} toneMapped={false} />
       </mesh>
 
@@ -237,13 +238,14 @@ function TrackOrb({
 
 function Scene({
   albums, selectedId, onSelectAlbum, currentUrl, onSelectTrack,
-  isPlaying, hoverCapable, revealedId, setRevealedId, visitedIds,
+  isPlaying, hoverCapable, revealedId, setRevealedId, visitedIds, visitedTrackUrls,
 }: {
   albums: Album[]; selectedId: string | null
   onSelectAlbum: (id: string | null) => void; currentUrl: string | null
   onSelectTrack: (album: Album, index: number) => void; isPlaying: boolean
   hoverCapable: boolean; revealedId: string | null
   setRevealedId: (id: string | null) => void; visitedIds: Set<string>
+  visitedTrackUrls: Set<string>
 }) {
   const selected = albums.find((a) => a.id === selectedId) ?? null
   const albumPositions = useMemo(() => fibSphere(albums.length, 4.3), [albums.length])
@@ -279,6 +281,7 @@ function Scene({
           fontClass={selected.theme.display}
           active={currentUrl === track.url} isPlaying={isPlaying}
           hoverCapable={hoverCapable} revealed={revealedId === track.url}
+          visited={visitedTrackUrls.has(track.url)}
           onReveal={() => setRevealedId(track.url)}
           onPlay={() => onSelectTrack(selected, i)}
         />
@@ -295,7 +298,7 @@ export function OrbScene(props: {
   albums: Album[]; selectedId: string | null
   onSelectAlbum: (id: string | null) => void; currentUrl: string | null
   onSelectTrack: (album: Album, index: number) => void; isPlaying: boolean
-  visitedIds: Set<string>
+  visitedIds: Set<string>; visitedTrackUrls: Set<string>
 }) {
   const [hoverCapable, setHoverCapable] = useState(true)
   useEffect(() => {
@@ -322,7 +325,7 @@ export function OrbScene(props: {
     >
       <Scene {...props} hoverCapable={hoverCapable}
         revealedId={revealedId} setRevealedId={setRevealedId}
-        visitedIds={props.visitedIds} />
+        visitedIds={props.visitedIds} visitedTrackUrls={props.visitedTrackUrls} />
     </Canvas>
   )
 }

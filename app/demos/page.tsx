@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect, Suspense } from "react"
+import { useMemo, useState, useEffect, useRef, Suspense } from "react"
 import { useRouter } from "next/navigation"
 import { albums, findAlbum, defaultTheme, type Album, type AlbumTheme } from "@/lib/albums"
 import { usePlayer } from "@/hooks/use-player"
@@ -26,6 +26,17 @@ function RangaDemos() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [playerVisible, setPlayerVisible] = useState(false)
+  const [visitedTrackUrls, setVisitedTrackUrls] = useState<Set<string>>(new Set())
+  const prevTrackUrl = useRef<string | null>(null)
+
+  // Mark a track URL as visited when the player moves away from it
+  useEffect(() => {
+    const url = state.track?.url ?? null
+    if (prevTrackUrl.current && prevTrackUrl.current !== url) {
+      setVisitedTrackUrls((s) => new Set([...s, prevTrackUrl.current!]))
+    }
+    prevTrackUrl.current = url
+  }, [state.track?.url])
 
   // Visited album IDs — persisted in localStorage so grey state survives refresh
   const [visitedIds, setVisitedIds] = useState<Set<string>>(() => {
@@ -97,6 +108,7 @@ function RangaDemos() {
         onSelectTrack={handleSelectTrack}
         isPlaying={state.isPlaying}
         visitedIds={visitedIds}
+        visitedTrackUrls={visitedTrackUrls}
       />
 
       {playerVisible && (

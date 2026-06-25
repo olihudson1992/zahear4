@@ -38,6 +38,8 @@ export function usePlayer() {
   useEffect(() => {
     const audio = new Audio()
     audio.preload = "metadata"
+    // Required for Web Audio to process cross-origin streams (BunnyCDN with CORS enabled)
+    audio.crossOrigin = "anonymous"
 
     // Web Audio chain: gain boost (~+7 dB) → brickwall limiter → output
     // Falls back silently if AudioContext is unavailable (SSR, policy, etc.)
@@ -130,9 +132,6 @@ export function usePlayer() {
       setCurrentTime(0)
       setDuration(0)
 
-      // Resume AudioContext immediately on the user-gesture stack
-      if (audioCtxRef.current?.state !== "running") audioCtxRef.current?.resume()
-
       audio.src = t.url
       trackGainRef.current = t.gain ?? 2.2
       if (gainNodeRef.current) {
@@ -141,8 +140,16 @@ export function usePlayer() {
         audio.volume = volume
       }
 
-      const p = audio.play()
-      if (p) p.catch(() => { setLoading(false); setIsPlaying(false) })
+      const doPlay = () => {
+        const p = audio.play()
+        if (p) p.catch(() => { setLoading(false); setIsPlaying(false) })
+      }
+      const ctx = audioCtxRef.current
+      if (ctx && ctx.state !== "running") {
+        ctx.resume().then(doPlay).catch(doPlay)
+      } else {
+        doPlay()
+      }
     },
     [volume],
   )
@@ -151,8 +158,16 @@ export function usePlayer() {
     const audio = audioRef.current
     if (!audio || !track) return
     if (audio.paused) {
-      const p = audio.play()
-      if (p) p.catch(() => setIsPlaying(false))
+      const doPlay = () => {
+        const p = audio.play()
+        if (p) p.catch(() => setIsPlaying(false))
+      }
+      const ctx = audioCtxRef.current
+      if (ctx && ctx.state !== "running") {
+        ctx.resume().then(doPlay).catch(doPlay)
+      } else {
+        doPlay()
+      }
     } else {
       audio.pause()
     }
