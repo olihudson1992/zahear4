@@ -17,6 +17,7 @@ import {
   Link2,
   Check,
 } from "lucide-react"
+import { WaveformScrubber } from "@/components/waveform-scrubber"
 
 function fmt(t: number) {
   if (!isFinite(t) || t < 0) t = 0
@@ -43,7 +44,7 @@ export function FloatingPlayer({
   onVolume: (v: number) => void
   onClose: () => void
 }) {
-  const { track, album, isPlaying, currentTime, duration, volume, loading } = state
+  const { track, album, isPlaying, currentTime, duration, volume, loading, error } = state
   const [expanded, setExpanded] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -142,16 +143,25 @@ export function FloatingPlayer({
         >
           <div className="flex flex-col gap-3 px-4 pb-2 pt-3">
             <div>
-              <input
-                type="range"
-                min={0}
-                max={duration || 0}
-                step={0.1}
-                value={Math.min(currentTime, duration || 0)}
-                onChange={(e) => onSeek(parseFloat(e.target.value))}
-                aria-label="Seek"
-                className="player-range player-range--tall w-full"
-                style={{ ["--p" as string]: `${progress}%`, ["--ink" as string]: accent }}
+              <WaveformScrubber
+                url={track?.url ?? ""}
+                currentTime={currentTime}
+                duration={duration}
+                accent={accent}
+                onSeek={onSeek}
+                fallback={
+                  <input
+                    type="range"
+                    min={0}
+                    max={duration || 0}
+                    step={0.1}
+                    value={Math.min(currentTime, duration || 0)}
+                    onChange={(e) => onSeek(parseFloat(e.target.value))}
+                    aria-label="Seek"
+                    className="player-range player-range--tall w-full"
+                    style={{ ["--p" as string]: `${progress}%`, ["--ink" as string]: accent }}
+                  />
+                }
               />
               <div
                 className="flex justify-between text-[10px] tabular-nums mt-1"
@@ -227,10 +237,10 @@ export function FloatingPlayer({
             className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden text-left"
           >
             <span
-              className={`truncate text-sm font-medium ${album?.theme.display ?? ""}`}
-              style={{ color: "#0a0a0e" }}
+              className={`truncate text-sm font-medium ${error ? "" : (album?.theme.display ?? "")}`}
+              style={{ color: error ? "#ef4444" : "#0a0a0e" }}
             >
-              {track?.name ?? "nothing playing"}
+              {error ? "couldn't load track" : (track?.name ?? "nothing playing")}
             </span>
           </button>
 
