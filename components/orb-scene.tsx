@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { OrbitControls, Html } from "@react-three/drei"
-import { useEffect, useRef, useMemo, useState } from "react"
+import { createContext, useContext, useEffect, useRef, useMemo, useState } from "react"
 import * as THREE from "three"
 import type { Album } from "@/lib/albums"
 
@@ -19,6 +19,11 @@ function fibSphere(count: number, radius: number, stretchY = 1): [number, number
   }
   return pts
 }
+
+// ------- Physics context — lets TrackOrbs read their world-space position from the
+// parent physics system without triggering React re-renders each frame.
+type PhysicsCtx = { positions: React.MutableRefObject<THREE.Vector3[]> }
+const TrackPhysicsCtx = createContext<PhysicsCtx | null>(null)
 
 function NameChip({
   text, fontClass, ink, base, offset = [1.6, 0, 0],
@@ -140,19 +145,20 @@ function AlbumOrb({
   )
 }
 
-// Gas-cloud track indicator: layered transparent spheres that breathe and pulse.
-// No hard geometry — just overlapping soft lights, much easier to tap on mobile.
+// ------- TrackOrb -------
+// Position is driven by the physics context (lerped in useFrame) rather than a static prop.
 function TrackOrb({
-  name, position, color, ink, base, fontClass,
+  physicsIndex, name, color, ink, base, fontClass,
   active, isPlaying, hoverCapable, revealed, visited, onReveal, onPlay,
 }: {
-  name: string; position: [number, number, number]
-  color: string; ink: string; base: string; fontClass: string
+  physicsIndex: number
+  name: string; color: string; ink: string; base: string; fontClass: string
   active: boolean; isPlaying: boolean
   hoverCapable: boolean; revealed: boolean; visited: boolean
   onReveal: () => void; onPlay: () => void
 }) {
   const orbColor = visited && !active ? "#888888" : color
+  const physics  = useContext(TrackPhysicsCtx)
   const group    = useRef<THREE.Group>(null)
   const outerRef = useRef<THREE.Mesh>(null)
   const midRef   = useRef<THREE.Mesh>(null)
@@ -169,33 +175,32 @@ function TrackOrb({
     if (!g) return
     const t = state.clock.elapsedTime
 
+    // Smoothly follow physics position
+    const phys = physics?.positions.current[physicsIndex]
+    if (phys) g.position.lerp(phys, 0.06)
+
     // Scale up when active/hovered so the tap target grows too
     const targetScale = active ? 0.9 : hovered || revealed ? 0.72 : 0.55
     g.scale.setScalar(g.scale.x + (targetScale - g.scale.x) * 0.1)
 
-    // Slow idle breathe; faster beat when playing
     const breathe = active && isPlaying
       ? 1 + Math.sin(t * 3.2 + seed) * 0.18
       : 1 + Math.sin(t * 0.7 + seed) * 0.07
 
-    // Visited-but-inactive orbs stay permanently dim — no hover brightening
     const dim = visited && !active
 
-    // Outer gas cloud — very faint, large
     if (outerRef.current) outerRef.current.scale.setScalar(2.4 * breathe)
     if (outerMat.current) {
       const target = active ? 0.10 : (showName && !dim) ? 0.07 : dim ? 0.025 : 0.04
       outerMat.current.opacity += (target * breathe - outerMat.current.opacity) * 0.06
     }
 
-    // Mid halo
     if (midRef.current) midRef.current.scale.setScalar(1.6 * (0.96 + breathe * 0.04))
     if (midMat.current) {
       const target = active ? 0.22 : (showName && !dim) ? 0.15 : dim ? 0.04 : 0.08
       midMat.current.opacity += (target * breathe - midMat.current.opacity) * 0.07
     }
 
-    // Bright core
     if (coreMat.current) {
       const target = active && isPlaying
         ? 2.0 + Math.sin(t * 3.2 + seed) * 0.5
@@ -215,26 +220,22 @@ function TrackOrb({
   }
 
   return (
-    <group ref={group} position={position} scale={0.001}>
-      {/* Oversized invisible sphere — big tap target for mobile */}
+    <group ref={group} scale={0.001}>
       <mesh onPointerOver={handlePointerOver} onPointerOut={handlePointerOut} onClick={handleClick}>
         <sphereGeometry args={[2.2, 10, 10]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 
-      {/* Outer gas cloud */}
       <mesh ref={outerRef}>
         <sphereGeometry args={[1, 14, 14]} />
         <meshBasicMaterial ref={outerMat} color={orbColor} transparent opacity={0.04} depthWrite={false} />
       </mesh>
 
-      {/* Mid halo */}
       <mesh ref={midRef}>
         <sphereGeometry args={[1, 18, 18]} />
         <meshBasicMaterial ref={midMat} color={orbColor} transparent opacity={0.08} depthWrite={false} />
       </mesh>
 
-      {/* Bright core */}
       <mesh>
         <sphereGeometry args={[1, 22, 22]} />
         <meshStandardMaterial ref={coreMat} color="#000000" emissive={orbColor}
@@ -243,6 +244,132 @@ function TrackOrb({
 
       {showName && <NameChip text={name} fontClass={fontClass} ink={ink} base={base} offset={[1.4, 0, 0]} />}
     </group>
+  )
+}
+
+// ------- TrackOrbsPhysics -------
+// Runs an n-body simulation for all track orbs: each orb orbits the origin and
+// repels its neighbours. Positions are stored in a ref (no React state updates per frame)
+// and read by TrackOrb via context.
+function TrackOrbsPhysics({
+  selected, currentUrl, isPlaying, hoverCapable,
+  revealedId, setRevealedId, onSelectTrack, visitedTrackUrls,
+}: {
+  selected: Album
+  currentUrl: string | null
+  isPlaying: boolean
+  hoverCapable: boolean
+  revealedId: string | null
+  setRevealedId: (id: string | null) => void
+  onSelectTrack: (album: Album, index: number) => void
+  visitedTrackUrls: Set<string>
+}) {
+  const TARGET_R  = 3.1   // desired orbital radius
+  const K_SPRING  = 2.2   // spring strength pulling each orb back toward TARGET_R
+  const K_REPEL   = 6.0   // repulsion force magnitude
+  const MIN_SEP   = 1.9   // repulsion activates below this inter-orb distance
+  const DAMP      = 0.025 // exponential damping coefficient (low = long-lived orbits)
+  const NOISE     = 0.12  // random nudge per second to keep things lively
+
+  const posRef    = useRef<THREE.Vector3[]>([])
+  const velRef    = useRef<THREE.Vector3[]>([])
+  const prevId    = useRef("")
+
+  // (Re)initialise whenever a new album is opened
+  useEffect(() => {
+    if (selected.id === prevId.current) return
+    prevId.current = selected.id
+    const spread = fibSphere(selected.tracks.length, TARGET_R)
+    posRef.current = spread.map((p) => new THREE.Vector3(...p))
+    velRef.current = posRef.current.map((pos) => {
+      // Give each orb an initial tangential velocity so it immediately starts orbiting.
+      // A random tilt axis means each orb orbits on its own slightly different plane.
+      const axis = new THREE.Vector3(
+        (Math.random() - 0.5) * 0.6,
+        1,
+        (Math.random() - 0.5) * 0.6,
+      ).normalize()
+      return new THREE.Vector3()
+        .crossVectors(pos, axis)
+        .normalize()
+        .multiplyScalar(0.9 + Math.random() * 0.7)
+    })
+  }, [selected.id, selected.tracks.length])
+
+  useFrame((_, rawDt) => {
+    const dt   = Math.min(rawDt, 0.05)
+    const pos  = posRef.current
+    const vel  = velRef.current
+    if (pos.length !== selected.tracks.length) return
+
+    for (let i = 0; i < pos.length; i++) {
+      const p = pos[i]
+      const v = vel[i]
+
+      // 1. Orbit spring — pulls orb toward sphere surface at TARGET_R
+      const r = p.length()
+      if (r > 0.001) {
+        const springMag = (TARGET_R - r) * K_SPRING
+        v.x += (p.x / r) * springMag * dt
+        v.y += (p.y / r) * springMag * dt
+        v.z += (p.z / r) * springMag * dt
+      }
+
+      // 2. Inter-orb repulsion
+      for (let j = 0; j < pos.length; j++) {
+        if (i === j) continue
+        const dx = p.x - pos[j].x
+        const dy = p.y - pos[j].y
+        const dz = p.z - pos[j].z
+        const d2 = dx * dx + dy * dy + dz * dz
+        if (d2 < MIN_SEP * MIN_SEP && d2 > 0.0001) {
+          const d = Math.sqrt(d2)
+          const mag = K_REPEL * ((MIN_SEP - d) / MIN_SEP) ** 2 / d
+          v.x += dx * mag * dt
+          v.y += dy * mag * dt
+          v.z += dz * mag * dt
+        }
+      }
+
+      // 3. Tiny random perturbation — keeps the system from going static
+      v.x += (Math.random() - 0.5) * NOISE * dt
+      v.y += (Math.random() - 0.5) * NOISE * dt
+      v.z += (Math.random() - 0.5) * NOISE * dt
+
+      // 4. Exponential damping (time-independent)
+      const damp = Math.exp(-DAMP * dt)
+      v.x *= damp; v.y *= damp; v.z *= damp
+
+      // 5. Integrate
+      p.x += v.x * dt
+      p.y += v.y * dt
+      p.z += v.z * dt
+    }
+  })
+
+  const ctx = useMemo(() => ({ positions: posRef }), [])
+
+  return (
+    <TrackPhysicsCtx.Provider value={ctx}>
+      {selected.tracks.map((track, i) => (
+        <TrackOrb
+          key={track.url}
+          physicsIndex={i}
+          name={track.name}
+          color={selected.theme.nodes[(i % 6) + 1]}
+          ink={selected.theme.ink}
+          base={selected.theme.base}
+          fontClass={selected.theme.display}
+          active={currentUrl === track.url}
+          isPlaying={isPlaying}
+          hoverCapable={hoverCapable}
+          revealed={revealedId === track.url}
+          visited={visitedTrackUrls.has(track.url)}
+          onReveal={() => setRevealedId(track.url)}
+          onPlay={() => onSelectTrack(selected, i)}
+        />
+      ))}
+    </TrackPhysicsCtx.Provider>
   )
 }
 
@@ -259,10 +386,6 @@ function Scene({
 }) {
   const selected = albums.find((a) => a.id === selectedId) ?? null
   const albumPositions = useMemo(() => fibSphere(albums.length, 4.3, 1.5), [albums.length])
-  const trackPositions = useMemo(
-    () => (selected ? fibSphere(selected.tracks.length, 3.2) : []),
-    [selected],
-  )
   const lightA = selected ? selected.theme.nodes[0] : "#8fb7d6"
   const lightB = selected ? selected.theme.nodes[2] : "#c98fd6"
 
@@ -283,19 +406,18 @@ function Scene({
         />
       ))}
 
-      {selected && selected.tracks.map((track, i) => (
-        <TrackOrb
-          key={track.url} name={track.name} position={trackPositions[i]}
-          color={selected.theme.nodes[(i % 6) + 1]}
-          ink={selected.theme.ink} base={selected.theme.base}
-          fontClass={selected.theme.display}
-          active={currentUrl === track.url} isPlaying={isPlaying}
-          hoverCapable={hoverCapable} revealed={revealedId === track.url}
-          visited={visitedTrackUrls.has(track.url)}
-          onReveal={() => setRevealedId(track.url)}
-          onPlay={() => onSelectTrack(selected, i)}
+      {selected && (
+        <TrackOrbsPhysics
+          selected={selected}
+          currentUrl={currentUrl}
+          isPlaying={isPlaying}
+          hoverCapable={hoverCapable}
+          revealedId={revealedId}
+          setRevealedId={setRevealedId}
+          onSelectTrack={onSelectTrack}
+          visitedTrackUrls={visitedTrackUrls}
         />
-      ))}
+      )}
 
       <OrbitControls enableDamping dampingFactor={0.05} enablePan={false}
         enableZoom rotateSpeed={0.5} zoomSpeed={0.6}
