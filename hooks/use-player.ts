@@ -20,6 +20,7 @@ export function usePlayer() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const gainNodeRef = useRef<GainNode | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
+  const trackGainRef = useRef(2.2)  // per-track boost; updated in playTrack
 
   const [albumId, setAlbumId] = useState<string | null>(null)
   const [trackIndex, setTrackIndex] = useState(0)
@@ -130,9 +131,9 @@ export function usePlayer() {
       setDuration(0)
 
       audio.src = t.url
-      // Volume: route through gain node if Web Audio is active, else set directly
+      trackGainRef.current = t.gain ?? 2.2
       if (gainNodeRef.current) {
-        gainNodeRef.current.gain.value = volume * 2.2
+        gainNodeRef.current.gain.value = volume * trackGainRef.current
       } else {
         audio.volume = volume
       }
@@ -175,7 +176,7 @@ export function usePlayer() {
   const setVolume = useCallback((v: number) => {
     setVolumeState(v)
     if (gainNodeRef.current) {
-      gainNodeRef.current.gain.value = v * 2.2
+      gainNodeRef.current.gain.value = v * trackGainRef.current
     } else if (audioRef.current) {
       audioRef.current.volume = v
     }
