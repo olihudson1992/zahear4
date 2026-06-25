@@ -5,21 +5,6 @@ import { OrbitControls, Html } from "@react-three/drei"
 import { createContext, useContext, useEffect, useRef, useMemo, useState } from "react"
 import * as THREE from "three"
 import type { Album } from "@/lib/albums"
-import { analyserData } from "@/hooks/use-player"
-
-// Module-level: read once per frame in BassReader, consumed by all orbs without React state
-let _bass = 0
-const _freqBuf = new Uint8Array(32)
-
-function BassReader() {
-  useFrame(() => {
-    if (!analyserData.node) { _bass = 0; return }
-    analyserData.node.getByteFrequencyData(_freqBuf)
-    // First 3 bins of a 64-point FFT cover the sub-bass/bass range (~0–330 Hz)
-    _bass = (_freqBuf[0] + _freqBuf[1] + _freqBuf[2]) / (3 * 255)
-  })
-  return null
-}
 
 function fibSphere(count: number, radius: number, stretchY = 1): [number, number, number][] {
   if (count <= 0) return []
@@ -90,7 +75,6 @@ function AlbumOrb({
 }) {
   const group = useRef<THREE.Group>(null)
   const core = useRef<THREE.Mesh>(null)
-  const glow = useRef<THREE.Mesh>(null)
   const collider = useRef<THREE.Mesh>(null)
   const coreMat = useRef<THREE.MeshStandardMaterial>(null)
   const glowMat = useRef<THREE.MeshBasicMaterial>(null)
@@ -123,14 +107,8 @@ function AlbumOrb({
       coreMat.current.emissiveIntensity += (pulse - coreMat.current.emissiveIntensity) * 0.06
     }
     if (glowMat.current) {
-      const bassPulse = _bass * (selected ? 0.22 : 0.06)
-      const target = hidden ? 0 : selected ? 0.3 + bassPulse : showName ? 0.26 : 0.18 + bassPulse
+      const target = hidden ? 0 : selected ? 0.3 : showName ? 0.26 : 0.18
       glowMat.current.opacity += (target - glowMat.current.opacity) * 0.08
-    }
-    // Non-uniform bass scale on the glow sphere — lightweight "mist distortion"
-    if (glow.current) {
-      const b = _bass * (selected ? 1.0 : 0.2)
-      glow.current.scale.set(1.35 + b * 0.18, 1.35 + b * 0.12, 1.35 + b * 0.16)
     }
     if (core.current) core.current.rotation.y = t * 0.05
     // Shrink hit collider when selected so track orbs are easy to tap
@@ -143,7 +121,7 @@ function AlbumOrb({
   const interactive = !anySelected || selected
   return (
     <group ref={group} position={basePosition}>
-      <mesh ref={glow} scale={1.35}>
+      <mesh scale={1.35}>
         <sphereGeometry args={[1, 32, 32]} />
         <meshBasicMaterial ref={glowMat} color={color} transparent opacity={0.18} depthWrite={false} />
       </mesh>
@@ -514,7 +492,6 @@ function Scene({
 
   return (
     <>
-      <BassReader />
       <ambientLight intensity={0.3} />
       <PointerLights colorA={lightA} colorB={lightB} />
 

@@ -76,10 +76,10 @@ export const albums: Album[] = [
     title: "ambient",
     description: "A collection of ambient works for meditation.",
     theme: {
-      base: "#0a0e14",
-      ink: "#ddeeff",
-      mutedInk: "rgba(221,238,255,0.6)",
-      nodes: ["#3a6186", "#89b4cc", "#1c3f5e", "#6fa8c8", "#b8d9ee", "#2a5070", "#0d2133"],
+      base: "#0e0c00",
+      ink: "#fffde8",
+      mutedInk: "rgba(255,253,232,0.6)",
+      nodes: ["#f5d60a", "#3b82f6", "#fde047", "#60a5fa", "#fbbf24", "#2563eb", "#fef08a"],
       display: "font-display font-light tracking-widest",
     },
     tracks: [
@@ -125,10 +125,10 @@ export const albums: Album[] = [
     title: "sanga",
     description: "An album inspired by joining a Sanga.",
     theme: {
-      base: "#0a1318",
-      ink: "#e8f6ff",
-      mutedInk: "rgba(232,246,255,0.6)",
-      nodes: ["#5fb6e6", "#2b8fb3", "#9fe0f0", "#3f6f9e", "#cfeeff", "#1f6f8c", "#264a63"],
+      base: "#150800",
+      ink: "#fff5e8",
+      mutedInk: "rgba(255,245,232,0.6)",
+      nodes: ["#f97316", "#e85a00", "#ffa040", "#c44a00", "#ffd0a0", "#d46020", "#8a3000"],
       display: "font-display font-light tracking-wide",
     },
     tracks: [
@@ -213,10 +213,10 @@ export const albums: Album[] = [
     title: "midsummer",
     description: "My latest album, exploring Folk-tronica, Jazz and Dub — inspired from summer 2026.",
     theme: {
-      base: "#0e1408",
-      ink: "#eeffd8",
-      mutedInk: "rgba(238,255,216,0.6)",
-      nodes: ["#7abf3a", "#4a8f1a", "#b0e060", "#2d6010", "#d4f090", "#5aaa2a", "#1a3a08"],
+      base: "#060e18",
+      ink: "#e8f8ff",
+      mutedInk: "rgba(232,248,255,0.6)",
+      nodes: ["#7ec8e3", "#38b2d8", "#b3e5fc", "#0ea5d8", "#c8eeff", "#2490b8", "#5ac8e8"],
       display: "font-display font-light tracking-wide",
     },
     tracks: [
@@ -234,10 +234,10 @@ export const albums: Album[] = [
     title: "midwinter",
     description: "An album made in January 2026, exploring a move away from hardware and recordings of clock parts.",
     theme: {
-      base: "#08100e",
-      ink: "#d8f0ee",
-      mutedInk: "rgba(216,240,238,0.6)",
-      nodes: ["#2ab8a8", "#1a8878", "#70d8c8", "#106858", "#a0ece0", "#158878", "#063828"],
+      base: "#04081a",
+      ink: "#dde8ff",
+      mutedInk: "rgba(221,232,255,0.6)",
+      nodes: ["#1e3a8a", "#2d5be3", "#0f2460", "#4a78f0", "#92b0ff", "#162e6e", "#3058c8"],
       display: "font-display font-light tracking-widest",
     },
     tracks: [

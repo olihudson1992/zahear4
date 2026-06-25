@@ -3,8 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { albums, type Album, type Track } from "@/lib/albums"
 
-export const analyserData: { node: AnalyserNode | null } = { node: null }
-
 function shuffleExcluding(n: number, exclude: number): number[] {
   const arr = Array.from({ length: n }, (_, i) => i).filter((i) => i !== exclude)
   for (let i = arr.length - 1; i > 0; i--) {
@@ -69,16 +67,11 @@ export function usePlayer() {
         lim.ratio.value = 20           // 20:1 = brickwall
         lim.attack.value = 0.001       // 1 ms
         lim.release.value = 0.06       // 60 ms
-        const analyser = ctx.createAnalyser()
-        analyser.fftSize = 64
-        analyser.smoothingTimeConstant = 0.75
         src.connect(gain)
-        gain.connect(analyser)
-        analyser.connect(lim)
+        gain.connect(lim)
         lim.connect(ctx.destination)
         gainNodeRef.current = gain
         audioCtxRef.current = ctx
-        analyserData.node = analyser
       }
     } catch {
       // Web Audio unavailable — plain audio still works fine
