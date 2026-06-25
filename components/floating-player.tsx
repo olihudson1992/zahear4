@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import type { AlbumTheme } from "@/lib/albums"
 import type { PlayerState } from "@/hooks/use-player"
 import {
@@ -14,6 +14,8 @@ import {
   ChevronUp,
   ChevronDown,
   X,
+  Link2,
+  Check,
 } from "lucide-react"
 
 function fmt(t: number) {
@@ -44,6 +46,14 @@ export function FloatingPlayer({
   const { track, album, isPlaying, currentTime, duration, volume, loading } = state
   const [expanded, setExpanded] = useState(false)
   const [infoOpen, setInfoOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const copyLink = useCallback(() => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }, [])
   const accent = theme.nodes?.[0] ?? "#555"
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0
 
@@ -236,6 +246,22 @@ export function FloatingPlayer({
               }}
             >
               ?
+            </button>
+          )}
+
+          {/* Copy link button — only shown when something is playing */}
+          {track && (
+            <button
+              onClick={copyLink}
+              aria-label="Copy link"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105 active:scale-95"
+              style={{
+                background: copied ? accent : "rgba(0,0,0,0.07)",
+                color: copied ? "#fff" : "rgba(0,0,0,0.5)",
+                border: `1px solid ${copied ? accent : "rgba(0,0,0,0.1)"}`,
+              }}
+            >
+              {copied ? <Check className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
             </button>
           )}
 

@@ -130,6 +130,9 @@ export function usePlayer() {
       setCurrentTime(0)
       setDuration(0)
 
+      // Resume AudioContext immediately on the user-gesture stack
+      if (audioCtxRef.current?.state !== "running") audioCtxRef.current?.resume()
+
       audio.src = t.url
       trackGainRef.current = t.gain ?? 2.2
       if (gainNodeRef.current) {

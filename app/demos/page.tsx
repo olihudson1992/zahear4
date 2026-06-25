@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState, useEffect, Suspense } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { albums, findAlbum, defaultTheme, type Album, type AlbumTheme } from "@/lib/albums"
 import { usePlayer } from "@/hooks/use-player"
 import { GradientField } from "@/components/gradient-field"
@@ -22,7 +22,6 @@ function trackTheme(base: AlbumTheme, trackIndex: number): AlbumTheme {
 
 function RangaDemos() {
   const { state, playTrack, toggle, next, prev, seek, setVolume } = usePlayer()
-  const searchParams = useSearchParams()
   const router = useRouter()
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -45,14 +44,6 @@ function RangaDemos() {
       return next
     })
   }
-
-  useEffect(() => {
-    const collection = searchParams.get("collection")
-    if (collection) {
-      const album = findAlbum(collection)
-      if (album) setSelectedId(album.id)
-    }
-  }, [searchParams])
 
   // Sync scene when the player auto-advances to a new album between tracks
   useEffect(() => {

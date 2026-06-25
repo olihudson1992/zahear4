@@ -12,6 +12,40 @@ type Node = {
   color: string
 }
 
+// Converts any colour darker than minL (HSL lightness) to the same hue/sat at minL.
+// Keeps the colour character but prevents dark blobs on the white canvas.
+function ensureLight(hex: string, minL = 0.5): string {
+  let h = hex.replace("#", "")
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("")
+  const r = parseInt(h.slice(0, 2), 16) / 255
+  const g = parseInt(h.slice(2, 4), 16) / 255
+  const b = parseInt(h.slice(4, 6), 16) / 255
+  const max = Math.max(r, g, b), min = Math.min(r, g, b)
+  let hue = 0, sat = 0
+  const lit = (max + min) / 2
+  if (max !== min) {
+    const d = max - min
+    sat = lit > 0.5 ? d / (2 - max - min) : d / (max + min)
+    if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) / 6
+    else if (max === g) hue = ((b - r) / d + 2) / 6
+    else hue = ((r - g) / d + 4) / 6
+  }
+  if (lit >= minL) return hex
+  const q = minL < 0.5 ? minL * (1 + sat) : minL + sat - minL * sat
+  const p = 2 * minL - q
+  const hue2rgb = (t: number) => {
+    if (t < 0) t += 1; if (t > 1) t -= 1
+    if (t < 1 / 6) return p + (q - p) * 6 * t
+    if (t < 1 / 2) return q
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+    return p
+  }
+  const nr = Math.round(hue2rgb(hue + 1 / 3) * 255)
+  const ng = Math.round(hue2rgb(hue) * 255)
+  const nb = Math.round(hue2rgb(hue - 1 / 3) * 255)
+  return `#${nr.toString(16).padStart(2, "0")}${ng.toString(16).padStart(2, "0")}${nb.toString(16).padStart(2, "0")}`
+}
+
 function buildNodes(colors: string[]): Node[] {
   const seeds = [
     { x: 0.2, y: 0.25, r: 0.55, s: 0.13, o: 0.1 },
@@ -29,7 +63,7 @@ function buildNodes(colors: string[]): Node[] {
     speed: p.s,
     phase: i * 1.7,
     orbit: p.o,
-    color: colors[i % colors.length],
+    color: ensureLight(colors[i % colors.length]),
   }))
 }
 
