@@ -60,7 +60,10 @@ export function DemosChatButton({ accent }: { accent: string }) {
     userColor.current = c
   }, [])
 
-  // Load messages once
+  // Timestamp of the newest message we've seen — used to fetch only new rows on each poll
+  const lastSeenRef = useRef(new Date(0).toISOString())
+
+  // Initial load
   useEffect(() => {
     supabase
       .from("demos_chat")
@@ -69,22 +72,33 @@ export function DemosChatButton({ accent }: { accent: string }) {
       .limit(200)
       .then(({ data, error }) => {
         if (error) { setFailed(true); return }
-        if (data) setMessages(data as ChatMsg[])
+        if (data && data.length > 0) {
+          setMessages(data as ChatMsg[])
+          lastSeenRef.current = (data as ChatMsg[])[data.length - 1].created_at
+        }
       })
   }, [supabase])
 
-  // Real-time subscription
+  // Poll for new messages every 3 s (only while chat is open)
   useEffect(() => {
-    const channel = supabase
-      .channel("demos_chat_realtime")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "demos_chat" },
-        (payload) => setMessages((prev) => [...prev, payload.new as ChatMsg]),
-      )
-      .subscribe()
-    return () => { void supabase.removeChannel(channel) }
-  }, [supabase])
+    if (!open) return
+    const poll = () => {
+      supabase
+        .from("demos_chat")
+        .select("*")
+        .gt("created_at", lastSeenRef.current)
+        .order("created_at", { ascending: true })
+        .limit(50)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            setMessages((prev) => [...prev, ...(data as ChatMsg[])])
+            lastSeenRef.current = (data as ChatMsg[])[data.length - 1].created_at
+          }
+        })
+    }
+    const id = setInterval(poll, 3000)
+    return () => clearInterval(id)
+  }, [open, supabase])
 
   // Auto-scroll to bottom
   useEffect(() => {
