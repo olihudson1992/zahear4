@@ -6,7 +6,7 @@ import { useEffect, useRef, useMemo, useState } from "react"
 import * as THREE from "three"
 import type { Album } from "@/lib/albums"
 
-function fibSphere(count: number, radius: number): [number, number, number][] {
+function fibSphere(count: number, radius: number, stretchY = 1): [number, number, number][] {
   if (count <= 0) return []
   const pts: [number, number, number][] = []
   const offset = 2 / count
@@ -15,7 +15,7 @@ function fibSphere(count: number, radius: number): [number, number, number][] {
     const y = i * offset - 1 + offset / 2
     const r = Math.sqrt(Math.max(0, 1 - y * y))
     const phi = i * inc
-    pts.push([Math.cos(phi) * r * radius, y * radius, Math.sin(phi) * r * radius])
+    pts.push([Math.cos(phi) * r * radius, y * radius * stretchY, Math.sin(phi) * r * radius])
   }
   return pts
 }
@@ -29,7 +29,7 @@ function NameChip({
     <Html center position={offset} distanceFactor={9} pointerEvents="none" zIndexRange={[20, 0]}>
       <span
         className={`${fontClass} whitespace-nowrap rounded-full px-3 py-1 text-lg leading-none`}
-        style={{ color: ink, background: `${base}dd`, border: `1px solid ${ink}33`, backdropFilter: "blur(6px)" }}
+        style={{ color: ink, background: `${base}dd`, border: `1px solid ${ink}33`, backdropFilter: "blur(6px)", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
       >
         {text}
       </span>
@@ -84,11 +84,13 @@ function AlbumOrb({
     const g = group.current
     if (!g) return
     const t = state.clock.elapsedTime
-    const bob = anySelected || revealed ? 0 : Math.sin(t * 0.25 + seed) * 0.12
+    const bobX = anySelected ? 0 : Math.sin(t * 0.17 + seed * 1.3) * 0.18
+    const bobY = anySelected || revealed ? 0 : Math.sin(t * 0.27 + seed) * 0.24
+    const bobZ = anySelected ? 0 : Math.cos(t * 0.21 + seed * 0.8) * 0.14
 
-    g.position.x += ((selected ? 0 : base.x) - g.position.x) * 0.04
-    g.position.y += ((selected ? 0 : base.y) + bob - g.position.y) * 0.04
-    g.position.z += ((selected ? 0 : base.z) - g.position.z) * 0.04
+    g.position.x += ((selected ? 0 : base.x + bobX) - g.position.x) * 0.04
+    g.position.y += ((selected ? 0 : base.y + bobY) - g.position.y) * 0.04
+    g.position.z += ((selected ? 0 : base.z + bobZ) - g.position.z) * 0.04
 
     const targetScale = selected ? 1.7 : anySelected ? 0.001 : hovered || revealed ? 0.94 : 0.8
     g.scale.setScalar(g.scale.x + (targetScale - g.scale.x) * 0.08)
@@ -113,8 +115,8 @@ function AlbumOrb({
         <sphereGeometry args={[1, 32, 32]} />
         <meshBasicMaterial ref={glowMat} color={color} transparent opacity={0.18} depthWrite={false} />
       </mesh>
+      {/* Oversized invisible collider — large tap target for mobile */}
       <mesh
-        ref={core}
         onPointerOver={(e) => { if (!interactive || !hoverCapable) return; e.stopPropagation(); setHovered(true); document.body.style.cursor = "pointer" }}
         onPointerOut={() => { setHovered(false); document.body.style.cursor = "default" }}
         onClick={(e) => {
@@ -124,6 +126,11 @@ function AlbumOrb({
           else onReveal()
         }}
       >
+        <sphereGeometry args={[2.2, 10, 10]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+      {/* Visual core — display only */}
+      <mesh ref={core}>
         <sphereGeometry args={[1, 48, 48]} />
         <meshStandardMaterial ref={coreMat} color="#000000" emissive={color} emissiveIntensity={1.1}
           metalness={0} roughness={1} toneMapped={false} transparent opacity={1} />
@@ -251,7 +258,7 @@ function Scene({
   visitedTrackUrls: Set<string>
 }) {
   const selected = albums.find((a) => a.id === selectedId) ?? null
-  const albumPositions = useMemo(() => fibSphere(albums.length, 4.3), [albums.length])
+  const albumPositions = useMemo(() => fibSphere(albums.length, 4.3, 1.5), [albums.length])
   const trackPositions = useMemo(
     () => (selected ? fibSphere(selected.tracks.length, 3.2) : []),
     [selected],
@@ -292,7 +299,7 @@ function Scene({
 
       <OrbitControls enableDamping dampingFactor={0.05} enablePan={false}
         enableZoom rotateSpeed={0.5} zoomSpeed={0.6}
-        minDistance={6} maxDistance={18} target={[0, 0, 0]} />
+        minDistance={6} maxDistance={24} target={[0, 0, 0]} />
     </>
   )
 }
@@ -312,6 +319,11 @@ export function OrbScene(props: {
     return () => mq.removeEventListener?.("change", on)
   }, [])
 
+  // Zoom out a bit on narrow/mobile viewports so the taller ellipsoid stays in frame
+  const [camZ] = useState(() =>
+    typeof window !== "undefined" && window.innerWidth < 640 ? 17 : 13,
+  )
+
   const [revealedId, setRevealedId] = useState<string | null>(null)
   useEffect(() => setRevealedId(null), [props.selectedId])
 
@@ -322,7 +334,7 @@ export function OrbScene(props: {
 
   return (
     <Canvas className="absolute inset-0"
-      camera={{ position: [0, 0, 13], fov: 55 }}
+      camera={{ position: [0, 0, camZ], fov: 55 }}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       dpr={[1, 1.5]} onPointerMissed={handleMissed}
     >

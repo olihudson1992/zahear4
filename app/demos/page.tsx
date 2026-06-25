@@ -7,7 +7,8 @@ import { usePlayer } from "@/hooks/use-player"
 import { GradientField } from "@/components/gradient-field"
 import dynamic from "next/dynamic"
 import { FloatingPlayer } from "@/components/floating-player"
-import { Search, X } from "lucide-react"
+import { X } from "lucide-react"
+import { DemosChatButton } from "@/components/demos-chat"
 
 const OrbScene = dynamic(
   () => import("@/components/orb-scene").then((m) => ({ default: m.OrbScene })),
@@ -27,7 +28,7 @@ function RangaDemos() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [playerVisible, setPlayerVisible] = useState(false)
-  const [search, setSearch] = useState("")
+  const [greetingDismissed, setGreetingDismissed] = useState(false)
   const [visitedTrackUrls, setVisitedTrackUrls] = useState<Set<string>>(new Set())
   const prevTrackUrl = useRef<string | null>(null)
 
@@ -111,18 +112,9 @@ function RangaDemos() {
     return trackTheme(base, state.trackIndex)
   }, [selectedId, state.trackIndex])
 
-  const filteredAlbums = useMemo(() => {
-    if (!search.trim()) return albums
-    const q = search.toLowerCase()
-    return albums.filter((a) => a.title.toLowerCase().includes(q))
-  }, [search])
-
-  // Clear selection when the selected album is filtered out by search
-  useEffect(() => {
-    if (selectedId && !filteredAlbums.find((a) => a.id === selectedId)) {
-      setSelectedId(null)
-    }
-  }, [filteredAlbums, selectedId])
+  // Show farewell message when every album orb has gone grey
+  const allVisited = albums.length > 0 && albums.every((a) => visitedIds.has(a.id))
+  const accent = theme.nodes?.[0] ?? "#555"
 
   const handleSelectAlbum = (id: string | null) => {
     if (id === null) {
@@ -141,7 +133,6 @@ function RangaDemos() {
     }
     markVisited(id)
     setSelectedId(id)
-    // Auto-play track 0 whenever the user enters a new album
     setPlayerVisible(true)
     playTrack(id, 0)
   }
@@ -156,7 +147,7 @@ function RangaDemos() {
       <GradientField colors={theme.nodes} base={theme.base} energy={state.energy} />
 
       <OrbScene
-        albums={filteredAlbums}
+        albums={albums}
         selectedId={selectedId}
         onSelectAlbum={handleSelectAlbum}
         currentUrl={state.track?.url ?? null}
@@ -166,30 +157,50 @@ function RangaDemos() {
         visitedTrackUrls={visitedTrackUrls}
       />
 
-      {/* Minimal search pill — fixed top-centre */}
-      <div
-        className="fixed top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 px-3 py-1.5 rounded-full"
-        style={{
-          background: "rgba(255,255,255,0.9)",
-          backdropFilter: "blur(16px)",
-          border: "1px solid rgba(0,0,0,0.08)",
-          boxShadow: "0 1px 12px rgba(0,0,0,0.06)",
-        }}
-      >
-        <Search className="h-3 w-3 shrink-0" style={{ color: "rgba(0,0,0,0.3)" }} />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="search"
-          className="bg-transparent text-xs outline-none placeholder:text-black/30 w-14"
-          style={{ color: "#0a0a0e" }}
-        />
-        {search && (
-          <button onClick={() => setSearch("")} aria-label="Clear search">
-            <X className="h-3 w-3" style={{ color: "rgba(0,0,0,0.4)" }} />
-          </button>
-        )}
-      </div>
+      {/* Farewell card — shows once all album orbs have gone grey */}
+      {allVisited && !greetingDismissed && (
+        <div className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center px-6">
+          <div
+            className="pointer-events-auto w-full max-w-sm rounded-2xl p-5 shadow-xl"
+            style={{
+              background: "rgba(255,255,255,0.96)",
+              backdropFilter: "blur(20px)",
+              border: `1px solid ${accent}22`,
+              color: "#0a0a0e",
+            }}
+          >
+            <button
+              onClick={() => setGreetingDismissed(true)}
+              className="float-right ml-2 text-black/30 hover:text-black/60"
+              aria-label="Dismiss"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <p className="text-sm leading-relaxed text-black/65">
+              heyo thanks for listening 👋 if you wanna support the artist there&apos;s some
+              stuff on{" "}
+              <a
+                href="https://rangatanga.bandcamp.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+                style={{ color: accent }}
+              >
+                bandcamp
+              </a>
+              . if you&apos;re a label and fancy curating a ranga release please email oli at{" "}
+              <a
+                href="mailto:wyrdliverpool@gmail.com"
+                className="underline"
+                style={{ color: accent }}
+              >
+                wyrdliverpool@gmail.com
+              </a>
+              .
+            </p>
+          </div>
+        </div>
+      )}
 
       {playerVisible && (
         <FloatingPlayer
@@ -203,6 +214,8 @@ function RangaDemos() {
           onClose={() => setPlayerVisible(false)}
         />
       )}
+
+      <DemosChatButton accent={accent} />
     </main>
   )
 }

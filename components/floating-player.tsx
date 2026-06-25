@@ -114,7 +114,11 @@ export function FloatingPlayer({
                 </>
               )}
             </p>
-            <p className="mt-2 text-xs text-black/35">all tracks prod by oli aka <span style={{ color: "#f97316" }}>ranga</span></p>
+            <p className="mt-2 text-xs text-black/35">
+              all tracks prod by oli aka{" "}
+              <a href="https://www.linktr.ee/olranga" target="_blank" rel="noopener noreferrer"
+                style={{ color: "#f97316" }}>ranga</a>
+            </p>
           </div>
         </div>
       )}
