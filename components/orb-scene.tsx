@@ -461,20 +461,7 @@ function SceneInfoButton() {
                 fontFamily: "inherit",
               }}
             >
-              this is a space for ranga, aka oli hudson, who produces music in
-              liverpool with an mpc 1000, a novation k station, digitone,
-              hydrasynth, tascam desk, effects and a load of instruments. you can
-              check out ranga{" "}
-              <a
-                href="https://www.linktr.ee/olranga"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: "#f97316", textDecoration: "underline" }}
-              >
-                here
-              </a>{" "}
-              and drop a big up in the chat if you like. explore the floating
-              balls to hear over 80 tracks oli&apos;s looking to share.
+              have fun and say yo :)
             </div>
           )}
           <button
