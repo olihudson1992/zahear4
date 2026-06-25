@@ -112,7 +112,7 @@ export const albums: Album[] = [
       display: "font-display italic font-light tracking-wide",
     },
     tracks: [
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%2012%20Susans.mp3", name: "12 Susans" },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%2012%20Susans.mp3", name: "12 Susans", gain: 5.0 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20L().mp3", name: "L()", gain: 3.7 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20Oorb6.mp3", name: "Oorb6" },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20Orbic.mp3", name: "Orbic" },
@@ -224,7 +224,7 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/mid%20summer/llangolen%20ft%20james%20morrigan.mp3", name: "Llangolen ft James Morrigan" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3", name: "Oremus" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%20(live%20mix).mp3", name: "Solstice (live mix)" },
-      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%202026.mp3", name: "Solstice 2026", gain: 12 },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%202026.mp3", name: "Solstice 2026", gain: 3.5 },
     ],
   },
   {
