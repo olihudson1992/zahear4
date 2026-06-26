@@ -96,7 +96,6 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/AMBIENT/song%20inside.mp3", name: "song inside", gain: 2.8 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/truth%20-%20OLIVER.mp3", name: "truth", gain: 4.0 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/ultimet.mp3", name: "ultimet", gain: 3.0 },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/STAR%20OLI.mp3", name: "Star" },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/TIDE%201%20Oli.mp3", name: "Tide 1", gain: 6.0 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/TIDE%202%20Oli.mp3", name: "Tide 2" },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/TINE%20MACHINE%2075%20OL.mp3", name: "Time Machine 75" },

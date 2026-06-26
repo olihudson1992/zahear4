@@ -130,7 +130,7 @@ export function usePlayer() {
   }, [isPlaying])
 
   const playTrack = useCallback(
-    (nextAlbumId: string, index: number) => {
+    (nextAlbumId: string, index: number, rebuildShuffle = true) => {
       const a = albums.find((al) => al.id === nextAlbumId)
       const t = a?.tracks[index]
       const audio = audioRef.current
@@ -143,7 +143,7 @@ export function usePlayer() {
       setCurrentTime(0)
       setDuration(0)
 
-      if (a.tracks.length > 1) shuffleQueueRef.current = shuffleExcluding(a.tracks.length, index)
+      if (rebuildShuffle && a.tracks.length > 1) shuffleQueueRef.current = shuffleExcluding(a.tracks.length, index)
 
       audio.src = t.url
       if (t.startTime) {
@@ -199,7 +199,7 @@ export function usePlayer() {
     if (nextIdx === undefined) return
     playHistoryRef.current.push(trackIndex)
     if (playHistoryRef.current.length > 30) playHistoryRef.current.shift()
-    playTrack(album.id, nextIdx)
+    playTrack(album.id, nextIdx, false)
   }, [album, trackIndex, playTrack])
 
   const prev = useCallback(() => {
@@ -209,7 +209,7 @@ export function usePlayer() {
     if (playHistoryRef.current.length > 0) {
       const prevIdx = playHistoryRef.current.pop()!
       shuffleQueueRef.current.unshift(trackIndex)
-      playTrack(album.id, prevIdx)
+      playTrack(album.id, prevIdx, false)
     } else if (audio) {
       audio.currentTime = 0
     }
@@ -242,7 +242,7 @@ export function usePlayer() {
       if (nextIdx === undefined) return
       playHistoryRef.current.push(trackIndex)
       if (playHistoryRef.current.length > 30) playHistoryRef.current.shift()
-      playTrack(album.id, nextIdx)
+      playTrack(album.id, nextIdx, false)
     }
     audio.addEventListener("ended", onEnded)
     return () => audio.removeEventListener("ended", onEnded)
