@@ -245,9 +245,9 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/COURAGE.mp3", name: "Courage", gain: 2.8 },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/gongs.mp3", name: "Gongs" },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/hang%20on%20-%20oli.mp3", name: "Hang On" },
-      { url: "https://rangatracks.b-cdn.net/MIDWINTER/MOON%20OLI.mp3", name: "Moon", nextUrl: "https://rangatracks.b-cdn.net/MIDWINTER/more%20dub%202.mp3" },
+      { url: "https://rangatracks.b-cdn.net/MIDWINTER/MOON%20OLI.mp3", name: "Moon" },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/more%20dub%202.mp3", name: "More Dub 2" },
-      { url: "https://rangatracks.b-cdn.net/MIDWINTER/STAR%20OLI.mp3", name: "Star" },
+      { url: "https://rangatracks.b-cdn.net/MIDWINTER/STAR%20OLI.mp3", name: "Star", nextUrl: "https://rangatracks.b-cdn.net/MIDWINTER/MOON%20OLI.mp3" },
     ],
   },
   {
