@@ -226,7 +226,7 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/mid%20summer/llangolen%20ft%20james%20morrigan.mp3", name: "Llangolen ft James Morrigan" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3", name: "Oremus" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%20(live%20mix).mp3", name: "Solstice (live mix)" },
-      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%202026.mp3", name: "Solstice 2026", gain: 3.5 },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%202026.mp3", name: "Solstice 2026", gain: 1.6 },
     ],
   },
   {
