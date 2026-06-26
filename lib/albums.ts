@@ -220,12 +220,12 @@ export const albums: Album[] = [
     },
     tracks: [
       { url: "https://rangatracks.b-cdn.net/mid%20summer/easy%20ft%20james%20morrigan.mp3", name: "Easy ft James Morrigan" },
-      { url: "https://rangatracks.b-cdn.net/mid%20summer/enchelader.mp3", name: "Enchelader" },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/enchelader.mp3", name: "Enchelader", gain: 1 },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/jacks%20reel.mp3", name: "Jacks Reel" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/llangolen%20ft%20james%20morrigan.mp3", name: "Llangolen ft James Morrigan" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3", name: "Oremus" },
-      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%20(live%20mix).mp3", name: "Solstice (live mix)" },
-      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%202026.mp3", name: "Solstice 2026", gain: 1.6 },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%201.mp3", name: "Solstice 1", gain: 1 },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%202.mp3", name: "Solstice 2", gain: 1 },
     ],
   },
   {
