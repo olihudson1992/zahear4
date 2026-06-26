@@ -192,14 +192,22 @@ export function usePlayer() {
 
   const next = useCallback(() => {
     if (!album) return
+    playHistoryRef.current.push(trackIndex)
+    if (playHistoryRef.current.length > 30) playHistoryRef.current.shift()
+    const forced = album.tracks[trackIndex]?.nextUrl
+    if (forced) {
+      const forcedIdx = album.tracks.findIndex(t => t.url === forced)
+      if (forcedIdx >= 0) {
+        shuffleQueueRef.current = shuffleQueueRef.current.filter(i => i !== forcedIdx)
+        playTrack(album.id, forcedIdx, false)
+        return
+      }
+    }
     if (shuffleQueueRef.current.length === 0) {
       shuffleQueueRef.current = shuffleExcluding(album.tracks.length, trackIndex)
     }
     const nextIdx = shuffleQueueRef.current.shift()
-    if (nextIdx === undefined) return
-    playHistoryRef.current.push(trackIndex)
-    if (playHistoryRef.current.length > 30) playHistoryRef.current.shift()
-    playTrack(album.id, nextIdx, false)
+    if (nextIdx !== undefined) playTrack(album.id, nextIdx, false)
   }, [album, trackIndex, playTrack])
 
   const prev = useCallback(() => {
@@ -235,14 +243,22 @@ export function usePlayer() {
     if (!audio) return
     const onEnded = () => {
       if (!album) return
+      playHistoryRef.current.push(trackIndex)
+      if (playHistoryRef.current.length > 30) playHistoryRef.current.shift()
+      const forced = album.tracks[trackIndex]?.nextUrl
+      if (forced) {
+        const forcedIdx = album.tracks.findIndex(t => t.url === forced)
+        if (forcedIdx >= 0) {
+          shuffleQueueRef.current = shuffleQueueRef.current.filter(i => i !== forcedIdx)
+          playTrack(album.id, forcedIdx, false)
+          return
+        }
+      }
       if (shuffleQueueRef.current.length === 0) {
         shuffleQueueRef.current = shuffleExcluding(album.tracks.length, trackIndex)
       }
       const nextIdx = shuffleQueueRef.current.shift()
-      if (nextIdx === undefined) return
-      playHistoryRef.current.push(trackIndex)
-      if (playHistoryRef.current.length > 30) playHistoryRef.current.shift()
-      playTrack(album.id, nextIdx, false)
+      if (nextIdx !== undefined) playTrack(album.id, nextIdx, false)
     }
     audio.addEventListener("ended", onEnded)
     return () => audio.removeEventListener("ended", onEnded)

@@ -1,8 +1,9 @@
 export type Track = {
   url: string
   name: string
-  gain?: number      // pre-limiter gain multiplier; defaults to 2.2 if omitted
+  gain?: number      // pre-limiter gain multiplier; defaults to 1.6 if omitted
   startTime?: number // seek to this position (seconds) on load, to skip leading silence
+  nextUrl?: string   // always play this track URL next, bypassing shuffle
 }
 
 export type AlbumTheme = {
@@ -132,7 +133,7 @@ export const albums: Album[] = [
     },
     tracks: [
       { url: "https://rangatracks.b-cdn.net/HOME/CLOUD%20BEAT.mp3", name: "Cloud Beat" },
-      { url: "https://rangatracks.b-cdn.net/HOME/ol%20-%20The%20Elephants%20Graveyard.mp3", name: "The Elephants Graveyard" },
+      { url: "https://rangatracks.b-cdn.net/HOME/ol%20-%20The%20Elephants%20Graveyard.mp3", name: "The Elephants Graveyard", nextUrl: "https://rangatracks.b-cdn.net/HOME/pondeavon.mp3" },
       { url: "https://rangatracks.b-cdn.net/HOME/pondeavon.mp3", name: "Pon de Avon", gain: 3.5 },
       { url: "https://rangatracks.b-cdn.net/HOME/SONG%20ONE.mp3", name: "Song One" },
       { url: "https://rangatracks.b-cdn.net/HOME/SONG%20TWO.mp3", name: "Song Two" },
@@ -224,7 +225,7 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/mid%20summer/jacks%20reel.mp3", name: "Jacks Reel" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/llangolen%20ft%20james%20morrigan.mp3", name: "Llangolen ft James Morrigan" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3", name: "Oremus" },
-      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%201.mp3", name: "Solstice 1", gain: 1 },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%201.mp3", name: "Solstice 1", gain: 1, nextUrl: "https://rangatracks.b-cdn.net/mid%20summer/solstice%202.mp3" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice%202.mp3", name: "Solstice 2", gain: 1 },
     ],
   },
@@ -244,7 +245,7 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/COURAGE.mp3", name: "Courage", gain: 2.8 },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/gongs.mp3", name: "Gongs" },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/hang%20on%20-%20oli.mp3", name: "Hang On" },
-      { url: "https://rangatracks.b-cdn.net/MIDWINTER/MOON%20OLI.mp3", name: "Moon" },
+      { url: "https://rangatracks.b-cdn.net/MIDWINTER/MOON%20OLI.mp3", name: "Moon", nextUrl: "https://rangatracks.b-cdn.net/MIDWINTER/more%20dub%202.mp3" },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/more%20dub%202.mp3", name: "More Dub 2" },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/STAR%20OLI.mp3", name: "Star" },
     ],
