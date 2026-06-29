@@ -247,14 +247,14 @@ function RangaDemos() {
         alt=""
         aria-hidden
         className="pointer-events-none absolute select-none"
-        style={{ bottom: 18, left: 18, width: 160, opacity: 0.55, filter: "invert(1)", mixBlendMode: "difference", zIndex: 100 }}
+        style={{ bottom: 18, left: 18, width: 160, opacity: 0.6, mixBlendMode: "darken", zIndex: 100 }}
       />
       <img
         src="/images/logo-ranga.webp"
         alt=""
         aria-hidden
         className="pointer-events-none absolute select-none"
-        style={{ bottom: 14, right: 16, width: 200, opacity: 0.5, filter: "invert(1)", mixBlendMode: "difference", zIndex: 100 }}
+        style={{ bottom: 14, right: 16, width: 200, opacity: 0.55, mixBlendMode: "darken", zIndex: 100 }}
       />
 
       <WizardPrompt isPlaying={state.isPlaying} />
