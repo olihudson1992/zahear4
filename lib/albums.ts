@@ -37,11 +37,10 @@ export const albums: Album[] = [
     },
     description: "A selection of Ranga's favourite tracks from across all albums.",
     tracks: [
-      { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3", name: "Oremus" },
-      { url: "https://rangatracks.b-cdn.net/mwamwa/Terrano%20.mp3", name: "Terrano" },
-      { url: "https://rangatracks.b-cdn.net/mid%20summer/easy%20ft%20james%20morrigan.mp3", name: "Easy ft James Morrigan" },
       { url: "https://rangatracks.b-cdn.net/HOME/ol%20-%20The%20Elephants%20Graveyard.mp3", name: "Elephants Graveyard" },
       { url: "https://rangatracks.b-cdn.net/HOME/pondeavon.mp3", name: "Pon de Avon", gain: 3.5 },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/easy%20ft%20james%20morrigan.mp3", name: "Easy ft James Morrigan" },
+      { url: "https://rangatracks.b-cdn.net/mwamwa/Terrano%20.mp3", name: "Terrano" },
       { url: "https://rangatracks.b-cdn.net/mwamwa/Tresa%20.mp3", name: "Tresa" },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/hang%20on%20-%20oli.mp3", name: "Hang On" },
       { url: "https://rangatracks.b-cdn.net/bangas/banga%20one%20-%20ranga%202026.mp3", name: "Banga One" },
