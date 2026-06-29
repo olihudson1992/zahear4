@@ -60,9 +60,9 @@ export function usePlayer() {
         const ctx = new Ctx()
         const src = ctx.createMediaElementSource(audio)
         const gain = ctx.createGain()
-        gain.gain.value = 1.6          // +~4 dB pre-gain
+        gain.gain.value = 1.0
         const lim = ctx.createDynamicsCompressor()
-        lim.threshold.value = -2       // dBFS
+        lim.threshold.value = -0.2     // dBFS — brickwall ceiling only
         lim.knee.value = 1
         lim.ratio.value = 20           // 20:1 = brickwall
         lim.attack.value = 0.001       // 1 ms
@@ -150,7 +150,7 @@ export function usePlayer() {
         const skip = () => { audio.currentTime = t.startTime!; audio.removeEventListener("loadedmetadata", skip) }
         audio.addEventListener("loadedmetadata", skip)
       }
-      trackGainRef.current = t.gain ?? 1.6
+      trackGainRef.current = t.gain ?? 1.0
       if (gainNodeRef.current) {
         gainNodeRef.current.gain.value = volume * trackGainRef.current
       } else {

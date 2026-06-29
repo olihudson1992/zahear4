@@ -1,7 +1,7 @@
 export type Track = {
   url: string
   name: string
-  gain?: number      // pre-limiter gain multiplier; defaults to 1.6 if omitted
+  gain?: number      // pre-limiter gain multiplier; defaults to 1.0 if omitted
   startTime?: number // seek to this position (seconds) on load, to skip leading silence
   nextUrl?: string   // always play this track URL next, bypassing shuffle
 }
@@ -38,7 +38,7 @@ export const albums: Album[] = [
     description: "A selection of Ranga's favourite tracks from across all albums.",
     tracks: [
       { url: "https://rangatracks.b-cdn.net/HOME/ol%20-%20The%20Elephants%20Graveyard.mp3", name: "Elephants Graveyard" },
-      { url: "https://rangatracks.b-cdn.net/HOME/pondeavon.mp3", name: "Pon de Avon", gain: 3.5 },
+      { url: "https://rangatracks.b-cdn.net/HOME/pondeavon.mp3", name: "Pon de Avon", gain: 1.2 },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/easy%20ft%20james%20morrigan.mp3", name: "Easy ft James Morrigan" },
       { url: "https://rangatracks.b-cdn.net/mwamwa/Terrano%20.mp3", name: "Terrano" },
       { url: "https://rangatracks.b-cdn.net/mwamwa/Tresa%20.mp3", name: "Tresa" },
@@ -47,7 +47,7 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/pizza/Pizza%20Slice%20140%202.mp3", name: "Pizza Slice 140 2" },
       { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/Fox%20-%20Wyrd.mp3", name: "Fox - Wyrd" },
       { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/god2_Ol'.mp3", name: "God 2" },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/center.mp3", name: "center", gain: 1.8 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/center.mp3", name: "center", gain: 1.4 },
       { url: "https://rangatracks.b-cdn.net/HOME/SONG%20ONE.mp3", name: "Song One" },
     ],
   },
@@ -84,20 +84,20 @@ export const albums: Album[] = [
       display: "font-display font-light tracking-widest",
     },
     tracks: [
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/center.mp3", name: "center", gain: 1.8 },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/drones%202.mp3", name: "drones 2", gain: 1.8 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/center.mp3", name: "center", gain: 1.4 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/drones%202.mp3", name: "drones 2", gain: 1.4 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/droney.mp3", name: "droney" },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/droney1%20ol%20.mp3", name: "droney 1" },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/Home%20-%20Ranga.mp3", name: "Home", gain: 1.8 },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/jon_oli.mp3", name: "jon oli", gain: 1.8 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/Home%20-%20Ranga.mp3", name: "Home", gain: 1.4 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/jon_oli.mp3", name: "jon oli", gain: 1.4 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/NightNight.mp3", name: "Night Night" },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/Ranga%20-%20Deep%20Meditation.mp3", name: "Deep Meditation", gain: 1.8 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/Ranga%20-%20Deep%20Meditation.mp3", name: "Deep Meditation", gain: 1.4 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/Ranga%20-%20Past%20Life%20-%2001%20Kilt.mp3", name: "Past Life - Kilt" },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/Ranga%20Ft%20Sunshine%20Rage%20-%20Beacon%20-%20Beacon%20.mp3", name: "Beacon ft Sunshine Rage" },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/song%20inside.mp3", name: "song inside", gain: 1.5 },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/truth%20-%20OLIVER.mp3", name: "truth", gain: 1.8 },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/ultimet.mp3", name: "ultimet", gain: 1.5 },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/TIDE%201%20Oli.mp3", name: "Tide 1", gain: 1.8 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/song%20inside.mp3", name: "song inside" },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/truth%20-%20OLIVER.mp3", name: "truth", gain: 1.4 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/ultimet.mp3", name: "ultimet" },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/TIDE%201%20Oli.mp3", name: "Tide 1", gain: 1.4 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/TIDE%202%20Oli.mp3", name: "Tide 2" },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/TINE%20MACHINE%2075%20OL.mp3", name: "Time Machine 75" },
     ],
@@ -114,8 +114,8 @@ export const albums: Album[] = [
       display: "font-display italic font-light tracking-wide",
     },
     tracks: [
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%2012%20Susans.mp3", name: "12 Susans", gain: 5.0 },
-      { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20L().mp3", name: "L()", gain: 3.7, startTime: 41 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%2012%20Susans.mp3", name: "12 Susans", gain: 2.0 },
+      { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20L().mp3", name: "L()", gain: 1.5, startTime: 41 },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20Oorb6.mp3", name: "Oorb6" },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/Orbic%20Orbic%20-%20Orbic.mp3", name: "Orbic" },
     ],
@@ -134,7 +134,7 @@ export const albums: Album[] = [
     tracks: [
       { url: "https://rangatracks.b-cdn.net/HOME/CLOUD%20BEAT.mp3", name: "Cloud Beat" },
       { url: "https://rangatracks.b-cdn.net/HOME/ol%20-%20The%20Elephants%20Graveyard.mp3", name: "The Elephants Graveyard", nextUrl: "https://rangatracks.b-cdn.net/HOME/pondeavon.mp3" },
-      { url: "https://rangatracks.b-cdn.net/HOME/pondeavon.mp3", name: "Pon de Avon", gain: 3.5 },
+      { url: "https://rangatracks.b-cdn.net/HOME/pondeavon.mp3", name: "Pon de Avon", gain: 1.2 },
       { url: "https://rangatracks.b-cdn.net/HOME/SONG%20ONE.mp3", name: "Song One" },
       { url: "https://rangatracks.b-cdn.net/HOME/SONG%20TWO.mp3", name: "Song Two" },
       { url: "https://rangatracks.b-cdn.net/HOME/WAKE%20TWO.mp3", name: "Wake Two" },
@@ -179,10 +179,10 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/Beat%202.mp3", name: "Beat 2" },
       { url: "https://rangatracks.b-cdn.net/Beat%207.mp3", name: "Beat 7" },
       { url: "https://rangatracks.b-cdn.net/Beat%209.mp3", name: "Beat 9" },
-      { url: "https://rangatracks.b-cdn.net/last%20beat.mp3", name: "Last Beat", gain: 8.3 },
+      { url: "https://rangatracks.b-cdn.net/last%20beat.mp3", name: "Last Beat", gain: 3.0 },
       { url: "https://rangatracks.b-cdn.net/last%20nite%20beat%201.mp3", name: "Last Nite Beat 1" },
-      { url: "https://rangatracks.b-cdn.net/last%20nite%20beat%202.mp3", name: "Last Nite Beat 2", gain: 3.2 },
-      { url: "https://rangatracks.b-cdn.net/ooo_Ol'%20(beat).mp3", name: "ooo Ol' (beat)", gain: 3.9 },
+      { url: "https://rangatracks.b-cdn.net/last%20nite%20beat%202.mp3", name: "Last Nite Beat 2", gain: 1.2 },
+      { url: "https://rangatracks.b-cdn.net/ooo_Ol'%20(beat).mp3", name: "ooo Ol' (beat)", gain: 1.2 },
       { url: "https://rangatracks.b-cdn.net/Ranga%20-%20Beats%20-%20Glass%20Tiger.mp3", name: "Glass Tiger" },
       { url: "https://rangatracks.b-cdn.net/BRANDY%20PT1.mp3", name: "Brandy Pt 1" },
       { url: "https://rangatracks.b-cdn.net/BRANDY%20PT2.mp3", name: "Brandy Pt 2" },
@@ -224,7 +224,7 @@ export const albums: Album[] = [
     },
     tracks: [
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/78%20kalimba.mp3", name: "78 Kalimba" },
-      { url: "https://rangatracks.b-cdn.net/MIDWINTER/COURAGE.mp3", name: "Courage", gain: 2.8 },
+      { url: "https://rangatracks.b-cdn.net/MIDWINTER/COURAGE.mp3", name: "Courage", gain: 1.2 },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/gongs.mp3", name: "Gongs" },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/hang%20on%20-%20oli.mp3", name: "Hang On" },
       { url: "https://rangatracks.b-cdn.net/MIDWINTER/MOON%20OLI.mp3", name: "Moon" },
@@ -250,6 +250,7 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/mwamwa/Ranga%20%26%20Mwamwa%20-%20Tides.mp3", name: "Tides" },
       { url: "https://rangatracks.b-cdn.net/mwamwa/Terrano%20.mp3", name: "Terrano" },
       { url: "https://rangatracks.b-cdn.net/mwamwa/Tresa%20.mp3", name: "Tresa" },
+      { url: "https://rangatracks.b-cdn.net/mwamwa/168%20JULIANO%20REMIX%20INSTRUMENTAL.mp3", name: "Juliano Remix" },
     ],
   },
   {
