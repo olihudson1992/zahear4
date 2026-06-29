@@ -30,11 +30,20 @@ function NameChip({
 }: {
   text: string; fontClass: string; ink: string; base: string; offset?: [number, number, number]
 }) {
+  const spanRef = useRef<HTMLSpanElement>(null)
+  useFrame(({ camera }) => {
+    if (!spanRef.current) return
+    const dist = camera.position.length()
+    // Grow gently as user zooms out (dist 6→24), baseline at dist≈9
+    const sz = Math.round(Math.max(12, Math.min(22, 14 + (dist - 9) * 0.5)))
+    spanRef.current.style.fontSize = `${sz}px`
+  })
   return (
-    <Html center position={offset} distanceFactor={9} pointerEvents="none" zIndexRange={[20, 0]}>
+    <Html center position={offset} pointerEvents="none" zIndexRange={[20, 0]}>
       <span
-        className={`${fontClass} whitespace-nowrap rounded-full px-3 py-1 text-lg leading-none`}
-        style={{ color: ink, background: `${base}dd`, border: `1px solid ${ink}33`, backdropFilter: "blur(6px)", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
+        ref={spanRef}
+        className={`${fontClass} whitespace-nowrap rounded-full px-3 py-1 leading-none`}
+        style={{ fontSize: 14, color: ink, background: `${base}dd`, border: `1px solid ${ink}33`, backdropFilter: "blur(6px)", userSelect: "none", WebkitUserSelect: "none", pointerEvents: "none" }}
       >
         {text}
       </span>
