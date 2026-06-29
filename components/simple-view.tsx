@@ -108,15 +108,6 @@ export function SimpleView({
         onSeek={onSeek} onVolume={onVolume} onClose={() => {}}
       />
 
-      {/* Brand logos */}
-      <img src="/images/logo-wyrd.webp" alt="" aria-hidden
-        className="pointer-events-none absolute select-none"
-        style={{ bottom: 14, left: 14, width: 64, opacity: 0.6, mixBlendMode: "darken", zIndex: 100 }}
-      />
-      <img src="/images/logo-ranga.webp" alt="" aria-hidden
-        className="pointer-events-none absolute select-none"
-        style={{ bottom: 12, right: 12, width: 72, opacity: 0.55, mixBlendMode: "darken", zIndex: 100 }}
-      />
     </div>
   )
 }

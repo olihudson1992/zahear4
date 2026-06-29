@@ -241,21 +241,6 @@ function RangaDemos() {
         </div>
       )}
 
-      {/* Brand logos — invert() turns black strokes white; difference blend erases the white bg and inverts the scene beneath */}
-      <img
-        src="/images/logo-wyrd.webp"
-        alt=""
-        aria-hidden
-        className="pointer-events-none absolute select-none"
-        style={{ bottom: 14, left: 14, width: 64, opacity: 0.6, mixBlendMode: "darken", zIndex: 100 }}
-      />
-      <img
-        src="/images/logo-ranga.webp"
-        alt=""
-        aria-hidden
-        className="pointer-events-none absolute select-none"
-        style={{ bottom: 12, right: 12, width: 72, opacity: 0.55, mixBlendMode: "darken", zIndex: 100 }}
-      />
 
       <WizardPrompt isPlaying={state.isPlaying} />
 

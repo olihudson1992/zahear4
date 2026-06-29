@@ -308,6 +308,11 @@ export function FloatingPlayer({
           >
             {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
           </button>
+
+          <img src="/images/logo-wyrd.webp" alt="" aria-hidden className="pointer-events-none shrink-0 select-none"
+            style={{ height: 22, width: "auto", opacity: 0.55, mixBlendMode: "darken" }} />
+          <img src="/images/logo-ranga.webp" alt="" aria-hidden className="pointer-events-none shrink-0 select-none"
+            style={{ height: 22, width: "auto", opacity: 0.5, mixBlendMode: "darken" }} />
         </div>
       </div>
     </div>
