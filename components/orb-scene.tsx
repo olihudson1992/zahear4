@@ -474,9 +474,164 @@ function SceneInfoButton() {
   )
 }
 
+function SearchOrb({ albums, onSelectAlbum, onJumpToTrack }: {
+  albums: Album[]
+  onSelectAlbum: (id: string) => void
+  onJumpToTrack: (album: Album, index: number) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState("")
+  const groupRef = useRef<THREE.Group>(null)
+  const divRef   = useRef<HTMLDivElement>(null)
+  const openRef  = useRef(false)
+  openRef.current = open
+  const openPos = useMemo(() => new THREE.Vector3(2, -1.5, 5.5), [])
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    const out: { album: Album; trackIdx?: number; label: string }[] = []
+    for (const album of albums) {
+      if (album.title.toLowerCase().includes(q)) out.push({ album, label: album.title })
+      album.tracks.forEach((t, i) => {
+        if (t.name.toLowerCase().includes(q)) out.push({ album, trackIdx: i, label: `${t.name} — ${album.title}` })
+      })
+    }
+    return out.slice(0, 7)
+  }, [query, albums])
+
+  useFrame(({ clock }) => {
+    const g = groupRef.current; const div = divRef.current
+    if (!g || !div) return
+    if (openRef.current) { g.position.lerp(openPos, 0.04); div.style.opacity = "1"; return }
+    const t = clock.elapsedTime + 2.2
+    const rx = 4.3, rz = 3.5
+    g.position.x = Math.sin(t * 0.07) * rx
+    g.position.z = Math.cos(t * 0.07) * rz
+    g.position.y = Math.sin(t * 0.053 + 1.6) * 2.6
+    const norm = (g.position.z + rz) / (rz * 2)
+    div.style.opacity = String(Math.max(0.06, norm * 0.55))
+  })
+
+  const btnStyle: React.CSSProperties = {
+    width: 26, height: 26, borderRadius: "50%",
+    background: open ? "#f97316" : "rgba(255,255,255,0.12)",
+    border: `1.5px solid ${open ? "#f97316" : "rgba(255,255,255,0.28)"}`,
+    color: open ? "#fff" : "rgba(255,255,255,0.7)",
+    fontSize: 13, cursor: "pointer",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    backdropFilter: "blur(6px)", userSelect: "none", fontFamily: "inherit", lineHeight: "1",
+  }
+
+  return (
+    <group ref={groupRef}>
+      <Html center zIndexRange={[40, 0]}>
+        <div ref={divRef} style={{ position: "relative", display: "inline-block", opacity: 0.06 }}>
+          {open && (
+            <div style={{
+              position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
+              transform: "translateX(-50%)",
+              background: "rgba(255,255,255,0.93)", backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)", borderRadius: 16,
+              padding: "10px 12px", width: 240, color: "#0a0a0e", fontSize: 13,
+              boxShadow: "0 4px 28px rgba(0,0,0,0.14)", pointerEvents: "auto", fontFamily: "inherit",
+            }}>
+              <input
+                autoFocus
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="search tracks or albums…"
+                style={{
+                  width: "100%", border: "1px solid rgba(0,0,0,0.15)", borderRadius: 8,
+                  padding: "6px 10px", fontSize: 13, outline: "none",
+                  background: "rgba(0,0,0,0.04)", fontFamily: "inherit", boxSizing: "border-box",
+                }}
+              />
+              {results.length > 0 && (
+                <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 1 }}>
+                  {results.map((r, i) => (
+                    <button key={i} onClick={() => {
+                      r.trackIdx !== undefined ? onJumpToTrack(r.album, r.trackIdx) : onSelectAlbum(r.album.id)
+                      setOpen(false); setQuery("")
+                    }}
+                    style={{
+                      display: "block", width: "100%", textAlign: "left",
+                      padding: "5px 8px", borderRadius: 6, background: "transparent",
+                      border: "none", cursor: "pointer", fontSize: 12,
+                      color: "#0a0a0e", fontFamily: "inherit",
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,0,0,0.07)" }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
+                    >
+                      {r.trackIdx !== undefined ? "♪ " : "⦿ "}{r.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {query.trim() !== "" && results.length === 0 && (
+                <p style={{ marginTop: 8, fontSize: 12, color: "rgba(0,0,0,0.4)", textAlign: "center" }}>no results</p>
+              )}
+            </div>
+          )}
+          <button
+            onClick={e => { e.stopPropagation(); setOpen(o => !o); if (open) setQuery("") }}
+            onPointerDown={e => e.stopPropagation()}
+            style={btnStyle}
+          >
+            🔍
+          </button>
+        </div>
+      </Html>
+    </group>
+  )
+}
+
+function SimpleModeOrb({ onActivate }: { onActivate: () => void }) {
+  const groupRef = useRef<THREE.Group>(null)
+  const divRef   = useRef<HTMLDivElement>(null)
+
+  useFrame(({ clock }) => {
+    const g = groupRef.current; const div = divRef.current
+    if (!g || !div) return
+    const t = clock.elapsedTime + 4.4
+    const rx = 4.3, rz = 3.5
+    g.position.x = Math.sin(t * 0.07) * rx
+    g.position.z = Math.cos(t * 0.07) * rz
+    g.position.y = Math.sin(t * 0.053 + 1.6) * 2.6
+    const norm = (g.position.z + rz) / (rz * 2)
+    div.style.opacity = String(Math.max(0.06, norm * 0.55))
+  })
+
+  return (
+    <group ref={groupRef}>
+      <Html center zIndexRange={[40, 0]}>
+        <div ref={divRef} style={{ display: "inline-block", opacity: 0.06 }}>
+          <button
+            onClick={e => { e.stopPropagation(); onActivate() }}
+            onPointerDown={e => e.stopPropagation()}
+            title="Simple mode"
+            style={{
+              width: 26, height: 26, borderRadius: "50%",
+              background: "rgba(255,255,255,0.12)",
+              border: "1.5px solid rgba(255,255,255,0.28)",
+              color: "rgba(255,255,255,0.7)",
+              fontSize: 14, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              backdropFilter: "blur(6px)", userSelect: "none", fontFamily: "inherit", lineHeight: "1",
+            } as React.CSSProperties}
+          >
+            ≡
+          </button>
+        </div>
+      </Html>
+    </group>
+  )
+}
+
 function Scene({
   albums, selectedId, onSelectAlbum, currentUrl, onSelectTrack,
   isPlaying, hoverCapable, revealedId, setRevealedId, visitedIds, visitedTrackUrls,
+  onJumpToTrack, onActivateSimpleMode,
 }: {
   albums: Album[]; selectedId: string | null
   onSelectAlbum: (id: string | null) => void; currentUrl: string | null
@@ -484,6 +639,8 @@ function Scene({
   hoverCapable: boolean; revealedId: string | null
   setRevealedId: (id: string | null) => void; visitedIds: Set<string>
   visitedTrackUrls: Set<string>
+  onJumpToTrack: (album: Album, index: number) => void
+  onActivateSimpleMode: () => void
 }) {
   const selected = albums.find((a) => a.id === selectedId) ?? null
   const albumPositions = useMemo(() => fibSphere(albums.length, 4.3, 1.5), [albums.length])
@@ -508,6 +665,8 @@ function Scene({
       ))}
 
       {!selected && <SceneInfoButton />}
+      {!selected && <SearchOrb albums={albums} onSelectAlbum={id => onSelectAlbum(id)} onJumpToTrack={onJumpToTrack} />}
+      {!selected && <SimpleModeOrb onActivate={onActivateSimpleMode} />}
 
       {selected && (
         <TrackOrbsPhysics
@@ -534,6 +693,8 @@ export function OrbScene(props: {
   onSelectAlbum: (id: string | null) => void; currentUrl: string | null
   onSelectTrack: (album: Album, index: number) => void; isPlaying: boolean
   visitedIds: Set<string>; visitedTrackUrls: Set<string>
+  onJumpToTrack: (album: Album, index: number) => void
+  onActivateSimpleMode: () => void
 }) {
   const [hoverCapable, setHoverCapable] = useState(true)
   useEffect(() => {

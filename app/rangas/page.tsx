@@ -9,6 +9,7 @@ import dynamic from "next/dynamic"
 import { FloatingPlayer } from "@/components/floating-player"
 import { X } from "lucide-react"
 import { WizardPrompt } from "@/components/wizard-prompt"
+import { SimpleView } from "@/components/simple-view"
 
 const OrbScene = dynamic(
   () => import("@/components/orb-scene").then((m) => ({ default: m.OrbScene })),
@@ -28,6 +29,7 @@ function RangaDemos() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [playerVisible, setPlayerVisible] = useState(false)
+  const [simpleMode, setSimpleMode] = useState(false)
   const [greetingDismissed, setGreetingDismissed] = useState(false)
   const [visitedTrackUrls, setVisitedTrackUrls] = useState<Set<string>>(new Set())
   const prevTrackUrl = useRef<string | null>(null)
@@ -143,9 +145,43 @@ function RangaDemos() {
     playTrack(album.id, index)
   }
 
+  const handleJumpToTrack = useCallback((album: Album, index: number) => {
+    markVisited(album.id)
+    setSelectedId(album.id)
+    setPlayerVisible(true)
+    playTrack(album.id, index)
+  }, [markVisited, playTrack])
+
+  if (simpleMode) {
+    return (
+      <SimpleView
+        albums={albums}
+        state={state}
+        theme={theme}
+        onJumpToTrack={handleJumpToTrack}
+        onToggle={toggle}
+        onNext={next}
+        onPrev={prev}
+        onSeek={seek}
+        onVolume={setVolume}
+        onExit={() => setSimpleMode(false)}
+      />
+    )
+  }
+
   return (
     <main className="fixed inset-0 overflow-hidden" style={{ color: theme.ink }}>
       <GradientField colors={theme.nodes} base={theme.base} energy={state.energy} />
+
+      {/* Fallback for users whose browser can't render WebGL */}
+      <button
+        onClick={() => setSimpleMode(true)}
+        className="fixed right-3 top-3 z-30 rounded-full px-2.5 py-1 text-xs transition-opacity hover:opacity-80"
+        style={{ background: "rgba(0,0,0,0.35)", color: "rgba(255,255,255,0.4)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)" }}
+        aria-label="Simple mode"
+      >
+        ≡
+      </button>
 
       <OrbScene
         albums={albums}
@@ -156,6 +192,8 @@ function RangaDemos() {
         isPlaying={state.isPlaying}
         visitedIds={visitedIds}
         visitedTrackUrls={visitedTrackUrls}
+        onJumpToTrack={handleJumpToTrack}
+        onActivateSimpleMode={() => setSimpleMode(true)}
       />
 
       {/* Farewell card — shows once all album orbs have gone grey */}
