@@ -176,11 +176,11 @@ function RangaDemos() {
       {/* Fallback for users whose browser can't render WebGL */}
       <button
         onClick={() => setSimpleMode(true)}
-        className="fixed right-3 top-3 z-30 rounded-full px-2.5 py-1 text-xs transition-opacity hover:opacity-80"
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 rounded-full px-3 py-1 text-xs transition-opacity hover:opacity-80"
         style={{ background: "rgba(0,0,0,0.35)", color: "rgba(255,255,255,0.4)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)" }}
         aria-label="Simple mode"
       >
-        ≡
+        (2D)
       </button>
 
       <OrbScene
@@ -247,14 +247,14 @@ function RangaDemos() {
         alt=""
         aria-hidden
         className="pointer-events-none absolute select-none"
-        style={{ bottom: 18, left: 18, width: 160, opacity: 0.6, mixBlendMode: "darken", zIndex: 100 }}
+        style={{ bottom: 14, left: 14, width: 64, opacity: 0.6, mixBlendMode: "darken", zIndex: 100 }}
       />
       <img
         src="/images/logo-ranga.webp"
         alt=""
         aria-hidden
         className="pointer-events-none absolute select-none"
-        style={{ bottom: 14, right: 16, width: 200, opacity: 0.55, mixBlendMode: "darken", zIndex: 100 }}
+        style={{ bottom: 12, right: 12, width: 72, opacity: 0.55, mixBlendMode: "darken", zIndex: 100 }}
       />
 
       <WizardPrompt isPlaying={state.isPlaying} />
