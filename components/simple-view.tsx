@@ -25,8 +25,8 @@ export function SimpleView({
   const accent = theme.nodes?.[0] ?? "#f97316"
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: "#0a0a0e", color: "#f0f0f5", paddingBottom: 88 }}>
-      <div className="mx-auto max-w-xl px-4 py-5">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto" style={{ background: "#0a0a0e", color: "#f0f0f5", paddingBottom: 88 }}>
+      <div className="w-full max-w-xl px-4 py-5">
 
         <div className="mb-5 flex items-center justify-between">
           <span className="text-base font-semibold" style={{ color: accent }}>ranga demos</span>
