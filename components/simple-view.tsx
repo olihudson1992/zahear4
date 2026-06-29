@@ -107,6 +107,16 @@ export function SimpleView({
         onToggle={onToggle} onNext={onNext} onPrev={onPrev}
         onSeek={onSeek} onVolume={onVolume} onClose={() => {}}
       />
+
+      {/* Brand logos */}
+      <img src="/images/logo-wyrd.webp" alt="" aria-hidden
+        className="pointer-events-none absolute select-none"
+        style={{ bottom: 18, left: 18, width: 140, opacity: 1, zIndex: 100 }}
+      />
+      <img src="/images/logo-ranga.webp" alt="" aria-hidden
+        className="pointer-events-none absolute select-none"
+        style={{ bottom: 14, right: 16, width: 180, opacity: 1, zIndex: 100 }}
+      />
     </div>
   )
 }

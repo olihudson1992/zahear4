@@ -241,6 +241,22 @@ function RangaDemos() {
         </div>
       )}
 
+      {/* Brand logos */}
+      <img
+        src="/images/logo-wyrd.webp"
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute select-none"
+        style={{ bottom: 18, left: 18, width: 160, opacity: 1, zIndex: 100 }}
+      />
+      <img
+        src="/images/logo-ranga.webp"
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute select-none"
+        style={{ bottom: 14, right: 16, width: 200, opacity: 1, zIndex: 100 }}
+      />
+
       <WizardPrompt isPlaying={state.isPlaying} />
 
       {playerVisible && (
