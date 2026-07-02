@@ -11,7 +11,6 @@ const pages = [
   { name: "go",             path: "/go",               color: "#00ff88" },
   { name: "ranga",          path: "/ranga",            color: "#ffff00" },
   { name: "sing",           path: "/sing",             color: "#ff6600" },
-  { name: "𝕊𝔦ＮᎶ",         path: "/𝕊𝔦ＮᎶ",           color: "#00ffaa" },
   { name: "çøřǎŧÿŵžᛉ",    path: "/çøřǎŧÿŵžᛉ",      color: "#aa00ff" },
   { name: "ǝuoɹǝʇdɐɥɔ",   path: "/ǝuoɹǝʇdɐɥɔ",     color: "#ff0088" },
   { name: "юΘف жn2gsj",    path: "/юΘف жn2gsj",      color: "#88ff00" },
