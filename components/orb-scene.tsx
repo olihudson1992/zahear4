@@ -733,9 +733,6 @@ function Scene({
         />
       ))}
 
-      {!selected && <SceneInfoButton />}
-      {!selected && <SearchOrb albums={albums} onSelectAlbum={id => onSelectAlbum(id)} onJumpToTrack={onJumpToTrack} />}
-      {!selected && <SimpleModeOrb onActivate={onActivateSimpleMode} />}
 
       {selected && (
         <TrackOrbsPhysics
