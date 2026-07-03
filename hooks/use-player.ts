@@ -25,7 +25,7 @@ export type PlayerState = {
   loading: boolean
 }
 
-export function usePlayer() {
+export function usePlayer(albumsSource: Album[] = albums) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const gainNodeRef = useRef<GainNode | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
@@ -43,7 +43,7 @@ export function usePlayer() {
   const [loading, setLoading] = useState(false)
   const [energy, setEnergy] = useState(0)
 
-  const album = albums.find((a) => a.id === albumId) ?? null
+  const album = albumsSource.find((a) => a.id === albumId) ?? null
   const track = album?.tracks[trackIndex] ?? null
 
   useEffect(() => {
@@ -131,7 +131,7 @@ export function usePlayer() {
 
   const playTrack = useCallback(
     (nextAlbumId: string, index: number, rebuildShuffle = true) => {
-      const a = albums.find((al) => al.id === nextAlbumId)
+      const a = albumsSource.find((al) => al.id === nextAlbumId)
       const t = a?.tracks[index]
       const audio = audioRef.current
       if (!a || !t || !audio) return

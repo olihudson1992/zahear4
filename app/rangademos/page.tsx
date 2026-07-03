@@ -23,7 +23,7 @@ function trackTheme(base: AlbumTheme, trackIndex: number): AlbumTheme {
 }
 
 function RangaDemosPage() {
-  const { state, playTrack, toggle, next, prev, seek, setVolume } = usePlayer()
+  const { state, playTrack, toggle, next, prev, seek, setVolume } = usePlayer(rangaDemosAlbums)
   const router = useRouter()
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
