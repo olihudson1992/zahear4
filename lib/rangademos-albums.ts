@@ -39,8 +39,8 @@ export const rangaDemosAlbums: Album[] = [
       display: "font-display font-normal tracking-tight",
     },
     tracks: [
-      { url: "https://rangatracks.b-cdn.net/mwamwa/Tresa%20.mp3",                              name: "Tresa" },
       { url: "https://rangatracks.b-cdn.net/mwamwa/Terrano%20.mp3",                            name: "Terrano" },
+      { url: "https://rangatracks.b-cdn.net/mwamwa/Tresa%20.mp3",                              name: "Tresa" },
       { url: "https://rangatracks.b-cdn.net/mwamwa/168%20JULIANO%20REMIX%20INSTRUMENTAL.mp3",  name: "Juliano Remix" },
       { url: "https://rangatracks.b-cdn.net/mwamwa/Ranga%20%26%20Mwamwa%20-%20Gongs.mp3",     name: "Gongs" },
       { url: "https://rangatracks.b-cdn.net/mwamwa/Ranga%20%26%20Mwamwa%20-%20Tides.mp3",     name: "Tides" },
