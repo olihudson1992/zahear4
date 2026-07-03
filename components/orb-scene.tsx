@@ -696,7 +696,7 @@ function SimpleModeOrb({ onActivate }: { onActivate: () => void }) {
 function Scene({
   albums, selectedId, onSelectAlbum, currentUrl, onSelectTrack,
   isPlaying, hoverCapable, revealedId, setRevealedId, visitedIds, visitedTrackUrls,
-  onJumpToTrack, onActivateSimpleMode, scifi,
+  onJumpToTrack, onActivateSimpleMode, scifi, showSearch,
 }: {
   albums: Album[]; selectedId: string | null
   onSelectAlbum: (id: string | null) => void; currentUrl: string | null
@@ -707,6 +707,7 @@ function Scene({
   onJumpToTrack: (album: Album, index: number) => void
   onActivateSimpleMode: () => void
   scifi?: boolean
+  showSearch?: boolean
 }) {
   const selected = albums.find((a) => a.id === selectedId) ?? null
   const albumPositions = useMemo(() => fibSphere(albums.length, 4.3, 1.5), [albums.length])
@@ -733,6 +734,7 @@ function Scene({
         />
       ))}
 
+      {showSearch && !selected && <SearchOrb albums={albums} onSelectAlbum={id => onSelectAlbum(id)} onJumpToTrack={onJumpToTrack} />}
 
       {selected && (
         <TrackOrbsPhysics
@@ -763,6 +765,7 @@ export function OrbScene(props: {
   onJumpToTrack: (album: Album, index: number) => void
   onActivateSimpleMode: () => void
   scifi?: boolean
+  showSearch?: boolean
 }) {
   const [hoverCapable, setHoverCapable] = useState(true)
   useEffect(() => {
@@ -795,7 +798,7 @@ export function OrbScene(props: {
       <Scene {...props} hoverCapable={hoverCapable}
         revealedId={revealedId} setRevealedId={setRevealedId}
         visitedIds={props.visitedIds} visitedTrackUrls={props.visitedTrackUrls}
-        scifi={props.scifi} />
+        scifi={props.scifi} showSearch={props.showSearch} />
     </Canvas>
   )
 }

@@ -194,6 +194,7 @@ function RangaDemos() {
         visitedTrackUrls={visitedTrackUrls}
         onJumpToTrack={handleJumpToTrack}
         onActivateSimpleMode={() => setSimpleMode(true)}
+        showSearch
       />
 
       {/* Farewell card — shows once all album orbs have gone grey */}
