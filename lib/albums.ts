@@ -22,6 +22,7 @@ export type Album = {
   tracks: Track[]
   description?: string
   descriptionLink?: { label: string; url: string }
+  shape?: "tetrahedron"
 }
 
 export const albums: Album[] = [

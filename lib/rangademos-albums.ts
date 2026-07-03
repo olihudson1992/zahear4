@@ -64,4 +64,23 @@ export const rangaDemosAlbums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice.mp3",                     name: "Solstice" },
     ],
   },
+  {
+    id: "red-tetra",
+    title: "∆",
+    shape: "tetrahedron",
+    theme: {
+      base: "#0f0000",
+      ink: "#ffe8e8",
+      mutedInk: "rgba(255,232,232,0.6)",
+      nodes: ["#ff2020", "#cc0000", "#ff6040", "#dd1010", "#ff8060", "#990000", "#660000"],
+      display: "font-sans font-black uppercase tracking-widest",
+    },
+    tracks: [
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/easy%20ft%20james%20morrigan.mp3", name: "Easy ft James Morrigan" },
+      { url: "https://rangatracks.b-cdn.net/mwamwa/Terrano%20.mp3",                          name: "Terrano" },
+      { url: "https://rangatracks.b-cdn.net/DEMOS/rowan.mp3",                                name: "Rowan" },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3",                        name: "Oremus" },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice.mp3",                      name: "Solstice" },
+    ],
+  },
 ]

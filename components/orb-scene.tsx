@@ -99,9 +99,10 @@ function AlbumOrb({
     const g = group.current
     if (!g) return
     const t = state.clock.elapsedTime
-    const bobX = anySelected ? 0 : Math.sin(t * 0.17 + seed * 1.3) * 0.18
-    const bobY = anySelected || revealed ? 0 : Math.sin(t * 0.27 + seed) * 0.24
-    const bobZ = anySelected ? 0 : Math.cos(t * 0.21 + seed * 0.8) * 0.14
+    const tetra = album.shape === "tetrahedron"
+    const bobX = (anySelected || tetra) ? 0 : Math.sin(t * 0.17 + seed * 1.3) * 0.18
+    const bobY = (anySelected || revealed || tetra) ? 0 : Math.sin(t * 0.27 + seed) * 0.24
+    const bobZ = (anySelected || tetra) ? 0 : Math.cos(t * 0.21 + seed * 0.8) * 0.14
 
     g.position.x += ((selected ? 0 : base.x + bobX) - g.position.x) * 0.04
     g.position.y += ((selected ? 0 : base.y + bobY) - g.position.y) * 0.04
@@ -120,7 +121,15 @@ function AlbumOrb({
       const target = hidden ? 0 : selected ? 0.3 : showName ? 0.26 : 0.18
       glowMat.current.opacity += (target - glowMat.current.opacity) * 0.08
     }
-    if (core.current) core.current.rotation.y = t * 0.05
+    if (core.current) {
+      if (album.shape === "tetrahedron") {
+        core.current.rotation.x = t * 0.13
+        core.current.rotation.y = t * 0.21
+        core.current.rotation.z = t * 0.08
+      } else {
+        core.current.rotation.y = t * 0.05
+      }
+    }
     // Shrink hit collider when selected so track orbs are easy to tap
     if (collider.current) {
       const targetColliderScale = selected ? 0.45 : 1
@@ -159,7 +168,10 @@ function AlbumOrb({
       </mesh>
       {/* Visual core — display only */}
       <mesh ref={core}>
-        <sphereGeometry args={[1, 48, 48]} />
+        {album.shape === "tetrahedron"
+          ? <tetrahedronGeometry args={[1.2, 0]} />
+          : <sphereGeometry args={[1, 48, 48]} />
+        }
         <meshStandardMaterial ref={coreMat}
           color={scifi ? "#05050f" : "#000000"}
           emissive={color} emissiveIntensity={1.1}
@@ -709,7 +721,8 @@ function Scene({
 
       {albums.map((album, i) => (
         <AlbumOrb
-          key={album.id} album={album} basePosition={albumPositions[i]}
+          key={album.id} album={album}
+          basePosition={album.shape === "tetrahedron" ? [0, 0, 0] : albumPositions[i]}
           selected={selectedId === album.id} anySelected={selectedId !== null}
           isPlaying={isPlaying} hoverCapable={hoverCapable}
           revealed={revealedId === album.id} visited={visitedIds.has(album.id)}
