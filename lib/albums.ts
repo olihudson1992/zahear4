@@ -49,6 +49,7 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/god2_Ol'.mp3", name: "God 2" },
       { url: "https://rangatracks.b-cdn.net/AMBIENT/center.mp3", name: "center", gain: 1.4 },
       { url: "https://rangatracks.b-cdn.net/HOME/SONG%20ONE.mp3", name: "Song One" },
+      { url: "https://rangatracks.b-cdn.net/DEMOS/Thirst_Ranga.mp3", name: "Thirst" },
     ],
   },
   {
@@ -188,6 +189,7 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/BRANDY%20PT2.mp3", name: "Brandy Pt 2" },
       { url: "https://rangatracks.b-cdn.net/Whomper.mp3", name: "Whomper" },
       { url: "https://rangatracks.b-cdn.net/Stomper.mp3", name: "Stomper" },
+      { url: "https://rangatracks.b-cdn.net/DEMOS/HIPTAMINE.mp3", name: "Hiptamine" },
     ],
   },
   {
