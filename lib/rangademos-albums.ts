@@ -15,7 +15,6 @@ export const rangaDemosAlbums: Album[] = [
       display: "font-display font-light tracking-wide",
     },
     tracks: [
-      { url: "https://rangatracks.b-cdn.net/mwamwa/Tresa%20.mp3",                            name: "Tresa" },
       { url: "https://rangatracks.b-cdn.net/DEMOS/rowan.mp3",                                name: "Rowan" },
       { url: "https://rangatracks.b-cdn.net/DEMOS/Ranga%20-%20Ol'%20-%20Fortune%20.mp3",    name: "Fortune" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3",                        name: "Oremus" },
