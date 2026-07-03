@@ -75,12 +75,13 @@ function PointerLights({ colorA, colorB }: { colorA: string; colorB: string }) {
 
 function AlbumOrb({
   album, basePosition, selected, anySelected, isPlaying, hoverCapable,
-  revealed, visited, onReveal, onSelect, onBack,
+  revealed, visited, onReveal, onSelect, onBack, scifi,
 }: {
   album: Album; basePosition: [number, number, number]
   selected: boolean; anySelected: boolean; isPlaying: boolean
   hoverCapable: boolean; revealed: boolean; visited: boolean
   onReveal: () => void; onSelect: () => void; onBack: () => void
+  scifi?: boolean
 }) {
   const group = useRef<THREE.Group>(null)
   const core = useRef<THREE.Mesh>(null)
@@ -130,6 +131,13 @@ function AlbumOrb({
   const interactive = !anySelected || selected
   return (
     <group ref={group} position={basePosition}>
+      {/* Sci-fi outer silver rim */}
+      {scifi && (
+        <mesh scale={1.75}>
+          <sphereGeometry args={[1, 18, 18]} />
+          <meshBasicMaterial color="#c8e4ff" transparent opacity={0.06} depthWrite={false} side={THREE.BackSide} />
+        </mesh>
+      )}
       <mesh scale={1.35}>
         <sphereGeometry args={[1, 32, 32]} />
         <meshBasicMaterial ref={glowMat} color={color} transparent opacity={0.18} depthWrite={false} />
@@ -152,8 +160,11 @@ function AlbumOrb({
       {/* Visual core — display only */}
       <mesh ref={core}>
         <sphereGeometry args={[1, 48, 48]} />
-        <meshStandardMaterial ref={coreMat} color="#000000" emissive={color} emissiveIntensity={1.1}
-          metalness={0} roughness={1} toneMapped={false} transparent opacity={1} />
+        <meshStandardMaterial ref={coreMat}
+          color={scifi ? "#05050f" : "#000000"}
+          emissive={color} emissiveIntensity={1.1}
+          metalness={scifi ? 0.9 : 0} roughness={scifi ? 0.05 : 1}
+          toneMapped={false} transparent opacity={1} />
       </mesh>
       {showName && <NameChip text={album.title} fontClass={album.theme.display} ink={album.theme.ink} base={album.theme.base} />}
     </group>
@@ -164,13 +175,14 @@ function AlbumOrb({
 // Position is driven by the physics context (lerped in useFrame) rather than a static prop.
 function TrackOrb({
   physicsIndex, name, color, ink, base, fontClass,
-  active, isPlaying, hoverCapable, revealed, visited, onReveal, onPlay,
+  active, isPlaying, hoverCapable, revealed, visited, onReveal, onPlay, scifi,
 }: {
   physicsIndex: number
   name: string; color: string; ink: string; base: string; fontClass: string
   active: boolean; isPlaying: boolean
   hoverCapable: boolean; revealed: boolean; visited: boolean
   onReveal: () => void; onPlay: () => void
+  scifi?: boolean
 }) {
   const orbColor = visited && !active ? "#888888" : color
   const physics  = useContext(TrackPhysicsCtx)
@@ -251,10 +263,19 @@ function TrackOrb({
         <meshBasicMaterial ref={midMat} color={orbColor} transparent opacity={0.08} depthWrite={false} />
       </mesh>
 
+      {scifi && (
+        <mesh scale={2.8}>
+          <sphereGeometry args={[1, 14, 14]} />
+          <meshBasicMaterial color="#b8d8ff" transparent opacity={0.05} depthWrite={false} side={THREE.BackSide} />
+        </mesh>
+      )}
       <mesh>
         <sphereGeometry args={[1, 22, 22]} />
-        <meshStandardMaterial ref={coreMat} color="#000000" emissive={orbColor}
-          emissiveIntensity={0.7} toneMapped={false} />
+        <meshStandardMaterial ref={coreMat}
+          color={scifi ? "#05050f" : "#000000"}
+          emissive={orbColor} emissiveIntensity={0.7}
+          metalness={scifi ? 0.85 : 0} roughness={scifi ? 0.08 : 1}
+          toneMapped={false} />
       </mesh>
 
       {showName && <NameChip text={name} fontClass={fontClass} ink={ink} base={base} offset={[1.4, 0, 0]} />}
@@ -268,7 +289,7 @@ function TrackOrb({
 // and read by TrackOrb via context.
 function TrackOrbsPhysics({
   selected, currentUrl, isPlaying, hoverCapable,
-  revealedId, setRevealedId, onSelectTrack, visitedTrackUrls,
+  revealedId, setRevealedId, onSelectTrack, visitedTrackUrls, scifi,
 }: {
   selected: Album
   currentUrl: string | null
@@ -278,6 +299,7 @@ function TrackOrbsPhysics({
   setRevealedId: (id: string | null) => void
   onSelectTrack: (album: Album, index: number) => void
   visitedTrackUrls: Set<string>
+  scifi?: boolean
 }) {
   const TARGET_R  = 3.1   // desired orbital radius
   const K_SPRING  = 2.2   // spring strength pulling each orb back toward TARGET_R
@@ -382,6 +404,7 @@ function TrackOrbsPhysics({
           visited={visitedTrackUrls.has(track.url)}
           onReveal={() => setRevealedId(track.url)}
           onPlay={() => onSelectTrack(selected, i)}
+          scifi={scifi}
         />
       ))}
     </TrackPhysicsCtx.Provider>
@@ -595,6 +618,27 @@ function SearchOrb({ albums, onSelectAlbum, onJumpToTrack }: {
   )
 }
 
+function StarField() {
+  const ref = useRef<THREE.Points>(null)
+  const geo = useMemo(() => {
+    const g = new THREE.BufferGeometry()
+    const pos = new Float32Array(500 * 3)
+    for (let i = 0; i < 500; i++) {
+      pos[i * 3]     = (Math.random() - 0.5) * 90
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 90
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 90 - 10
+    }
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3))
+    return g
+  }, [])
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 0.006 })
+  return (
+    <points ref={ref} geometry={geo}>
+      <pointsMaterial size={0.045} color="#c8e4ff" transparent opacity={0.65} sizeAttenuation />
+    </points>
+  )
+}
+
 function SimpleModeOrb({ onActivate }: { onActivate: () => void }) {
   const groupRef = useRef<THREE.Group>(null)
   const divRef   = useRef<HTMLDivElement>(null)
@@ -640,7 +684,7 @@ function SimpleModeOrb({ onActivate }: { onActivate: () => void }) {
 function Scene({
   albums, selectedId, onSelectAlbum, currentUrl, onSelectTrack,
   isPlaying, hoverCapable, revealedId, setRevealedId, visitedIds, visitedTrackUrls,
-  onJumpToTrack, onActivateSimpleMode,
+  onJumpToTrack, onActivateSimpleMode, scifi,
 }: {
   albums: Album[]; selectedId: string | null
   onSelectAlbum: (id: string | null) => void; currentUrl: string | null
@@ -650,6 +694,7 @@ function Scene({
   visitedTrackUrls: Set<string>
   onJumpToTrack: (album: Album, index: number) => void
   onActivateSimpleMode: () => void
+  scifi?: boolean
 }) {
   const selected = albums.find((a) => a.id === selectedId) ?? null
   const albumPositions = useMemo(() => fibSphere(albums.length, 4.3, 1.5), [albums.length])
@@ -658,8 +703,9 @@ function Scene({
 
   return (
     <>
-      <ambientLight intensity={0.3} />
+      <ambientLight intensity={scifi ? 0.15 : 0.3} color={scifi ? "#6080ff" : "#ffffff"} />
       <PointerLights colorA={lightA} colorB={lightB} />
+      {scifi && <StarField />}
 
       {albums.map((album, i) => (
         <AlbumOrb
@@ -670,6 +716,7 @@ function Scene({
           onReveal={() => setRevealedId(album.id)}
           onSelect={() => onSelectAlbum(album.id)}
           onBack={() => onSelectAlbum(null)}
+          scifi={scifi}
         />
       ))}
 
@@ -687,6 +734,7 @@ function Scene({
           setRevealedId={setRevealedId}
           onSelectTrack={onSelectTrack}
           visitedTrackUrls={visitedTrackUrls}
+          scifi={scifi}
         />
       )}
 
@@ -704,6 +752,7 @@ export function OrbScene(props: {
   visitedIds: Set<string>; visitedTrackUrls: Set<string>
   onJumpToTrack: (album: Album, index: number) => void
   onActivateSimpleMode: () => void
+  scifi?: boolean
 }) {
   const [hoverCapable, setHoverCapable] = useState(true)
   useEffect(() => {
@@ -735,7 +784,8 @@ export function OrbScene(props: {
     >
       <Scene {...props} hoverCapable={hoverCapable}
         revealedId={revealedId} setRevealedId={setRevealedId}
-        visitedIds={props.visitedIds} visitedTrackUrls={props.visitedTrackUrls} />
+        visitedIds={props.visitedIds} visitedTrackUrls={props.visitedTrackUrls}
+        scifi={props.scifi} />
     </Canvas>
   )
 }

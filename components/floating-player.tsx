@@ -133,8 +133,7 @@ export function FloatingPlayer({
       <div
         className="w-full max-w-lg overflow-hidden"
         style={{
-          background: "rgba(255,255,255,0.94)",
-          backdropFilter: "blur(24px)",
+          background: "#ffffff",
           borderTop: `1.5px solid ${accent}44`,
           borderLeft: `1px solid rgba(0,0,0,0.06)`,
           borderRight: `1px solid rgba(0,0,0,0.06)`,
