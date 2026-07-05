@@ -25,7 +25,7 @@ export type PlayerState = {
   loading: boolean
 }
 
-export function usePlayer(albumsSource: Album[] = albums) {
+export function usePlayer(albumsSource: Album[] = albums, ordered = false) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const gainNodeRef = useRef<GainNode | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
@@ -203,12 +203,16 @@ export function usePlayer(albumsSource: Album[] = albums) {
         return
       }
     }
+    if (ordered) {
+      playTrack(album.id, (trackIndex + 1) % album.tracks.length, false)
+      return
+    }
     if (shuffleQueueRef.current.length === 0) {
       shuffleQueueRef.current = shuffleExcluding(album.tracks.length, trackIndex)
     }
     const nextIdx = shuffleQueueRef.current.shift()
     if (nextIdx !== undefined) playTrack(album.id, nextIdx, false)
-  }, [album, trackIndex, playTrack])
+  }, [album, trackIndex, playTrack, ordered])
 
   const prev = useCallback(() => {
     if (!album) return
@@ -237,7 +241,7 @@ export function usePlayer(albumsSource: Album[] = albums) {
     }
   }, [])
 
-  // Auto-advance: pick a random next track from the shuffle queue (reshuffles when exhausted)
+  // Auto-advance on track end
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
@@ -254,6 +258,10 @@ export function usePlayer(albumsSource: Album[] = albums) {
           return
         }
       }
+      if (ordered) {
+        playTrack(album.id, (trackIndex + 1) % album.tracks.length, false)
+        return
+      }
       if (shuffleQueueRef.current.length === 0) {
         shuffleQueueRef.current = shuffleExcluding(album.tracks.length, trackIndex)
       }
@@ -262,7 +270,7 @@ export function usePlayer(albumsSource: Album[] = albums) {
     }
     audio.addEventListener("ended", onEnded)
     return () => audio.removeEventListener("ended", onEnded)
-  }, [album, trackIndex, playTrack])
+  }, [album, trackIndex, playTrack, ordered])
 
   const state: PlayerState = {
     album, track, trackIndex, isPlaying,

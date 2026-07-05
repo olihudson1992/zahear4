@@ -23,7 +23,7 @@ function trackTheme(base: AlbumTheme, trackIndex: number): AlbumTheme {
 }
 
 function ListenPage() {
-  const { state, playTrack, toggle, next, prev, seek, setVolume } = usePlayer(listenAlbums)
+  const { state, playTrack, toggle, next, prev, seek, setVolume } = usePlayer(listenAlbums, true)
   const router = useRouter()
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
