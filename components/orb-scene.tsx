@@ -75,7 +75,7 @@ function PointerLights({ colorA, colorB }: { colorA: string; colorB: string }) {
 
 function AlbumOrb({
   album, basePosition, selected, anySelected, isPlaying, hoverCapable,
-  revealed, visited, onReveal, onSelect, onBack, scifi, morphOrbs,
+  revealed, visited, onReveal, onSelect, onBack, scifi, morphOrbs, scifiRimColor,
 }: {
   album: Album; basePosition: [number, number, number]
   selected: boolean; anySelected: boolean; isPlaying: boolean
@@ -83,6 +83,7 @@ function AlbumOrb({
   onReveal: () => void; onSelect: () => void; onBack: () => void
   scifi?: boolean
   morphOrbs?: boolean
+  scifiRimColor?: string
 }) {
   const group = useRef<THREE.Group>(null)
   const core = useRef<THREE.Mesh>(null)
@@ -152,7 +153,7 @@ function AlbumOrb({
       {scifi && (
         <mesh scale={1.75}>
           <sphereGeometry args={[1, 18, 18]} />
-          <meshBasicMaterial color="#c8e4ff" transparent opacity={0.06} depthWrite={false} side={THREE.BackSide} />
+          <meshBasicMaterial color={scifiRimColor ?? "#c8e4ff"} transparent opacity={scifiRimColor ? 0.18 : 0.06} depthWrite={false} side={THREE.BackSide} />
         </mesh>
       )}
       <mesh scale={1.35}>
@@ -195,7 +196,7 @@ function AlbumOrb({
 // Position is driven by the physics context (lerped in useFrame) rather than a static prop.
 function TrackOrb({
   physicsIndex, name, color, ink, base, fontClass,
-  active, isPlaying, hoverCapable, revealed, visited, onReveal, onPlay, scifi, tetraOrbs,
+  active, isPlaying, hoverCapable, revealed, visited, onReveal, onPlay, scifi, tetraOrbs, scifiRimColor,
 }: {
   physicsIndex: number
   name: string; color: string; ink: string; base: string; fontClass: string
@@ -204,6 +205,7 @@ function TrackOrb({
   onReveal: () => void; onPlay: () => void
   scifi?: boolean
   tetraOrbs?: boolean
+  scifiRimColor?: string
 }) {
   const orbColor = visited && !active ? "#888888" : color
   const physics  = useContext(TrackPhysicsCtx)
@@ -299,7 +301,7 @@ function TrackOrb({
       {scifi && (
         <mesh scale={2.8}>
           <sphereGeometry args={[1, 14, 14]} />
-          <meshBasicMaterial color="#b8d8ff" transparent opacity={0.05} depthWrite={false} side={THREE.BackSide} />
+          <meshBasicMaterial color={scifiRimColor ?? "#b8d8ff"} transparent opacity={scifiRimColor ? 0.20 : 0.05} depthWrite={false} side={THREE.BackSide} />
         </mesh>
       )}
       <mesh ref={coreRef}>
@@ -326,7 +328,7 @@ function TrackOrb({
 function TrackOrbsPhysics({
   selected, currentUrl, isPlaying, hoverCapable,
   revealedId, setRevealedId, onSelectTrack, visitedTrackUrls, scifi,
-  slowOrbit, clusterStretch, tetraOrbs,
+  slowOrbit, clusterStretch, tetraOrbs, scifiRimColor,
 }: {
   selected: Album
   currentUrl: string | null
@@ -340,6 +342,7 @@ function TrackOrbsPhysics({
   slowOrbit?: boolean
   clusterStretch?: number
   tetraOrbs?: boolean
+  scifiRimColor?: string
 }) {
   const TARGET_R  = slowOrbit ? 4.5 : 3.1
   const K_SPRING  = slowOrbit ? 0.4 : 2.2
@@ -444,6 +447,7 @@ function TrackOrbsPhysics({
           onPlay={() => onSelectTrack(selected, i)}
           scifi={scifi}
           tetraOrbs={tetraOrbs}
+          scifiRimColor={scifiRimColor}
         />
       ))}
     </TrackPhysicsCtx.Provider>
@@ -724,7 +728,7 @@ function Scene({
   albums, selectedId, onSelectAlbum, currentUrl, onSelectTrack,
   isPlaying, hoverCapable, revealedId, setRevealedId, visitedIds, visitedTrackUrls,
   onJumpToTrack, onActivateSimpleMode, scifi, showSearch, morphOrbs,
-  tetraOrbs, slowOrbit, clusterStretch,
+  tetraOrbs, slowOrbit, clusterStretch, scifiRimColor,
 }: {
   albums: Album[]; selectedId: string | null
   onSelectAlbum: (id: string | null) => void; currentUrl: string | null
@@ -740,6 +744,7 @@ function Scene({
   tetraOrbs?: boolean
   slowOrbit?: boolean
   clusterStretch?: number
+  scifiRimColor?: string
 }) {
   const selected = albums.find((a) => a.id === selectedId) ?? null
   const albumPositions = useMemo(() => fibSphere(albums.length, 4.3, 1.5), [albums.length])
@@ -764,6 +769,7 @@ function Scene({
           onBack={() => onSelectAlbum(null)}
           scifi={scifi}
           morphOrbs={morphOrbs}
+          scifiRimColor={scifiRimColor}
         />
       ))}
 
@@ -783,6 +789,7 @@ function Scene({
           slowOrbit={slowOrbit}
           clusterStretch={clusterStretch}
           tetraOrbs={tetraOrbs}
+          scifiRimColor={scifiRimColor}
         />
       )}
 
@@ -806,6 +813,7 @@ export function OrbScene(props: {
   tetraOrbs?: boolean
   slowOrbit?: boolean
   clusterStretch?: number
+  scifiRimColor?: string
 }) {
   const [hoverCapable, setHoverCapable] = useState(true)
   useEffect(() => {

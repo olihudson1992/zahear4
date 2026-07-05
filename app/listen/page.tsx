@@ -172,6 +172,7 @@ function ListenPage() {
         tetraOrbs
         slowOrbit
         clusterStretch={2.5}
+        scifiRimColor="#ff8800"
       />
 
       {playerVisible && (

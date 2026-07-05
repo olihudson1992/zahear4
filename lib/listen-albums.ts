@@ -9,7 +9,7 @@ export const listenAlbums: Album[] = [
       base: "#eaf5ff",
       ink: "#1a3a5c",
       mutedInk: "rgba(26,58,92,0.5)",
-      nodes: ["#ffffff", "#bae6fd", "#e0f2fe", "#7dd3fc", "#f0f9ff", "#dbeafe", "#cffafe"],
+      nodes: ["#00d4ff", "#00b8ff", "#00e8ff", "#00c4ff", "#00dcff", "#00a8ff", "#00ecff"],
       display: "font-display font-light tracking-wide",
     },
     tracks: [
