@@ -195,7 +195,7 @@ function AlbumOrb({
 // Position is driven by the physics context (lerped in useFrame) rather than a static prop.
 function TrackOrb({
   physicsIndex, name, color, ink, base, fontClass,
-  active, isPlaying, hoverCapable, revealed, visited, onReveal, onPlay, scifi,
+  active, isPlaying, hoverCapable, revealed, visited, onReveal, onPlay, scifi, tetraOrbs,
 }: {
   physicsIndex: number
   name: string; color: string; ink: string; base: string; fontClass: string
@@ -203,12 +203,14 @@ function TrackOrb({
   hoverCapable: boolean; revealed: boolean; visited: boolean
   onReveal: () => void; onPlay: () => void
   scifi?: boolean
+  tetraOrbs?: boolean
 }) {
   const orbColor = visited && !active ? "#888888" : color
   const physics  = useContext(TrackPhysicsCtx)
   const group    = useRef<THREE.Group>(null)
   const outerRef = useRef<THREE.Mesh>(null)
   const midRef   = useRef<THREE.Mesh>(null)
+  const coreRef  = useRef<THREE.Mesh>(null)
   const coreMat  = useRef<THREE.MeshStandardMaterial>(null)
   const outerMat = useRef<THREE.MeshBasicMaterial>(null)
   const midMat   = useRef<THREE.MeshBasicMaterial>(null)
@@ -254,6 +256,17 @@ function TrackOrb({
         : active ? 1.6 : (showName && !dim) ? 1.2 : dim ? 0.25 : 0.7
       coreMat.current.emissiveIntensity += (target - coreMat.current.emissiveIntensity) * 0.08
     }
+    if (coreRef.current && tetraOrbs) {
+      const rate = seed / 100
+      coreRef.current.rotation.x = t * (0.08 + rate * 0.06)
+      coreRef.current.rotation.y = t * (0.16 + rate * 0.09)
+      coreRef.current.rotation.z = t * (0.05 + rate * 0.04)
+      coreRef.current.scale.set(
+        1 + Math.sin(t * 1.1  + seed * 0.08) * 0.14,
+        1 + Math.sin(t * 0.73 + seed * 0.13) * 0.17,
+        1 + Math.sin(t * 1.43 + seed * 0.09) * 0.12,
+      )
+    }
   })
 
   const handlePointerOver = (e: { stopPropagation: () => void }) => {
@@ -289,8 +302,11 @@ function TrackOrb({
           <meshBasicMaterial color="#b8d8ff" transparent opacity={0.05} depthWrite={false} side={THREE.BackSide} />
         </mesh>
       )}
-      <mesh>
-        <sphereGeometry args={[1, 22, 22]} />
+      <mesh ref={coreRef}>
+        {tetraOrbs
+          ? <tetrahedronGeometry args={[1, 0]} />
+          : <sphereGeometry args={[1, 22, 22]} />
+        }
         <meshStandardMaterial ref={coreMat}
           color={scifi ? "#05050f" : "#000000"}
           emissive={orbColor} emissiveIntensity={0.7}
@@ -310,6 +326,7 @@ function TrackOrb({
 function TrackOrbsPhysics({
   selected, currentUrl, isPlaying, hoverCapable,
   revealedId, setRevealedId, onSelectTrack, visitedTrackUrls, scifi,
+  slowOrbit, clusterStretch, tetraOrbs,
 }: {
   selected: Album
   currentUrl: string | null
@@ -320,13 +337,16 @@ function TrackOrbsPhysics({
   onSelectTrack: (album: Album, index: number) => void
   visitedTrackUrls: Set<string>
   scifi?: boolean
+  slowOrbit?: boolean
+  clusterStretch?: number
+  tetraOrbs?: boolean
 }) {
-  const TARGET_R  = 3.1   // desired orbital radius
-  const K_SPRING  = 2.2   // spring strength pulling each orb back toward TARGET_R
-  const K_REPEL   = 6.0   // repulsion force magnitude
-  const MIN_SEP   = 1.9   // repulsion activates below this inter-orb distance
-  const DAMP      = 0.025 // exponential damping coefficient (low = long-lived orbits)
-  const NOISE     = 0.12  // random nudge per second to keep things lively
+  const TARGET_R  = slowOrbit ? 4.5 : 3.1
+  const K_SPRING  = slowOrbit ? 0.4 : 2.2
+  const K_REPEL   = slowOrbit ? 3.0 : 6.0
+  const MIN_SEP   = slowOrbit ? 2.8 : 1.9
+  const DAMP      = slowOrbit ? 0.008 : 0.025
+  const NOISE     = slowOrbit ? 0.018 : 0.12
 
   const posRef    = useRef<THREE.Vector3[]>([])
   const velRef    = useRef<THREE.Vector3[]>([])
@@ -336,11 +356,9 @@ function TrackOrbsPhysics({
   useEffect(() => {
     if (selected.id === prevId.current) return
     prevId.current = selected.id
-    const spread = fibSphere(selected.tracks.length, TARGET_R)
+    const spread = fibSphere(selected.tracks.length, TARGET_R, clusterStretch ?? 1)
     posRef.current = spread.map((p) => new THREE.Vector3(...p))
     velRef.current = posRef.current.map((pos) => {
-      // Give each orb an initial tangential velocity so it immediately starts orbiting.
-      // A random tilt axis means each orb orbits on its own slightly different plane.
       const axis = new THREE.Vector3(
         (Math.random() - 0.5) * 0.6,
         1,
@@ -349,7 +367,7 @@ function TrackOrbsPhysics({
       return new THREE.Vector3()
         .crossVectors(pos, axis)
         .normalize()
-        .multiplyScalar(0.9 + Math.random() * 0.7)
+        .multiplyScalar(slowOrbit ? 0.12 + Math.random() * 0.1 : 0.9 + Math.random() * 0.7)
     })
   }, [selected.id, selected.tracks.length])
 
@@ -425,6 +443,7 @@ function TrackOrbsPhysics({
           onReveal={() => setRevealedId(track.url)}
           onPlay={() => onSelectTrack(selected, i)}
           scifi={scifi}
+          tetraOrbs={tetraOrbs}
         />
       ))}
     </TrackPhysicsCtx.Provider>
@@ -705,6 +724,7 @@ function Scene({
   albums, selectedId, onSelectAlbum, currentUrl, onSelectTrack,
   isPlaying, hoverCapable, revealedId, setRevealedId, visitedIds, visitedTrackUrls,
   onJumpToTrack, onActivateSimpleMode, scifi, showSearch, morphOrbs,
+  tetraOrbs, slowOrbit, clusterStretch,
 }: {
   albums: Album[]; selectedId: string | null
   onSelectAlbum: (id: string | null) => void; currentUrl: string | null
@@ -717,6 +737,9 @@ function Scene({
   scifi?: boolean
   showSearch?: boolean
   morphOrbs?: boolean
+  tetraOrbs?: boolean
+  slowOrbit?: boolean
+  clusterStretch?: number
 }) {
   const selected = albums.find((a) => a.id === selectedId) ?? null
   const albumPositions = useMemo(() => fibSphere(albums.length, 4.3, 1.5), [albums.length])
@@ -757,6 +780,9 @@ function Scene({
           onSelectTrack={onSelectTrack}
           visitedTrackUrls={visitedTrackUrls}
           scifi={scifi}
+          slowOrbit={slowOrbit}
+          clusterStretch={clusterStretch}
+          tetraOrbs={tetraOrbs}
         />
       )}
 
@@ -777,6 +803,9 @@ export function OrbScene(props: {
   scifi?: boolean
   showSearch?: boolean
   morphOrbs?: boolean
+  tetraOrbs?: boolean
+  slowOrbit?: boolean
+  clusterStretch?: number
 }) {
   const [hoverCapable, setHoverCapable] = useState(true)
   useEffect(() => {
