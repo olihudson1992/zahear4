@@ -75,13 +75,14 @@ function PointerLights({ colorA, colorB }: { colorA: string; colorB: string }) {
 
 function AlbumOrb({
   album, basePosition, selected, anySelected, isPlaying, hoverCapable,
-  revealed, visited, onReveal, onSelect, onBack, scifi,
+  revealed, visited, onReveal, onSelect, onBack, scifi, morphOrbs,
 }: {
   album: Album; basePosition: [number, number, number]
   selected: boolean; anySelected: boolean; isPlaying: boolean
   hoverCapable: boolean; revealed: boolean; visited: boolean
   onReveal: () => void; onSelect: () => void; onBack: () => void
   scifi?: boolean
+  morphOrbs?: boolean
 }) {
   const group = useRef<THREE.Group>(null)
   const core = useRef<THREE.Mesh>(null)
@@ -128,6 +129,13 @@ function AlbumOrb({
         core.current.rotation.z = t * 0.08
       } else {
         core.current.rotation.y = t * 0.05
+      }
+      if (morphOrbs && album.shape !== "tetrahedron") {
+        core.current.scale.set(
+          1 + Math.sin(t * 1.31 + seed * 0.7) * 0.07,
+          1 + Math.sin(t * 0.89 + seed * 1.1) * 0.09,
+          1 + Math.sin(t * 1.71 + seed * 0.4) * 0.06,
+        )
       }
     }
     // Shrink hit collider when selected so track orbs are easy to tap
@@ -696,7 +704,7 @@ function SimpleModeOrb({ onActivate }: { onActivate: () => void }) {
 function Scene({
   albums, selectedId, onSelectAlbum, currentUrl, onSelectTrack,
   isPlaying, hoverCapable, revealedId, setRevealedId, visitedIds, visitedTrackUrls,
-  onJumpToTrack, onActivateSimpleMode, scifi, showSearch,
+  onJumpToTrack, onActivateSimpleMode, scifi, showSearch, morphOrbs,
 }: {
   albums: Album[]; selectedId: string | null
   onSelectAlbum: (id: string | null) => void; currentUrl: string | null
@@ -708,6 +716,7 @@ function Scene({
   onActivateSimpleMode: () => void
   scifi?: boolean
   showSearch?: boolean
+  morphOrbs?: boolean
 }) {
   const selected = albums.find((a) => a.id === selectedId) ?? null
   const albumPositions = useMemo(() => fibSphere(albums.length, 4.3, 1.5), [albums.length])
@@ -731,6 +740,7 @@ function Scene({
           onSelect={() => onSelectAlbum(album.id)}
           onBack={() => onSelectAlbum(null)}
           scifi={scifi}
+          morphOrbs={morphOrbs}
         />
       ))}
 
@@ -766,6 +776,7 @@ export function OrbScene(props: {
   onActivateSimpleMode: () => void
   scifi?: boolean
   showSearch?: boolean
+  morphOrbs?: boolean
 }) {
   const [hoverCapable, setHoverCapable] = useState(true)
   useEffect(() => {

@@ -163,6 +163,19 @@ function RangaDemosPage() {
         (2D)
       </button>
 
+      {selectedId && (
+        <button
+          onClick={() => setSimpleMode(true)}
+          style={{
+            position: "fixed", top: 14, left: 14, zIndex: 30,
+            background: "rgba(0,0,0,0.45)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+            border: "1px solid rgba(255,255,255,0.18)", color: "rgba(255,255,255,0.7)",
+            borderRadius: 20, padding: "5px 14px", fontSize: 12, cursor: "pointer",
+            fontFamily: "inherit", letterSpacing: "0.04em",
+          }}
+        >2D</button>
+      )}
+
       <OrbScene
         albums={rangaDemosAlbums}
         selectedId={selectedId}
