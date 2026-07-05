@@ -25,7 +25,7 @@ export type PlayerState = {
   loading: boolean
 }
 
-export function usePlayer(albumsSource: Album[] = albums, ordered = false) {
+export function usePlayer(albumsSource: Album[] = albums, ordered = false, natural = false) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const gainNodeRef = useRef<GainNode | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
@@ -59,18 +59,22 @@ export function usePlayer(albumsSource: Album[] = albums, ordered = false) {
       if (Ctx) {
         const ctx = new Ctx()
         const src = ctx.createMediaElementSource(audio)
-        const gain = ctx.createGain()
-        gain.gain.value = 1.0
-        const lim = ctx.createDynamicsCompressor()
-        lim.threshold.value = -0.2     // dBFS — brickwall ceiling only
-        lim.knee.value = 1
-        lim.ratio.value = 20           // 20:1 = brickwall
-        lim.attack.value = 0.001       // 1 ms
-        lim.release.value = 0.06       // 60 ms
-        src.connect(gain)
-        gain.connect(lim)
-        lim.connect(ctx.destination)
-        gainNodeRef.current = gain
+        if (natural) {
+          src.connect(ctx.destination)
+        } else {
+          const gain = ctx.createGain()
+          gain.gain.value = 1.0
+          const lim = ctx.createDynamicsCompressor()
+          lim.threshold.value = -0.2
+          lim.knee.value = 1
+          lim.ratio.value = 20
+          lim.attack.value = 0.001
+          lim.release.value = 0.06
+          src.connect(gain)
+          gain.connect(lim)
+          lim.connect(ctx.destination)
+          gainNodeRef.current = gain
+        }
         audioCtxRef.current = ctx
       }
     } catch {
