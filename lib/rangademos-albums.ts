@@ -23,7 +23,7 @@ export const rangaDemosAlbums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/DEMOS/Ranga%20-%20Ol'%20-%20Pultire.mp3",        name: "Pultiare" },
       { url: "https://rangatracks.b-cdn.net/mwamwa/Terrano%20.mp3",                          name: "Terrano" },
       { url: "https://rangatracks.b-cdn.net/DEMOS/Ranga%20-%20Ol'%20-%20Mamaliga.mp3",       name: "Mamaliga" },
-      { url: "https://rangatracks.b-cdn.net/DEMOS/have%20it%20mate.mp3",                    name: "Have It Mate" },
+      { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/have%20it%20mate.mp3",                    name: "Have It Mate" },
     ],
   },
   {

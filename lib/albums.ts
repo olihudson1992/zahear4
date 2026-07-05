@@ -284,7 +284,7 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/Ranga%20-%20Ol'%20-%207.mp3", name: "Ol' - 7" },
       { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/Ranga%20-%20Ol'%20-%20Mamaliga.mp3", name: "Mamaliga" },
       { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/trip.mp3", name: "Trip" },
-      { url: "https://rangatracks.b-cdn.net/DEMOS/have%20it%20mate.mp3", name: "Have It Mate" },
+      { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/have%20it%20mate.mp3", name: "Have It Mate" },
       { url: "https://rangatracks.b-cdn.net/DEMOS/rowan.mp3", name: "Rowan" },
     ],
   },
