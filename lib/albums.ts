@@ -284,6 +284,8 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/Ranga%20-%20Ol'%20-%207.mp3", name: "Ol' - 7" },
       { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/Ranga%20-%20Ol'%20-%20Mamaliga.mp3", name: "Mamaliga" },
       { url: "https://rangatracks.b-cdn.net/WYRD%20TIMES/trip.mp3", name: "Trip" },
+      { url: "https://rangatracks.b-cdn.net/DEMOS/have%20it%20mate.mp3", name: "Have It Mate" },
+      { url: "https://rangatracks.b-cdn.net/DEMOS/rowan.mp3", name: "Rowan" },
     ],
   },
   {
@@ -303,6 +305,25 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/fosil%20road/FOESIL%20ROAD_oli.mp3", name: "Foesil Road" },
       { url: "https://rangatracks.b-cdn.net/fosil%20road/moozy_oli.mp3", name: "Moozy" },
       { url: "https://rangatracks.b-cdn.net/fosil%20road/vocal_oli.mp3", name: "Vocal" },
+    ],
+  },
+  {
+    id: "latest",
+    title: "latest",
+    description: "The latest tracks.",
+    theme: {
+      base: "#050d08",
+      ink: "#edfff4",
+      mutedInk: "rgba(237,255,244,0.6)",
+      nodes: ["#6ee7b7", "#34d399", "#a7f3d0", "#10b981", "#d1fae5", "#059669", "#ecfdf5"],
+      display: "font-display font-light tracking-wide",
+    },
+    tracks: [
+      { url: "https://rangatracks.b-cdn.net/DEMOS/have%20it%20mate.mp3", name: "Have It Mate" },
+      { url: "https://rangatracks.b-cdn.net/DEMOS/rowan.mp3",            name: "Rowan" },
+      { url: "https://rangatracks.b-cdn.net/mwamwa/Terrano%20.mp3",      name: "Terrano" },
+      { url: "https://rangatracks.b-cdn.net/mwamwa/Tresa%20.mp3",        name: "Tresa" },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3",    name: "Oremus" },
     ],
   },
 ]

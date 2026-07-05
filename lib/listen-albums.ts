@@ -28,4 +28,22 @@ export const listenAlbums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/fosil%20road/god2_Ol'.mp3", name: "God 2" },
     ],
   },
+  {
+    id: "latest",
+    title: "latest",
+    theme: {
+      base: "#050d08",
+      ink: "#edfff4",
+      mutedInk: "rgba(237,255,244,0.6)",
+      nodes: ["#6ee7b7", "#34d399", "#a7f3d0", "#10b981", "#d1fae5", "#059669", "#ecfdf5"],
+      display: "font-display font-light tracking-wide",
+    },
+    tracks: [
+      { url: "https://rangatracks.b-cdn.net/DEMOS/have%20it%20mate.mp3", name: "Have It Mate" },
+      { url: "https://rangatracks.b-cdn.net/DEMOS/rowan.mp3",            name: "Rowan" },
+      { url: "https://rangatracks.b-cdn.net/mwamwa/Terrano%20.mp3",      name: "Terrano" },
+      { url: "https://rangatracks.b-cdn.net/mwamwa/Tresa%20.mp3",        name: "Tresa" },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3",    name: "Oremus" },
+    ],
+  },
 ]
