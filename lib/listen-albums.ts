@@ -6,10 +6,10 @@ export const listenAlbums: Album[] = [
     title: "algernon drone demos",
     shape: "tetrahedron",
     theme: {
-      base: "#030c16",
-      ink: "#e8f6ff",
-      mutedInk: "rgba(232,246,255,0.6)",
-      nodes: ["#38bdf8", "#f97316", "#7dd3fc", "#ea580c", "#0ea5e9", "#fb923c", "#bae6fd"],
+      base: "#eaf5ff",
+      ink: "#1a3a5c",
+      mutedInk: "rgba(26,58,92,0.5)",
+      nodes: ["#ffffff", "#bae6fd", "#e0f2fe", "#7dd3fc", "#f0f9ff", "#dbeafe", "#cffafe"],
       display: "font-display font-light tracking-wide",
     },
     tracks: [
