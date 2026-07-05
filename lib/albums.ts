@@ -211,6 +211,7 @@ export const albums: Album[] = [
       { url: "https://rangatracks.b-cdn.net/mid%20summer/llangolen%20ft%20james%20morrigan.mp3", name: "Llangolen ft James Morrigan" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/oremus.mp3", name: "Oremus" },
       { url: "https://rangatracks.b-cdn.net/mid%20summer/solstice.mp3", name: "Solstice" },
+      { url: "https://rangatracks.b-cdn.net/mid%20summer/iSNty%20instrumentsa.mp3", name: "Isnt" },
     ],
   },
   {
