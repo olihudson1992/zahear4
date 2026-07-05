@@ -3,7 +3,7 @@ import type { Album } from "./albums"
 export const listenAlbums: Album[] = [
   {
     id: "listen",
-    title: "listen",
+    title: "algernon drone demos",
     theme: {
       base: "#030c16",
       ink: "#e8f6ff",
