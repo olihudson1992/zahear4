@@ -12,8 +12,7 @@ export const listenAlbums: Album[] = [
       display: "font-display font-light tracking-wide",
     },
     tracks: [
-      // Wyrt URL not yet provided — update when available
-      { url: "", name: "Wyrt" },
+      { url: "https://rangatracks.b-cdn.net/Wyrt.mp3", name: "Wyrt" },
       { url: "https://rangatracks.b-cdn.net/DEMOS/HIPTAMINE.mp3", name: "Hiptamine" },
       { url: "https://rangatracks.b-cdn.net/dogs%20tung_ranga_bangas.mp3", name: "Dogs Tongue" },
       { url: "https://rangatracks.b-cdn.net/Dreams%20On%20Contentment%20.mp3", name: "Dreams On Contentment" },
