@@ -139,6 +139,18 @@ export function usePlayer(albumsSource: Album[] = albums, ordered = false, natur
       const t = a?.tracks[index]
       const audio = audioRef.current
       if (!a || !t || !audio) return
+      // Skip tracks with no URL
+      if (!t.url) {
+        const skip = ordered
+          ? (index + 1) % a.tracks.length
+          : (() => {
+              if (shuffleQueueRef.current.length === 0)
+                shuffleQueueRef.current = shuffleExcluding(a.tracks.length, index)
+              return shuffleQueueRef.current.shift() ?? 0
+            })()
+        playTrack(nextAlbumId, skip, false)
+        return
+      }
 
       setError(null)
       setLoading(true)
@@ -172,7 +184,7 @@ export function usePlayer(albumsSource: Album[] = albums, ordered = false, natur
         doPlay()
       }
     },
-    [volume],
+    [volume, ordered],
   )
 
   const toggle = useCallback(() => {
@@ -274,6 +286,25 @@ export function usePlayer(albumsSource: Album[] = albums, ordered = false, natur
     }
     audio.addEventListener("ended", onEnded)
     return () => audio.removeEventListener("ended", onEnded)
+  }, [album, trackIndex, playTrack, ordered])
+
+  // Auto-advance when a track errors (empty URL, network failure, etc.)
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio || !album) return
+    const onError = () => {
+      setLoading(false)
+      if (ordered) {
+        playTrack(album.id, (trackIndex + 1) % album.tracks.length, false)
+      } else {
+        if (shuffleQueueRef.current.length === 0)
+          shuffleQueueRef.current = shuffleExcluding(album.tracks.length, trackIndex)
+        const nextIdx = shuffleQueueRef.current.shift()
+        if (nextIdx !== undefined) playTrack(album.id, nextIdx, false)
+      }
+    }
+    audio.addEventListener("error", onError)
+    return () => audio.removeEventListener("error", onError)
   }, [album, trackIndex, playTrack, ordered])
 
   const state: PlayerState = {
