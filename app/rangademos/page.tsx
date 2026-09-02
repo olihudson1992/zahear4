@@ -28,7 +28,7 @@ function RangaDemosPage() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [playerVisible, setPlayerVisible] = useState(false)
-  const [simpleMode, setSimpleMode] = useState(false)
+  const [simpleMode, setSimpleMode] = useState(true)
   const [visitedTrackUrls, setVisitedTrackUrls] = useState<Set<string>>(new Set())
   const prevTrackUrl = useRef<string | null>(null)
 
