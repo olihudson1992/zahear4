@@ -17,6 +17,25 @@ export default function MailingListPage() {
   const [bgColor, setBgColor] = useState("gradient")
   const birdRef = useRef<HTMLDivElement>(null)
 
+  // AUDIO LOOP
+  useEffect(() => {
+    const audio = new Audio(
+      "https://rangatracks.b-cdn.net/demos/sanga%20demos/ol%20-%20The%20Elephants%20Graveyard.wav",
+    )
+    audio.loop = true
+    audio.volume = 0.3
+    const playAudio = () => {
+      audio.play().catch(() => {
+        document.addEventListener("click", () => audio.play(), { once: true })
+      })
+    }
+    playAudio()
+    return () => {
+      audio.pause()
+      audio.currentTime = 0
+    }
+  }, [])
+
   // BIRD RANDOM MOVEMENT
   useEffect(() => {
     const interval = setInterval(() => {
