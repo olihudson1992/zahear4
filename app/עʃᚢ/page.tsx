@@ -2,45 +2,20 @@
 
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
-import Image from "next/image"
 
 export default function MailingListPage() {
   const [email, setEmail] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [bgHue] = useState(183)
   const [bgSaturation] = useState(100)
-  const [bgLightness, setBgLightness] = useState(68)
   const [animatedLightness, setAnimatedLightness] = useState(68)
   const [showWizard, setShowWizard] = useState(false)
-  const [showWizardControls, setShowWizardControls] = useState(false)
   const [showWizardText, setShowWizardText] = useState(false)
-  const [wizardClickCount, setWizardClickCount] = useState(0)
-  const [speechText, setSpeechText] = useState("")
-  const [birdColorSlider, setBirdColorSlider] = useState(0)
   const [birdPosition, setBirdPosition] = useState({ x: 50, y: 50 })
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [isFleeingFromMouse, setIsFleeingFromMouse] = useState(false)
   const [bgColor, setBgColor] = useState("gradient")
   const birdRef = useRef<HTMLDivElement>(null)
-
-  // AUDIO LOOP
-  useEffect(() => {
-    const audio = new Audio(
-      "https://rangatracks.b-cdn.net/demos/sanga%20demos/ol%20-%20The%20Elephants%20Graveyard.wav",
-    )
-    audio.loop = true
-    audio.volume = 0.3
-    const playAudio = () => {
-      audio.play().catch(() => {
-        document.addEventListener("click", () => audio.play(), { once: true })
-      })
-    }
-    playAudio()
-    return () => {
-      audio.pause()
-      audio.currentTime = 0
-    }
-  }, [])
 
   // BIRD RANDOM MOVEMENT
   useEffect(() => {
@@ -113,64 +88,20 @@ export default function MailingListPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  // HANDLERS
   const handleBirdClick = () => {
     setShowWizard(true)
     setBgColor(bgColor === "white" ? "gradient" : "white")
   }
 
   const handleWizardClick = () => {
-    const newClickCount = wizardClickCount + 1
-    setWizardClickCount(newClickCount)
-    if (newClickCount === 1 || (showWizard && wizardClickCount === 0)) {
-      setSpeechText("Welcome!")
-      setShowWizardText(true)
-      setTimeout(() => setShowWizardText(false), 3000)
-    } else if (newClickCount === 2) {
-      setSpeechText(
-        "You found me!\n\nWould you like to download this lovely song?\n\nJust click me again and the download will begin!",
-      )
-      setShowWizardText(true)
-    } else if (newClickCount >= 3) {
-      setShowWizardText(false)
-      setSpeechText("Downloading...")
-      setShowWizardText(true)
-      setShowWizardControls(!showWizardControls)
-      const downloadAudio = async () => {
-        try {
-          const response = await fetch(
-            "https://rangatracks.b-cdn.net/demos/sanga%20demos/ol%20-%20The%20Elephants%20Graveyard.wav",
-          )
-          const blob = await response.blob()
-          const url = window.URL.createObjectURL(blob)
-          const link = document.createElement("a")
-          link.href = url
-          link.download = "The Elephants Graveyard.wav"
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          window.URL.revokeObjectURL(url)
-        } catch (error) {
-          console.log("[v0] Download failed:", error)
-          window.open(
-            "https://rangatracks.b-cdn.net/demos/sanga%20demos/ol%20-%20The%20Elephants%20Graveyard.wav",
-            "_blank",
-          )
-        }
-      }
-      downloadAudio()
-      setTimeout(() => setShowWizardText(false), 3000)
-    }
+    setShowWizardText(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
     setShowWizard(true)
-    setWizardClickCount(1)
-    setSpeechText("Welcome!")
     setShowWizardText(true)
-    setTimeout(() => setShowWizardText(false), 3000)
     try {
       const response = await fetch("https://formspree.io/f/mldwowvy", {
         method: "POST",
@@ -191,32 +122,20 @@ export default function MailingListPage() {
       ? { background: "white" }
       : { background: `linear-gradient(to bottom, white, hsl(${bgHue}, ${bgSaturation}%, ${animatedLightness}%))` }
 
-  const getBirdColor = (sliderValue: number) => {
-    if (sliderValue <= 50) {
-      const progress = sliderValue / 50
-      return { hue: 210, saturation: progress * 100, lightness: 100 - progress * 30 }
-    } else {
-      const progress = (sliderValue - 50) / 50
-      return { hue: 210 - progress * 180, saturation: 100, lightness: 70 - progress * 20 }
-    }
-  }
-
-  const birdColor = getBirdColor(birdColorSlider)
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative" style={backgroundStyle}>
-      {showWizardControls && (
-        <div className="fixed top-4 left-4 z-50 bg-white/80 backdrop-blur-sm rounded-lg p-3">
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={birdColorSlider}
-            onChange={(e) => setBirdColorSlider(Number(e.target.value))}
-            className="w-32"
-          />
-        </div>
-      )}
+    <div
+      className="min-h-screen flex flex-col items-center p-4 relative"
+      style={{ ...backgroundStyle, paddingTop: "4.5rem" }}
+    >
+      <style>{`
+        @keyframes qmark-bob {
+          0%, 100% { transform: translateY(0) scale(1); }
+          25%       { transform: translateY(-10px) scale(1.18); }
+          55%       { transform: translateY(-4px) scale(1.07); }
+          75%       { transform: translateY(-7px) scale(1.12); }
+        }
+        .qmark-bob { animation: qmark-bob 1.6s ease-in-out infinite; }
+      `}</style>
 
       <div
         ref={birdRef}
@@ -225,7 +144,6 @@ export default function MailingListPage() {
           left: `${birdPosition.x}%`,
           top: `${birdPosition.y}%`,
           transform: "translate(-50%, -50%)",
-          filter: `hue-rotate(${birdColor.hue}deg) saturate(${birdColor.saturation / 100 + 1}) brightness(${birdColor.lightness / 100})`,
         }}
         onClick={handleBirdClick}
       >
@@ -261,40 +179,33 @@ export default function MailingListPage() {
         )}
       </div>
 
-      <div className="mt-auto mb-8 relative">
-        <Image
-          src="/images/song-inside-logo.png"
-          alt="The Song Inside Logo"
-          width={120}
-          height={120}
-          className="opacity-70"
-          style={{ mixBlendMode: "multiply" }}
-        />
+      <div className="mt-auto mb-8 flex flex-col items-center">
         {showWizard && (
           <div
-            className={`text-4xl cursor-pointer transition-all duration-300 opacity-30 hover:opacity-60 mt-4 text-center ${
-              wizardClickCount > 0 ? "scale-125" : "hover:scale-110"
-            }`}
+            className="flex flex-col items-center cursor-pointer select-none"
             onClick={handleWizardClick}
           >
-            🧙‍♂️
+            <div
+              className="qmark-bob text-4xl font-bold leading-none mb-1"
+              style={{ color: "#f97316" }}
+            >
+              ?
+            </div>
+            <div className="text-4xl opacity-30 hover:opacity-60 transition-opacity mt-2">🧙‍♂️</div>
           </div>
         )}
       </div>
 
       {showWizard && showWizardText && (
-        <div className="fixed bottom-32 left-1/2 transform -translate-x-1/2 z-10 pointer-events-none">
-          {speechText === "Welcome!" ? (
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 px-8 py-4 pointer-events-auto">
-              <div className="luminari-font text-gray-800 text-center text-2xl">{speechText}</div>
+        <div
+          className="fixed bottom-32 left-1/2 transform -translate-x-1/2 z-10 cursor-pointer"
+          onClick={() => setShowWizardText(false)}
+        >
+          <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 px-10 py-5">
+            <div className="luminari-font text-gray-800 text-center text-2xl">
+              you&rsquo;ve been chosen, join us
             </div>
-          ) : (
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 p-8 w-[90vw] max-w-6xl pointer-events-auto">
-              <div className="luminari-font text-gray-800 text-center text-xl leading-relaxed whitespace-pre-line">
-                {speechText}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       )}
     </div>
