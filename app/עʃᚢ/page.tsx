@@ -82,9 +82,9 @@ export default function MailingListPage() {
     return () => clearInterval(interval)
   }, [])
 
-  // SHOW WIZARD AFTER 2 MINUTES
+  // SHOW WIZARD AFTER 10 SECONDS
   useEffect(() => {
-    const timer = setTimeout(() => setShowWizard(true), 120000)
+    const timer = setTimeout(() => setShowWizard(true), 10000)
     return () => clearTimeout(timer)
   }, [])
 
